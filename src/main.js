@@ -1,10 +1,18 @@
 const { app, BrowserWindow, Menu, ipcMain, dialog, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
-const Store = require('electron-store');
-
-// Initialize electron-store for settings persistence
-const store = new Store();
+// Initialize electron-store for settings persistence (fallback if not available)
+let store;
+try {
+  const Store = require('electron-store');
+  store = new Store();
+} catch (error) {
+  console.warn('electron-store not available, using memory store');
+  store = {
+    get: (key, defaultValue) => defaultValue,
+    set: (key, value) => {},
+  };
+}
 
 // Keep a global reference of the window object
 let mainWindow;
@@ -20,10 +28,23 @@ const PENPOT_CONFIG = {
     prod: path.join(__dirname, '../resources/penpot-frontend/index.html')
   },
   backend: {
-    dev: 'http://localhost:6060',
+    dev: 'http://localhost:6060', 
     prod: 'http://localhost:6060' // Will run local backend in production too
   }
 };
+
+// Check if PenPot development server is running
+async function checkPenpotServer() {
+  try {
+    const response = await fetch(PENPOT_CONFIG.frontend.dev, { 
+      method: 'HEAD',
+      timeout: 3000 
+    });
+    return response.ok;
+  } catch (error) {
+    return false;
+  }
+}
 
 function createWindow() {
   // Get window state from store
@@ -60,15 +81,27 @@ function createWindow() {
     mainWindow.maximize();
   }
 
-  // Load PenPot application
-  const startUrl = isDev ? PENPOT_CONFIG.frontend.dev : `file://${PENPOT_CONFIG.frontend.prod}`;
-  
-  mainWindow.loadURL(startUrl).catch(err => {
-    console.error('Failed to load PenPot:', err);
-    // Show error dialog
-    dialog.showErrorBox('Failed to Load PenPot', 
-      'Could not load the PenPot application. Please check if the development server is running.');
-  });
+  // Load PenPot application with connection check
+  if (isDev) {
+    // In development, check if PenPot server is running
+    checkPenpotServer().then(isRunning => {
+      if (isRunning) {
+        mainWindow.loadURL(PENPOT_CONFIG.frontend.dev).catch(err => {
+          console.error('Failed to load PenPot:', err);
+          showConnectionError();
+        });
+      } else {
+        showConnectionError();
+      }
+    });
+  } else {
+    // In production, load bundled frontend
+    const prodUrl = `file://${PENPOT_CONFIG.frontend.prod}`;
+    mainWindow.loadURL(prodUrl).catch(err => {
+      console.error('Failed to load PenPot:', err);
+      showConnectionError();
+    });
+  }
 
   // Show window when ready to prevent visual flash
   mainWindow.once('ready-to-show', () => {
@@ -115,6 +148,13 @@ function createWindow() {
       shell.openExternal(navigationUrl);
     }
   });
+}
+
+function showConnectionError() {
+  dialog.showErrorBox('PenPot Connection Error', 
+    isDev 
+      ? 'Could not connect to PenPot development server at localhost:3449.\n\nPlease ensure PenPot is running with: ./manage.sh run-devenv' 
+      : 'Could not load the PenPot application. Please check the installation.');
 }
 
 function getAppIcon() {
