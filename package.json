@@ -1,0 +1,87 @@
+{
+  "name": "penpot-desktop",
+  "version": "0.1.0",
+  "description": "PenPot Desktop - Professional offline design tool",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "concurrently \"npm run dev:penpot\" \"npm run dev:electron\"",
+    "dev:penpot": "cd ../penpot && ./manage.sh run-devenv",
+    "dev:electron": "nodemon --watch src --exec \"electron .\"",
+    "build": "npm run build:penpot && npm run build:electron",
+    "build:penpot": "cd ../penpot && npm run build:frontend",
+    "build:electron": "electron-builder",
+    "dist": "npm run build && electron-builder --publish=never",
+    "pack": "electron-builder --dir",
+    "test": "jest"
+  },
+  "keywords": [
+    "design",
+    "desktop",
+    "penpot",
+    "figma-alternative",
+    "offline"
+  ],
+  "author": "PenPot Desktop Team",
+  "license": "MIT",
+  "homepage": "https://github.com/your-username/penpot-desktop",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/penpot-desktop"
+  },
+  "build": {
+    "appId": "com.penpotdesktop.app",
+    "productName": "PenPot Desktop",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "node_modules/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "../penpot/frontend/resources/public",
+        "to": "penpot-frontend",
+        "filter": ["**/*"]
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.graphics-design",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        }
+      ]
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": ["x64"]
+        }
+      ]
+    }
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8",
+    "nodemon": "^3.1.9",
+    "jest": "^29.7.0"
+  },
+  "dependencies": {
+    "electron-store": "^10.0.0",
+    "electron-updater": "^6.3.9"
+  }
+}
