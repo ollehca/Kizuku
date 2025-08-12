@@ -34,6 +34,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   }
 });
 
+// Load shortcuts system
+const ShortcutManager = require('./shortcuts.js');
+
 // Inject desktop-specific styles and modifications
 window.addEventListener('DOMContentLoaded', () => {
   // Add desktop-specific CSS class
@@ -47,8 +50,15 @@ window.addEventListener('DOMContentLoaded', () => {
     version: process.versions.electron,
     isOffline: true,
     fileSystem: true,
-    menuActions: {} // Store for menu action handlers
+    platform: process.platform,
+    menuActions: {}, // Store for menu action handlers
+    shortcutActions: {} // Store for shortcut handlers
   };
+  
+  // Initialize shortcut system
+  if (!window.shortcutManager) {
+    window.shortcutManager = new ShortcutManager();
+  }
   
   // Set up menu action integration with PenPot
   if (window.electronAPI) {
@@ -67,6 +77,20 @@ window.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+  
+  // Set up shortcut integration
+  document.addEventListener('penpot-shortcut', (event) => {
+    const { action, originalEvent, context, platform } = event.detail;
+    console.log(`Shortcut: ${action} (${context}, ${platform})`);
+    
+    // Also dispatch as menu action for compatibility
+    if (window.electronAPI) {
+      const menuEvent = new CustomEvent('penpot-desktop-action', {
+        detail: { action, data: { originalEvent, context, platform } }
+      });
+      document.dispatchEvent(menuEvent);
+    }
+  });
 });
 
 // Helper function for PenPot to register menu action handlers
