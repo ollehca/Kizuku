@@ -16,6 +16,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onMenuAction: (callback) => {
     ipcRenderer.on('menu-action', (event, action, data) => callback(action, data));
   },
+  removeMenuActionListener: () => {
+    ipcRenderer.removeAllListeners('menu-action');
+  },
   
   // Updates
   checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
@@ -43,6 +46,32 @@ window.addEventListener('DOMContentLoaded', () => {
   window.penpotDesktop = {
     version: process.versions.electron,
     isOffline: true,
-    fileSystem: true
+    fileSystem: true,
+    menuActions: {} // Store for menu action handlers
   };
+  
+  // Set up menu action integration with PenPot
+  if (window.electronAPI) {
+    window.electronAPI.onMenuAction((action, data) => {
+      console.log('Menu action received:', action, data);
+      
+      // Dispatch custom events that PenPot can listen to
+      const event = new CustomEvent('penpot-desktop-action', {
+        detail: { action, data }
+      });
+      document.dispatchEvent(event);
+      
+      // Try to trigger PenPot actions directly if possible
+      if (window.penpotDesktop.menuActions[action]) {
+        window.penpotDesktop.menuActions[action](data);
+      }
+    });
+  }
 });
+
+// Helper function for PenPot to register menu action handlers
+window.registerDesktopMenuHandler = function(action, handler) {
+  if (window.penpotDesktop) {
+    window.penpotDesktop.menuActions[action] = handler;
+  }
+};

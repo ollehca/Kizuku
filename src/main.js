@@ -177,6 +177,14 @@ function createMenu() {
           }
         },
         {
+          label: 'New File',
+          accelerator: 'CmdOrCtrl+Alt+N',
+          click: () => {
+            mainWindow.webContents.send('menu-action', 'new-file');
+          }
+        },
+        { type: 'separator' },
+        {
           label: 'Open Project',
           accelerator: 'CmdOrCtrl+O',
           click: async () => {
@@ -184,6 +192,7 @@ function createMenu() {
               properties: ['openFile'],
               filters: [
                 { name: 'PenPot Files', extensions: ['penpot'] },
+                { name: 'JSON Files', extensions: ['json'] },
                 { name: 'All Files', extensions: ['*'] }
               ]
             });
@@ -193,6 +202,18 @@ function createMenu() {
             }
           }
         },
+        {
+          label: 'Open Recent',
+          submenu: [
+            {
+              label: 'Clear Recent',
+              click: () => {
+                mainWindow.webContents.send('menu-action', 'clear-recent');
+              }
+            }
+          ]
+        },
+        { type: 'separator' },
         {
           label: 'Save Project',
           accelerator: 'CmdOrCtrl+S',
@@ -205,8 +226,10 @@ function createMenu() {
           accelerator: 'CmdOrCtrl+Shift+S',
           click: async () => {
             const result = await dialog.showSaveDialog(mainWindow, {
+              defaultPath: 'Untitled Project.penpot',
               filters: [
                 { name: 'PenPot Files', extensions: ['penpot'] },
+                { name: 'JSON Files', extensions: ['json'] },
                 { name: 'All Files', extensions: ['*'] }
               ]
             });
@@ -218,18 +241,78 @@ function createMenu() {
         },
         { type: 'separator' },
         {
-          label: 'Export',
+          label: 'Import',
           submenu: [
             {
-              label: 'Export as PNG',
-              click: () => {
-                mainWindow.webContents.send('menu-action', 'export-png');
+              label: 'Import Image',
+              accelerator: 'CmdOrCtrl+I',
+              click: async () => {
+                const result = await dialog.showOpenDialog(mainWindow, {
+                  properties: ['openFile', 'multiSelections'],
+                  filters: [
+                    { name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp', 'svg'] },
+                    { name: 'All Files', extensions: ['*'] }
+                  ]
+                });
+                
+                if (!result.canceled && result.filePaths.length > 0) {
+                  mainWindow.webContents.send('menu-action', 'import-images', result.filePaths);
+                }
               }
             },
             {
-              label: 'Export as SVG',
+              label: 'Import Font',
+              click: async () => {
+                const result = await dialog.showOpenDialog(mainWindow, {
+                  properties: ['openFile', 'multiSelections'],
+                  filters: [
+                    { name: 'Fonts', extensions: ['ttf', 'otf', 'woff', 'woff2'] },
+                    { name: 'All Files', extensions: ['*'] }
+                  ]
+                });
+                
+                if (!result.canceled && result.filePaths.length > 0) {
+                  mainWindow.webContents.send('menu-action', 'import-fonts', result.filePaths);
+                }
+              }
+            }
+          ]
+        },
+        {
+          label: 'Export',
+          submenu: [
+            {
+              label: 'Export Selection as PNG',
+              accelerator: 'CmdOrCtrl+E',
               click: () => {
-                mainWindow.webContents.send('menu-action', 'export-svg');
+                mainWindow.webContents.send('menu-action', 'export-selection-png');
+              }
+            },
+            {
+              label: 'Export Selection as SVG',
+              accelerator: 'CmdOrCtrl+Shift+E',
+              click: () => {
+                mainWindow.webContents.send('menu-action', 'export-selection-svg');
+              }
+            },
+            { type: 'separator' },
+            {
+              label: 'Export Artboard as PNG',
+              click: () => {
+                mainWindow.webContents.send('menu-action', 'export-artboard-png');
+              }
+            },
+            {
+              label: 'Export Artboard as SVG',
+              click: () => {
+                mainWindow.webContents.send('menu-action', 'export-artboard-svg');
+              }
+            },
+            { type: 'separator' },
+            {
+              label: 'Export for Web (HTML/CSS)',
+              click: () => {
+                mainWindow.webContents.send('menu-action', 'export-web');
               }
             }
           ]
@@ -243,27 +326,323 @@ function createMenu() {
     {
       label: 'Edit',
       submenu: [
-        { role: 'undo' },
-        { role: 'redo' },
+        {
+          label: 'Undo',
+          accelerator: 'CmdOrCtrl+Z',
+          click: () => {
+            mainWindow.webContents.send('menu-action', 'undo');
+          }
+        },
+        {
+          label: 'Redo', 
+          accelerator: process.platform === 'darwin' ? 'Cmd+Shift+Z' : 'Ctrl+Y',
+          click: () => {
+            mainWindow.webContents.send('menu-action', 'redo');
+          }
+        },
         { type: 'separator' },
-        { role: 'cut' },
-        { role: 'copy' },
-        { role: 'paste' },
-        { role: 'selectall' }
+        {
+          label: 'Cut',
+          accelerator: 'CmdOrCtrl+X',
+          click: () => {
+            mainWindow.webContents.send('menu-action', 'cut');
+          }
+        },
+        {
+          label: 'Copy',
+          accelerator: 'CmdOrCtrl+C',
+          click: () => {
+            mainWindow.webContents.send('menu-action', 'copy');
+          }
+        },
+        {
+          label: 'Paste',
+          accelerator: 'CmdOrCtrl+V',
+          click: () => {
+            mainWindow.webContents.send('menu-action', 'paste');
+          }
+        },
+        {
+          label: 'Paste in Place',
+          accelerator: 'CmdOrCtrl+Shift+V',
+          click: () => {
+            mainWindow.webContents.send('menu-action', 'paste-in-place');
+          }
+        },
+        { type: 'separator' },
+        {
+          label: 'Duplicate',
+          accelerator: 'CmdOrCtrl+D',
+          click: () => {
+            mainWindow.webContents.send('menu-action', 'duplicate');
+          }
+        },
+        {
+          label: 'Delete',
+          accelerator: process.platform === 'darwin' ? 'Backspace' : 'Delete',
+          click: () => {
+            mainWindow.webContents.send('menu-action', 'delete');
+          }
+        },
+        { type: 'separator' },
+        {
+          label: 'Select All',
+          accelerator: 'CmdOrCtrl+A',
+          click: () => {
+            mainWindow.webContents.send('menu-action', 'select-all');
+          }
+        },
+        {
+          label: 'Select None',
+          accelerator: 'CmdOrCtrl+Shift+A',
+          click: () => {
+            mainWindow.webContents.send('menu-action', 'select-none');
+          }
+        },
+        { type: 'separator' },
+        {
+          label: 'Find',
+          accelerator: 'CmdOrCtrl+F',
+          click: () => {
+            mainWindow.webContents.send('menu-action', 'find');
+          }
+        }
       ]
     },
     {
       label: 'View',
       submenu: [
-        { role: 'reload' },
-        { role: 'forceReload' },
-        { role: 'toggleDevTools' },
+        {
+          label: 'Zoom In',
+          accelerator: 'CmdOrCtrl+Plus',
+          click: () => {
+            mainWindow.webContents.send('menu-action', 'zoom-in');
+          }
+        },
+        {
+          label: 'Zoom Out',
+          accelerator: 'CmdOrCtrl+-',
+          click: () => {
+            mainWindow.webContents.send('menu-action', 'zoom-out');
+          }
+        },
+        {
+          label: 'Zoom to Fit',
+          accelerator: 'CmdOrCtrl+0',
+          click: () => {
+            mainWindow.webContents.send('menu-action', 'zoom-fit');
+          }
+        },
+        {
+          label: 'Zoom to Selection',
+          accelerator: 'CmdOrCtrl+2',
+          click: () => {
+            mainWindow.webContents.send('menu-action', 'zoom-selection');
+          }
+        },
+        {
+          label: 'Actual Size',
+          accelerator: 'CmdOrCtrl+1',
+          click: () => {
+            mainWindow.webContents.send('menu-action', 'zoom-actual');
+          }
+        },
         { type: 'separator' },
-        { role: 'resetZoom' },
-        { role: 'zoomIn' },
-        { role: 'zoomOut' },
+        {
+          label: 'Show Grid',
+          accelerator: 'CmdOrCtrl+\'',
+          type: 'checkbox',
+          click: () => {
+            mainWindow.webContents.send('menu-action', 'toggle-grid');
+          }
+        },
+        {
+          label: 'Show Rulers',
+          accelerator: 'CmdOrCtrl+R',
+          type: 'checkbox',
+          click: () => {
+            mainWindow.webContents.send('menu-action', 'toggle-rulers');
+          }
+        },
+        {
+          label: 'Show UI',
+          accelerator: 'CmdOrCtrl+.',
+          type: 'checkbox',
+          checked: true,
+          click: () => {
+            mainWindow.webContents.send('menu-action', 'toggle-ui');
+          }
+        },
         { type: 'separator' },
-        { role: 'togglefullscreen' }
+        {
+          label: 'Layers Panel',
+          accelerator: 'F7',
+          type: 'checkbox',
+          checked: true,
+          click: () => {
+            mainWindow.webContents.send('menu-action', 'toggle-layers');
+          }
+        },
+        {
+          label: 'Assets Panel',
+          accelerator: 'F8',
+          type: 'checkbox',
+          checked: true,
+          click: () => {
+            mainWindow.webContents.send('menu-action', 'toggle-assets');
+          }
+        },
+        {
+          label: 'Properties Panel',
+          accelerator: 'F9',
+          type: 'checkbox',
+          checked: true,
+          click: () => {
+            mainWindow.webContents.send('menu-action', 'toggle-properties');
+          }
+        },
+        { type: 'separator' },
+        { role: 'togglefullscreen' },
+        isDev ? { role: 'toggleDevTools' } : null,
+        isDev ? { role: 'reload' } : null,
+        isDev ? { role: 'forceReload' } : null
+      ].filter(Boolean)
+    },
+    {
+      label: 'Object',
+      submenu: [
+        {
+          label: 'Group',
+          accelerator: 'CmdOrCtrl+G',
+          click: () => {
+            mainWindow.webContents.send('menu-action', 'group');
+          }
+        },
+        {
+          label: 'Ungroup',
+          accelerator: 'CmdOrCtrl+Shift+G',
+          click: () => {
+            mainWindow.webContents.send('menu-action', 'ungroup');
+          }
+        },
+        { type: 'separator' },
+        {
+          label: 'Bring to Front',
+          accelerator: 'CmdOrCtrl+Shift+]',
+          click: () => {
+            mainWindow.webContents.send('menu-action', 'bring-to-front');
+          }
+        },
+        {
+          label: 'Bring Forward',
+          accelerator: 'CmdOrCtrl+]',
+          click: () => {
+            mainWindow.webContents.send('menu-action', 'bring-forward');
+          }
+        },
+        {
+          label: 'Send Backward',
+          accelerator: 'CmdOrCtrl+[',
+          click: () => {
+            mainWindow.webContents.send('menu-action', 'send-backward');
+          }
+        },
+        {
+          label: 'Send to Back',
+          accelerator: 'CmdOrCtrl+Shift+[',
+          click: () => {
+            mainWindow.webContents.send('menu-action', 'send-to-back');
+          }
+        },
+        { type: 'separator' },
+        {
+          label: 'Align',
+          submenu: [
+            {
+              label: 'Align Left',
+              click: () => {
+                mainWindow.webContents.send('menu-action', 'align-left');
+              }
+            },
+            {
+              label: 'Align Center',
+              click: () => {
+                mainWindow.webContents.send('menu-action', 'align-center');
+              }
+            },
+            {
+              label: 'Align Right',
+              click: () => {
+                mainWindow.webContents.send('menu-action', 'align-right');
+              }
+            },
+            { type: 'separator' },
+            {
+              label: 'Align Top',
+              click: () => {
+                mainWindow.webContents.send('menu-action', 'align-top');
+              }
+            },
+            {
+              label: 'Align Middle',
+              click: () => {
+                mainWindow.webContents.send('menu-action', 'align-middle');
+              }
+            },
+            {
+              label: 'Align Bottom',
+              click: () => {
+                mainWindow.webContents.send('menu-action', 'align-bottom');
+              }
+            }
+          ]
+        },
+        {
+          label: 'Distribute',
+          submenu: [
+            {
+              label: 'Distribute Horizontally',
+              click: () => {
+                mainWindow.webContents.send('menu-action', 'distribute-horizontal');
+              }
+            },
+            {
+              label: 'Distribute Vertically',
+              click: () => {
+                mainWindow.webContents.send('menu-action', 'distribute-vertical');
+              }
+            }
+          ]
+        },
+        { type: 'separator' },
+        {
+          label: 'Lock',
+          accelerator: 'CmdOrCtrl+L',
+          click: () => {
+            mainWindow.webContents.send('menu-action', 'lock');
+          }
+        },
+        {
+          label: 'Unlock',
+          accelerator: 'CmdOrCtrl+Shift+L',
+          click: () => {
+            mainWindow.webContents.send('menu-action', 'unlock');
+          }
+        },
+        {
+          label: 'Hide',
+          accelerator: 'CmdOrCtrl+H',
+          click: () => {
+            mainWindow.webContents.send('menu-action', 'hide');
+          }
+        },
+        {
+          label: 'Show',
+          accelerator: 'CmdOrCtrl+Shift+H',
+          click: () => {
+            mainWindow.webContents.send('menu-action', 'show');
+          }
+        }
       ]
     },
     {
@@ -298,6 +677,14 @@ function createMenu() {
       submenu: [
         { role: 'about' },
         { type: 'separator' },
+        {
+          label: 'Preferences...',
+          accelerator: 'Cmd+,',
+          click: () => {
+            mainWindow.webContents.send('menu-action', 'preferences');
+          }
+        },
+        { type: 'separator' },
         { role: 'services', submenu: [] },
         { type: 'separator' },
         { role: 'hide' },
@@ -308,8 +695,8 @@ function createMenu() {
       ]
     });
 
-    // Window menu
-    template[4].submenu = [
+    // Window menu (now index 6 after adding Object menu)
+    template[6].submenu = [
       { role: 'close' },
       { role: 'minimize' },
       { role: 'zoom' },
