@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PenPot Desktop</title>
+    <style>
+      body,
+      html {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100vh;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+        background-color: #1e1e2e;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        -webkit-app-region: drag;
+      }
+
+      /* Loading screen styles */
+      #loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        background: linear-gradient(135deg, #1e1e2e 0%, #2d2d44 100%);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+        color: white;
+      }
+
+      #loading-screen .logo {
+        font-size: 32px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        color: #6c7ce0;
+      }
+
+      #loading-screen .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #2d2d44;
+        border-top: 4px solid #6c7ce0;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 20px;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Error screen styles */
+      #error-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        background: linear-gradient(135deg, #2d1b1b 0%, #442d2d 100%);
+        display: none;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+        color: white;
+        text-align: center;
+        padding: 40px;
+      }
+
+      #error-screen .error-icon {
+        font-size: 48px;
+        margin-bottom: 20px;
+        color: #e06c6c;
+      }
+
+      #error-screen h2 {
+        margin: 0 0 16px 0;
+        font-size: 24px;
+        color: #e06c6c;
+      }
+
+      #error-screen p {
+        margin: 0 0 24px 0;
+        font-size: 16px;
+        color: #ccc;
+        line-height: 1.5;
+        max-width: 400px;
+      }
+
+      #retry-button {
+        background-color: #6c7ce0;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 6px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+
+      #retry-button:hover {
+        background-color: #5a6bdb;
+      }
+
+      /* Webview styles */
+      #penpot-webview {
+        flex: 1;
+        width: 100%;
+        height: 100%;
+        min-height: 100vh;
+        display: none;
+        border: none;
+        margin: 0;
+        padding: 0;
+        -webkit-app-region: no-drag;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Loading screen while PenPot starts -->
+    <div id="loading-screen">
+      <div class="logo">🎨 PenPot Desktop</div>
+      <div class="spinner"></div>
+      <p>Starting your liberation tool...</p>
+      <small>Connecting to PenPot development server</small>
+    </div>
+
+    <!-- Error screen for connection issues -->
+    <div id="error-screen">
+      <div class="error-icon">⚠️</div>
+      <h2>Connection Failed</h2>
+      <p>
+        Could not connect to PenPot development server.<br />
+        Make sure the PenPot server is running on localhost:3449
+      </p>
+      <button id="retry-button">Retry Connection</button>
+      <br /><br />
+      <small style="color: #888"> Need help? Check the console for technical details. </small>
+    </div>
+
+    <!-- Webview that contains PenPot web app -->
+    <webview id="penpot-webview" nodeintegration="false" webSecurity="false" allowpopups="true">
+    </webview>
+
+    <!-- Load webview controller -->
+    <script src="webview-controller.js"></script>
+  </body>
+</html>

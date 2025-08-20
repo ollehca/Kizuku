@@ -1,0 +1,617 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>PenPot Desktop</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body,
+      html {
+        height: 100%;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: #1e1e20;
+        overflow: hidden;
+      }
+
+      .app-container {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+      }
+
+      /* Custom Title Bar */
+      .title-bar {
+        height: 40px;
+        background: #1e1e20;
+        border-bottom: 1px solid #2a2a2d;
+        display: flex;
+        align-items: center;
+        -webkit-app-region: drag;
+        z-index: 1000;
+      }
+
+      /* Traffic lights area (macOS) */
+      .traffic-lights {
+        width: 78px;
+        -webkit-app-region: no-drag;
+      }
+
+      /* File tabs container */
+      .tabs-container {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        min-width: 0;
+        -webkit-app-region: drag;
+        padding-left: 8px;
+      }
+
+      .home-button {
+        display: flex;
+        align-items: center;
+        padding: 4px 8px;
+        border-radius: 4px;
+        cursor: pointer;
+        color: #cccccc;
+        font-size: 12px;
+        margin-right: 12px;
+        -webkit-app-region: no-drag;
+      }
+
+      .home-button:hover {
+        background: #3a3a3d;
+      }
+
+      .home-icon {
+        width: 16px;
+        height: 16px;
+        margin-right: 4px;
+      }
+
+      .tab {
+        display: flex;
+        align-items: center;
+        height: 32px;
+        padding: 0 12px;
+        background: #2a2a2d;
+        border-radius: 6px 6px 0 0;
+        margin-right: 2px;
+        font-size: 13px;
+        color: #cccccc;
+        cursor: pointer;
+        max-width: 200px;
+        min-width: 120px;
+        position: relative;
+        -webkit-app-region: no-drag;
+      }
+
+      .tab.active {
+        background: #3a3a3d;
+        color: #ffffff;
+      }
+
+      .tab-title {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .tab-close {
+        margin-left: 8px;
+        width: 16px;
+        height: 16px;
+        border-radius: 3px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        opacity: 0.6;
+        cursor: pointer;
+      }
+
+      .tab-close:hover {
+        background: #ff5f56;
+        opacity: 1;
+      }
+
+      .new-tab-btn {
+        margin-left: 8px;
+        width: 24px;
+        height: 24px;
+        border-radius: 4px;
+        background: transparent;
+        border: none;
+        color: #cccccc;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        -webkit-app-region: no-drag;
+      }
+
+      .new-tab-btn:hover {
+        background: #3a3a3d;
+      }
+
+      /* Drag area on the right */
+      .drag-area {
+        width: 100px;
+        -webkit-app-region: drag;
+      }
+
+      .project-indicator {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #00d4ff;
+        margin-right: 6px;
+      }
+
+      .project-indicator.unsaved {
+        background: #ff9500;
+      }
+
+      /* Content Area */
+      .content-area {
+        flex: 1;
+        position: relative;
+      }
+
+      .penpot-webview {
+        width: 100%;
+        height: 100%;
+        border: none;
+      }
+
+      /* Loading Overlay */
+      .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #1e1e20;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        transition: opacity 0.3s ease;
+      }
+
+      .loading-overlay.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid #2a2a2d;
+        border-top: 3px solid #00d4ff;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 16px;
+      }
+
+      .loading-text {
+        color: #cccccc;
+        font-size: 14px;
+        text-align: center;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Hide traffic lights on non-macOS */
+      .platform-windows .traffic-lights {
+        display: none;
+      }
+
+      .platform-linux .traffic-lights {
+        display: none;
+      }
+    </style>
+  </head>
+  <body class="platform-darwin">
+    <div class="app-container">
+      <!-- Custom Title Bar -->
+      <div class="title-bar">
+        <!-- Traffic lights space (macOS only) -->
+        <div class="traffic-lights"></div>
+
+        <!-- File tabs and navigation -->
+        <div class="tabs-container">
+          <!-- Home button -->
+          <div class="home-button" id="home-btn" title="Go to Dashboard">
+            <svg class="home-icon" viewBox="0 0 16 16" fill="currentColor">
+              <path
+                d="M6.5 14.5v-3.505c0-.245.25-.495.5-.495h2c.25 0 .5.25.5.5v3.5a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5z"
+              />
+            </svg>
+            Home
+          </div>
+
+          <!-- Project tabs (will be populated dynamically) -->
+          <div class="tab active" id="current-tab">
+            <div class="project-indicator"></div>
+            <div class="tab-title">New File 1</div>
+            <div class="tab-close">×</div>
+          </div>
+
+          <button class="new-tab-btn" id="new-tab-btn" title="New Project">+</button>
+        </div>
+
+        <!-- Drag area -->
+        <div class="drag-area"></div>
+      </div>
+
+      <!-- Content Area -->
+      <div class="content-area">
+        <webview
+          id="penpot-webview"
+          class="penpot-webview"
+          src="http://localhost:3449"
+          allowpopups="true"
+          webpreferences="contextIsolation=no,nodeIntegration=no,webSecurity=no"
+        >
+        </webview>
+
+        <!-- Loading Overlay -->
+        <div class="loading-overlay hidden" id="loading-overlay">
+          <div class="loading-spinner"></div>
+          <div class="loading-text" id="loading-text">Loading PenPot...</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Platform detection
+      document.body.className = `platform-${process.platform}`;
+
+      // Tab management state
+      let openTabs = new Map(); // projectId -> {name, url, element}
+      let activeTabId = null;
+
+      // Initialize when DOM is ready
+      document.addEventListener('DOMContentLoaded', () => {
+        const webview = document.getElementById('penpot-webview');
+        const homeBtn = document.getElementById('home-btn');
+        const newTabBtn = document.getElementById('new-tab-btn');
+        const currentTab = document.getElementById('current-tab');
+        const tabsContainer = document.querySelector('.tabs-container');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const loadingText = document.getElementById('loading-text');
+
+        // Hide the placeholder tab initially
+        currentTab.style.display = 'none';
+
+        // Handle menu actions from main process
+        window.electronAPI = window.electronAPI || {};
+        const { ipcRenderer } = require('electron');
+
+        ipcRenderer.on('menu-action', (event, action, data) => {
+          console.log('Received menu action:', action, data);
+
+          // Forward clipboard actions to webview
+          switch (action) {
+            case 'copy':
+              webview.copy();
+              break;
+            case 'paste':
+              webview.paste();
+              break;
+            case 'cut':
+              webview.cut();
+              break;
+            case 'undo':
+              webview.undo();
+              break;
+            case 'redo':
+              webview.redo();
+              break;
+            case 'selectall':
+              webview.selectAll();
+              break;
+            default:
+              console.log('Unhandled menu action:', action);
+          }
+        });
+
+        // Loading overlay helper functions
+        function showLoading(message = 'Loading...') {
+          loadingText.textContent = message;
+          loadingOverlay.classList.remove('hidden');
+        }
+
+        function hideLoading() {
+          loadingOverlay.classList.add('hidden');
+        }
+
+        // Add debugging for webview loading
+        webview.addEventListener('did-start-loading', () => {
+          console.log('Webview started loading...');
+        });
+
+        webview.addEventListener('did-stop-loading', () => {
+          console.log('Webview stopped loading');
+        });
+
+        webview.addEventListener('did-finish-load', () => {
+          console.log('✓ Webview finished loading');
+
+          // Check if in workspace and create tab
+          setTimeout(() => {
+            const currentUrl = webview.getURL();
+            console.log('Current URL:', currentUrl);
+
+            if (currentUrl.includes('/workspace')) {
+              console.log('✓ In workspace, creating tab');
+              const projectId = extractProjectId(currentUrl);
+              const projectName = `File ${projectId.slice(0, 6)}`;
+              console.log('Initial tab creation for:', projectId, projectName);
+              addOrUpdateTab(projectId, projectName, currentUrl);
+              setActiveTab(projectId);
+
+              // Try to get better name after a delay
+              setTimeout(() => tryUpdateProjectName(projectId), 1000);
+            }
+          }, 500);
+        });
+
+        webview.addEventListener('did-fail-load', (event) => {
+          console.error('❌ Webview failed to load:', event.errorDescription, event.errorCode);
+        });
+
+        webview.addEventListener('dom-ready', () => {
+          console.log('✓ DOM ready');
+        });
+
+        // Home button - navigate to dashboard
+        homeBtn.addEventListener('click', () => {
+          webview.loadURL('http://localhost:3449');
+          setActiveTab(null);
+        });
+
+        // New tab button - create new project
+        newTabBtn.addEventListener('click', () => {
+          console.log('Creating new project...');
+          // Simply navigate to home for now to avoid script errors
+          webview.loadURL('http://localhost:3449');
+
+          // Disabled executeJavaScript to prevent GUEST_VIEW_MANAGER errors
+          // Users can manually click new project button in PenPot
+          /*
+        setTimeout(() => {
+          webview.executeJavaScript(`
+            // Look for PenPot's new project button with various selectors
+            const selectors = [
+              'button[data-testid="new-project"]',
+              'button[title*="New"]',
+              '.new-project-btn',
+              'a[href*="new"]'
+            ];
+            
+            // Also look for buttons containing specific text
+            const textButtons = Array.from(document.querySelectorAll('button')).filter(btn => {
+              const text = btn.textContent.trim().toUpperCase();
+              return text.includes('NEW PROJECT') || 
+                     text.includes('+ NEW') || 
+                     text === '+' ||
+                     btn.title && btn.title.toLowerCase().includes('new');
+            });
+            
+            let clicked = false;
+            
+            // Try CSS selectors first
+            for (let selector of selectors) {
+              try {
+                const btn = document.querySelector(selector);
+                if (btn && btn.offsetParent !== null) {
+                  console.log('Found new project button:', selector);
+                  btn.click();
+                  clicked = true;
+                  break;
+                }
+              } catch (e) {
+                console.log('Selector failed:', selector, e);
+              }
+            }
+            
+            // Try text-based buttons if selectors failed
+            if (!clicked && textButtons.length > 0) {
+              const btn = textButtons[0];
+              console.log('Found text-based new project button:', btn.textContent);
+              btn.click();
+              clicked = true;
+            }
+            
+            if (!clicked) {
+              console.log('No new project button found, available buttons:', 
+                Array.from(document.querySelectorAll('button')).slice(0, 10).map(b => ({
+                  text: b.textContent.trim().slice(0, 20),
+                  testid: b.getAttribute('data-testid'),
+                  title: b.title
+                }))
+              );
+            }
+            
+            clicked;
+          `).then(result => {
+            console.log('New project button click result:', result);
+          }).catch(error => {
+            console.error('Failed to find new project button:', error);
+          });
+        }, 1500);
+        */
+        });
+
+        // Simple project name updater - safer version
+        function tryUpdateProjectName(projectId) {
+          if (!openTabs.has(projectId) || !webview) return;
+
+          // Only try to update name if webview is ready
+          try {
+            webview
+              .executeJavaScript(
+                `
+            try {
+              const h1Elements = Array.from(document.querySelectorAll('h1'));
+              const titleElement = h1Elements.find(h => 
+                h.textContent && 
+                h.textContent.trim() && 
+                h.textContent.trim() !== 'Penpot' &&
+                h.textContent.trim().length > 0
+              );
+              
+              titleElement ? titleElement.textContent.trim() : null;
+            } catch(e) {
+              null;
+            }
+          `
+              )
+              .then((projectName) => {
+                if (projectName && openTabs.has(projectId)) {
+                  console.log('✓ Updated project name:', projectName);
+                  const tab = openTabs.get(projectId);
+                  tab.name = projectName;
+                  tab.element.querySelector('.tab-title').textContent = projectName;
+                }
+              })
+              .catch((e) => {
+                // Silently ignore script execution errors
+              });
+          } catch (e) {
+            // Silently ignore if webview not ready
+          }
+        }
+
+        // Simple tab creation - just use in-page navigation
+        webview.addEventListener('did-navigate-in-page', (event) => {
+          const url = event.url;
+          console.log('Navigation:', url);
+
+          if (url.includes('/workspace')) {
+            const projectId = extractProjectId(url);
+            const projectName = `File ${projectId.slice(0, 8)}`;
+            addOrUpdateTab(projectId, projectName, url);
+            setActiveTab(projectId);
+          } else if (url.includes('/dashboard')) {
+            setActiveTab(null);
+          }
+        });
+
+        // Removed old complex updateTabsFromCurrentPage - using simpler approach now
+
+        // Extract unique ID from URL - use full URL for complete uniqueness
+        function extractProjectId(url) {
+          // Use entire URL including query params for true uniqueness
+          return btoa(url)
+            .replace(/[^a-zA-Z0-9]/g, '')
+            .slice(-12);
+        }
+
+        // Simple tab management
+        function addOrUpdateTab(projectId, projectName, url) {
+          if (!openTabs.has(projectId)) {
+            // Create new tab
+            const tabElement = createTabElement(projectId, projectName, url);
+            openTabs.set(projectId, {
+              name: projectName,
+              url: url,
+              element: tabElement,
+            });
+
+            // Insert before new tab button
+            tabsContainer.insertBefore(tabElement, newTabBtn);
+            console.log('Created tab:', projectName);
+          }
+        }
+
+        // Create tab element
+        function createTabElement(projectId, projectName, url) {
+          const tab = document.createElement('div');
+          tab.className = 'tab';
+          tab.innerHTML = `
+          <div class="project-indicator"></div>
+          <div class="tab-title">${projectName}</div>
+          <div class="tab-close">×</div>
+        `;
+
+          // Tab click - switch to this project
+          tab.addEventListener('click', (e) => {
+            if (e.target.classList.contains('tab-close')) return;
+            webview.loadURL(url);
+            setActiveTab(projectId);
+          });
+
+          // Tab close
+          tab.querySelector('.tab-close').addEventListener('click', (e) => {
+            e.stopPropagation();
+            closeTab(projectId);
+          });
+
+          return tab;
+        }
+
+        // Set active tab
+        function setActiveTab(projectId) {
+          // Remove active class from all tabs
+          document.querySelectorAll('.tab').forEach((tab) => {
+            tab.classList.remove('active');
+          });
+
+          if (projectId && openTabs.has(projectId)) {
+            // Set active tab
+            const tab = openTabs.get(projectId);
+            tab.element.classList.add('active');
+            activeTabId = projectId;
+          } else {
+            activeTabId = null;
+          }
+        }
+
+        // Close tab
+        function closeTab(projectId) {
+          if (openTabs.has(projectId)) {
+            const tab = openTabs.get(projectId);
+            tab.element.remove();
+            openTabs.delete(projectId);
+
+            if (activeTabId === projectId) {
+              if (openTabs.size > 0) {
+                // Switch to first available tab
+                const firstTab = openTabs.values().next().value;
+                webview.loadURL(firstTab.url);
+                setActiveTab(openTabs.keys().next().value);
+              } else {
+                // Go back to dashboard
+                homeBtn.click();
+              }
+            }
+          }
+        }
+
+        // Disabled periodic updates to prevent script execution errors
+        // setInterval(() => {
+        //   if (activeTabId) {
+        //     tryUpdateProjectName(activeTabId);
+        //   }
+        // }, 3000);
+      });
+    </script>
+  </body>
+</html>
