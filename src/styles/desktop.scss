@@ -19,10 +19,10 @@ $desktop-colors: (
 
 // BEM Block: Desktop Tab System
 .desktop-tabs {
-  // Full-width container with draggable margins
+  // Tab container INTEGRATED into title bar (ACTUAL Figma style)
   &__container {
     position: fixed !important;
-    top: 0 !important;
+    top: 0 !important; // At the very top - integrated with title bar
     left: 0 !important;
     right: 0 !important;
     height: $desktop-titlebar-height !important;
@@ -38,36 +38,35 @@ $desktop-colors: (
 
     // Add some visual depth
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
-
-    // Rounded corners to look more integrated
-    border-radius: 0 0 4px 4px !important;
   }
 
-  // Left draggable margin (align with traffic lights)
+  // Left area - space for macOS traffic lights (like Figma)
   &__drag-left {
-    width: 70px !important; // Align with macOS traffic lights
+    width: 78px !important; // Space for traffic lights like Figma
     background-color: map-get($desktop-colors, tab-bar-bg) !important;
-    -webkit-app-region: drag;
     flex-shrink: 0;
+    // Make draggable ONLY in empty areas
+    -webkit-app-region: drag;
   }
 
-  // Center draggable area (fills remaining space after tabs)
+  // Center area - draggable empty space (like Figma)
   &__drag-center {
     flex: 1 !important; // Takes remaining space after tabs
     background-color: map-get($desktop-colors, tab-bar-bg) !important;
-    -webkit-app-region: drag;
     min-width: 0;
-  }
-
-  // Right draggable margin (symmetric spacing)
-  &__drag-right {
-    width: 70px !important; // Match left side for symmetry
-    background-color: map-get($desktop-colors, tab-bar-bg) !important;
+    // Make draggable like Figma's empty title bar area
     -webkit-app-region: drag;
-    flex-shrink: 0;
   }
 
-  // Center tab area (NOT draggable, shrinks to fit content)
+  // Right spacing - draggable
+  &__drag-right {
+    width: 20px !important; // Right margin
+    background-color: map-get($desktop-colors, tab-bar-bg) !important;
+    flex-shrink: 0;
+    -webkit-app-region: drag;
+  }
+
+  // Tab area - clickable tabs (NOT draggable like Figma)
   &__bar {
     flex: 0 1 auto !important; // Shrink to content, can grow if needed, auto width
     height: 100% !important;
@@ -75,9 +74,8 @@ $desktop-colors: (
     display: flex !important;
     align-items: stretch !important;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif !important;
-    max-width: calc(100vw - 140px) !important; // Don't exceed available space minus margins
-
-    // NOT draggable - this is the tab interaction area
+    max-width: calc(100vw - 98px) !important; // Account for left (78px) + right (20px)
+    // Critical: Make tabs clickable, not draggable
     -webkit-app-region: no-drag;
 
     // Show message when empty
@@ -109,9 +107,6 @@ $desktop-colors: (
     transition:
       background-color 0.15s ease,
       color 0.15s ease;
-
-    // Disable dragging for tab interaction - tabs should NOT be draggable
-    -webkit-app-region: no-drag;
 
     // Add visual separator between tabs
     &:not(:last-child) {
@@ -177,22 +172,25 @@ $desktop-colors: (
 // PenPot Layout Adjustments - Target specific PenPot elements
 // Only adjust layout when tabs are present
 body.has-desktop-tabs {
+  // Account for integrated title bar (40px total - like Figma)
+  $total-header-height: 40px;
+
   // Target PenPot's main containers specifically
   .main_ui_dashboard__dashboard,
   .main_ui_workspace__workspace {
-    padding-top: $desktop-titlebar-height;
+    padding-top: $total-header-height;
   }
 
   // Adjust PenPot sidebars
   .main_ui_dashboard__dashboard-sidebar,
   .main_ui_workspace__left-sidebar {
-    top: $desktop-titlebar-height;
-    height: calc(100vh - #{$desktop-titlebar-height});
+    top: $total-header-height;
+    height: calc(100vh - #{$total-header-height});
   }
 
   // Fix PenPot fixed position elements
   .main_ui_dashboard__header,
   .main_ui_workspace__header {
-    top: $desktop-titlebar-height;
+    top: $total-header-height;
   }
 }

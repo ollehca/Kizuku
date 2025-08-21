@@ -131,12 +131,27 @@ const urlObserver = new window.MutationObserver(() => {
 document.addEventListener('DOMContentLoaded', () => {
   console.log('🔍 Starting automatic file detection');
   urlObserver.observe(document, { subtree: true, childList: true });
-  setTimeout(detectAndAddTabs, 2000); // Initial check
+  setTimeout(detectAndAddTabs, 2000); // Back to original timing
 });
 
 // Also check on window load
 window.addEventListener('load', () => {
-  setTimeout(detectAndAddTabs, 3000);
+  setTimeout(detectAndAddTabs, 3000); // Back to original timing
+
+  // MANUAL TEST - Add this automatically for debugging
+  setTimeout(() => {
+    if (window.electronAPI) {
+      console.log('🧪 Running manual IPC test...');
+      window.electronAPI
+        .addTab({
+          id: 'test-123',
+          name: 'Manual Test',
+          url: window.location.href,
+        })
+        .then((result) => console.log('🧪 Manual test result:', result))
+        .catch((error) => console.log('🧪 Manual test error:', error));
+    }
+  }, 5000);
 });
 
 console.log('✅ PenPot Desktop preload script loaded successfully');

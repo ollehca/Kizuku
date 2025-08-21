@@ -13,25 +13,24 @@
   opacity: 1 !important;
   visibility: visible !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
-  border-radius: 0 0 4px 4px !important;
 }
 .desktop-tabs__drag-left {
-  width: 70px !important;
+  width: 78px !important;
   background-color: #1e1e1e !important;
-  -webkit-app-region: drag;
   flex-shrink: 0;
+  -webkit-app-region: drag;
 }
 .desktop-tabs__drag-center {
   flex: 1 !important;
   background-color: #1e1e1e !important;
-  -webkit-app-region: drag;
   min-width: 0;
+  -webkit-app-region: drag;
 }
 .desktop-tabs__drag-right {
-  width: 70px !important;
+  width: 20px !important;
   background-color: #1e1e1e !important;
-  -webkit-app-region: drag;
   flex-shrink: 0;
+  -webkit-app-region: drag;
 }
 .desktop-tabs__bar {
   flex: 0 1 auto !important;
@@ -40,7 +39,7 @@
   display: flex !important;
   align-items: stretch !important;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif !important;
-  max-width: calc(100vw - 140px) !important;
+  max-width: calc(100vw - 98px) !important;
   -webkit-app-region: no-drag;
 }
 .desktop-tabs__bar:empty::after {
@@ -69,7 +68,6 @@
   transition:
     background-color 0.15s ease,
     color 0.15s ease;
-  -webkit-app-region: no-drag;
 }
 .desktop-tabs__tab:not(:last-child) {
   border-right: 1px solid #2d2d2d;

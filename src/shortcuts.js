@@ -68,21 +68,19 @@ class ShortcutManager {
   }
 
   setupEditOperationShortcuts() {
-    // EDIT OPERATIONS (Platform-aware)
-    this.register(`${this.modifierKey}+z`, 'undo', 'global', 'Undo');
+    // ONLY register shortcuts that need custom PenPot handling
+    // Let basic editing shortcuts (Cmd+V, Cmd+A, Cmd+C, Cmd+X) work natively
+    this.register(`${this.modifierKey}+z`, 'undo', 'canvas', 'Undo');
     this.register(
       this.platform === 'darwin' ? `${this.modifierKey}+shift+z` : `ctrl+y`,
       'redo',
-      'global',
+      'canvas',
       'Redo'
     );
-    this.register(`${this.modifierKey}+x`, 'cut', 'global', 'Cut');
-    this.register(`${this.modifierKey}+c`, 'copy', 'global', 'Copy');
-    this.register(`${this.modifierKey}+v`, 'paste', 'global', 'Paste');
-    this.register(`${this.modifierKey}+shift+v`, 'paste-in-place', 'global', 'Paste in place');
-    this.register(`${this.modifierKey}+d`, 'duplicate', 'global', 'Duplicate');
-    this.register(`${this.modifierKey}+a`, 'select-all', 'global', 'Select all');
-    this.register(`${this.modifierKey}+shift+a`, 'select-none', 'global', 'Select none');
+    this.register(`${this.modifierKey}+shift+v`, 'paste-in-place', 'canvas', 'Paste in place');
+    this.register(`${this.modifierKey}+d`, 'duplicate', 'canvas', 'Duplicate');
+    this.register(`${this.modifierKey}+shift+a`, 'select-none', 'canvas', 'Select none');
+    // Note: Removed Cmd+V, Cmd+A, Cmd+C, Cmd+X to allow native functionality
   }
 
   setupObjectOperationShortcuts() {
@@ -163,8 +161,12 @@ class ShortcutManager {
     const shortcutData = this.shortcuts.get(contextKey) || this.shortcuts.get(globalKey);
 
     if (shortcutData) {
-      event.preventDefault();
-      event.stopPropagation();
+      // Only prevent default for custom shortcuts, not basic editing
+      const isBasicEdit = this.isBasicEditShortcut(shortcut);
+      if (!isBasicEdit) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
 
       console.log(`Shortcut triggered: ${shortcut} -> ${shortcutData.action}`);
       this.executeAction(shortcutData.action, event);
@@ -172,6 +174,16 @@ class ShortcutManager {
     }
 
     return false;
+  }
+
+  isBasicEditShortcut(shortcut) {
+    const basicShortcuts = [
+      `${this.modifierKey}+v`,
+      `${this.modifierKey}+a`,
+      `${this.modifierKey}+c`,
+      `${this.modifierKey}+x`,
+    ];
+    return basicShortcuts.includes(shortcut);
   }
 
   buildShortcutString(event) {
@@ -301,7 +313,9 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports = ShortcutManager;
 }
 
-// Initialize if in browser context
+// Initialize if in browser context - DISABLED FOR DEBUGGING
+// TODO: Enable when debugging is complete
+/*
 if (typeof window !== 'undefined') {
   window.shortcutManager = new ShortcutManager();
 
@@ -316,3 +330,4 @@ if (typeof window !== 'undefined') {
     window.penpotDesktop.shortcutActions[action] = handler;
   };
 }
+*/

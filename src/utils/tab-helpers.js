@@ -27,7 +27,7 @@ function createHeaderElements() {
 // Helper function to create header bar structure JS
 function createHeaderBarJS() {
   const elementsJS = createHeaderElements();
-  
+
   return `
     console.log('🎨 Creating structured header bar');
     
@@ -146,6 +146,9 @@ function createHeaderBar(window) {
 
       window.webContents
         .executeJavaScript(fullJS)
+        .then(() => {
+          console.log('✅ Header bar creation completed - tab system ready');
+        })
         .catch((err) => console.log('Header creation failed, but app should still work:', err));
     }
   }, 1000);

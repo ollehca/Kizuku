@@ -109,6 +109,7 @@
   },
   "dependencies": {
     "electron-store": "^10.0.0",
-    "electron-updater": "^6.3.9"
+    "electron-updater": "^6.3.9",
+    "node-fetch": "^2.6.7"
   }
 }

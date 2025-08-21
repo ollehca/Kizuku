@@ -6,6 +6,7 @@ const { registerIpcHandlers } = require('./ipc-handlers');
 const { initializeTabManager, registerTabHandlers } = require('./tab-manager');
 const { showLoadingScreen, hideLoadingScreen } = require('./utils/loading-helpers');
 const { createHeaderBar } = require('./utils/tab-helpers');
+const recovery = require('./utils/recovery');
 // Initialize electron-store for settings persistence (fallback if not available)
 let store;
 try {
@@ -101,6 +102,49 @@ function createTimeoutFetch(url, timeout = 3000) {
   }).finally(() => clearTimeout(timeoutId));
 }
 
+// Helper function to attempt recovery and retry
+async function attemptRecoveryAndRetry() {
+  if (!isDev) {
+    return false;
+  }
+
+  console.log('🔧 Attempting automatic recovery...');
+  const recovered = await recovery.attemptRecovery();
+
+  if (recovered) {
+    console.log('✅ Recovery successful, retrying server check...');
+    // Wait a bit for services to stabilize
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+    return checkPenpotServer(); // Retry once after recovery
+  }
+
+  return false;
+}
+
+// Validate PenPot frontend content
+async function validateFrontendResponse(frontendResponse) {
+  const htmlContent = await frontendResponse.text();
+  const isPenpotApp = validatePenpotContent(htmlContent);
+
+  console.log('Frontend status:', frontendResponse.ok);
+  console.log('PenPot app detected:', isPenpotApp);
+
+  return isPenpotApp;
+}
+
+// Handle server check errors
+async function handleServerError(error) {
+  console.error('Server check error:', error.message);
+
+  // Attempt recovery on connection errors in development mode
+  if (isDev && (error.name === 'AbortError' || error.name === 'FetchError')) {
+    console.log('🔧 Connection error detected, attempting recovery...');
+    return await attemptRecoveryAndRetry();
+  }
+
+  return false;
+}
+
 // Check if PenPot development server is running
 async function checkPenpotServer() {
   try {
@@ -108,19 +152,12 @@ async function checkPenpotServer() {
 
     if (!frontendResponse.ok) {
       console.log('Frontend not responding');
-      return false;
+      return await attemptRecoveryAndRetry();
     }
 
-    const htmlContent = await frontendResponse.text();
-    const isPenpotApp = validatePenpotContent(htmlContent);
-
-    console.log('Frontend status:', frontendResponse.ok);
-    console.log('PenPot app detected:', isPenpotApp);
-
-    return isPenpotApp;
+    return await validateFrontendResponse(frontendResponse);
   } catch (error) {
-    console.error('Server check error:', error.message);
-    return false;
+    return await handleServerError(error);
   }
 }
 
@@ -149,21 +186,15 @@ function createWebPreferences() {
   };
 }
 
-// Helper function to create title bar options
+// Helper function to create title bar options - ACTUAL FIGMA STYLE
 function createTitleBarOptions() {
-  if (process.platform !== 'darwin') {
-    return {
-      titleBarStyle: 'default',
-      titleBarOverlay: false,
-    };
-  }
-
+  // Use titleBarOverlay like Figma - tabs integrated INTO the title bar
   return {
-    titleBarStyle: 'hiddenInset',
+    titleBarStyle: 'hiddenInset', // Hide default title but keep traffic lights
     titleBarOverlay: {
-      color: '#1E1E1E',
-      symbolColor: '#FFFFFF',
-      height: 40,
+      color: '#1e1e1e', // Match our tab background
+      symbolColor: '#ffffff', // White traffic lights
+      height: 40, // Height of our tab area
     },
   };
 }
@@ -393,6 +424,123 @@ function getAppIcon() {
   return path.join(__dirname, '../assets', iconName);
 }
 
+// Add recovery options to the application menu
+// eslint-disable-next-line max-lines-per-function
+function addRecoveryMenuItems() {
+  const { Menu } = require('electron');
+  const currentMenu = Menu.getApplicationMenu();
+
+  if (currentMenu) {
+    // Find the Help menu or create one
+    const helpMenu = currentMenu.items.find(
+      (item) =>
+        item.label && (item.label.toLowerCase().includes('help') || item.label.includes('?'))
+    );
+
+    if (helpMenu && helpMenu.submenu) {
+      // Add separator
+      helpMenu.submenu.append(new (require('electron').MenuItem)({ type: 'separator' }));
+
+      // Add recovery options
+      helpMenu.submenu.append(
+        new (require('electron').MenuItem)({
+          label: 'Run Health Check',
+          // eslint-disable-next-line max-lines-per-function
+          click: async () => {
+            console.log('🏥 Running manual health check...');
+            const healthCheck = await recovery.runHealthCheck();
+
+            dialog
+              .showMessageBox(mainWindow, {
+                type: healthCheck.healthy ? 'info' : 'warning',
+                title: 'Health Check Results',
+                message: healthCheck.healthy
+                  ? 'All systems are healthy!'
+                  : `Issues found: ${healthCheck.issues.join(', ')}`,
+                detail: healthCheck.healthy
+                  ? 'PenPot development environment is working correctly.'
+                  : 'Consider running automatic recovery or check the logs.',
+                buttons: healthCheck.healthy ? ['OK'] : ['OK', 'Run Recovery'],
+              })
+              .then((result) => {
+                if (result.response === 1 && !healthCheck.healthy) {
+                  // Run recovery
+                  recovery.attemptRecovery().then((recovered) => {
+                    dialog.showMessageBox(mainWindow, {
+                      type: recovered ? 'info' : 'error',
+                      title: 'Recovery Results',
+                      message: recovered ? 'Recovery successful!' : 'Recovery failed',
+                      detail: recovered
+                        ? 'Issues have been resolved automatically.'
+                        : 'Manual intervention may be required. Check the console logs.',
+                    });
+                  });
+                }
+              });
+          },
+        })
+      );
+
+      helpMenu.submenu.append(
+        new (require('electron').MenuItem)({
+          label: 'Emergency Recovery',
+          // eslint-disable-next-line max-lines-per-function
+          click: async () => {
+            const result = await dialog.showMessageBox(mainWindow, {
+              type: 'warning',
+              title: 'Emergency Recovery',
+              message: 'This will restart the entire development environment.',
+              detail: 'This may take several minutes and will interrupt any ongoing work.',
+              buttons: ['Cancel', 'Proceed'],
+              defaultId: 0,
+            });
+
+            if (result.response === 1) {
+              console.log('🚨 Starting emergency recovery...');
+              const recovered = await recovery.emergencyRecovery();
+
+              dialog.showMessageBox(mainWindow, {
+                type: recovered ? 'info' : 'error',
+                title: 'Emergency Recovery',
+                message: recovered ? 'Emergency recovery completed!' : 'Emergency recovery failed',
+                detail: recovered
+                  ? 'The development environment has been restarted.'
+                  : 'Please check the logs and try manual recovery.',
+              });
+            }
+          },
+        })
+      );
+
+      helpMenu.submenu.append(
+        new (require('electron').MenuItem)({
+          label: 'Recovery Status',
+          click: () => {
+            const status = recovery.getRecoveryStatus();
+
+            dialog.showMessageBox(mainWindow, {
+              type: 'info',
+              title: 'Recovery System Status',
+              message: 'Automatic Recovery System',
+              detail: `
+Recovery Attempts: ${status.attempts}/${status.maxAttempts}
+Last Recovery: ${status.lastRecoveryTime ? new Date(status.lastRecoveryTime).toLocaleString() : 'Never'}
+Can Recover: ${status.canRecover ? 'Yes' : 'No'}
+Cooldown Remaining: ${Math.ceil(status.cooldownRemaining / 1000)}s
+
+Health monitoring is active and checking every 2 minutes.
+            `.trim(),
+            });
+          },
+        })
+      );
+
+      // Rebuild the menu
+      Menu.setApplicationMenu(currentMenu);
+    }
+  }
+}
+
 // App event handlers
 app.whenReady().then(() => {
   createWindow();
@@ -400,6 +548,15 @@ app.whenReady().then(() => {
   registerIpcHandlers(mainWindow);
   initializeTabManager(store, mainWindow);
   registerTabHandlers();
+
+  // Start health monitoring in development mode
+  if (isDev) {
+    console.log('🔄 Starting automated health monitoring...');
+    recovery.startHealthMonitoring(120000); // Check every 2 minutes
+
+    // Add recovery menu items to help menu
+    addRecoveryMenuItems();
+  }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

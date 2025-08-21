@@ -1,5 +1,8 @@
 /**
  * Simple menu builder - each function under 20 lines
+ *
+ * Note: Parameters prefixed with underscore (_) indicate intentionally unused variables
+ * This is a standard ESLint convention to suppress "no-unused-vars" warnings
  */
 
 const { Menu, app, dialog } = require('electron');
@@ -74,19 +77,14 @@ function createFileMenu(window) {
  * @param {object} window - BrowserWindow instance
  * @returns {Array} Basic edit menu items
  */
-function createBasicEditItems(window) {
-  const redoAccelerator = process.platform === 'darwin' ? 'Cmd+Shift+Z' : 'Ctrl+Y';
-
+function createBasicEditItems(_window) {
+  // underscore indicates intentionally unused parameter
   return [
     {
-      label: 'Undo',
-      accelerator: 'CmdOrCtrl+Z',
-      click: () => sendMenuAction(window, 'undo'),
+      role: 'undo', // Use built-in role - automatically forwards to web content
     },
     {
-      label: 'Redo',
-      accelerator: redoAccelerator,
-      click: () => sendMenuAction(window, 'redo'),
+      role: 'redo', // Use built-in role - automatically forwards to web content
     },
   ];
 }
@@ -96,22 +94,17 @@ function createBasicEditItems(window) {
  * @param {object} window - BrowserWindow instance
  * @returns {Array} Cut/copy/paste menu items
  */
-function createCutCopyPasteItems(window) {
+function createCutCopyPasteItems(_window) {
+  // underscore indicates intentionally unused parameter
   return [
     {
-      label: 'Cut',
-      accelerator: 'CmdOrCtrl+X',
-      click: () => sendMenuAction(window, 'cut'),
+      role: 'cut', // Use built-in role - automatically forwards to web content
     },
     {
-      label: 'Copy',
-      accelerator: 'CmdOrCtrl+C',
-      click: () => sendMenuAction(window, 'copy'),
+      role: 'copy', // Use built-in role - automatically forwards to web content
     },
     {
-      label: 'Paste',
-      accelerator: 'CmdOrCtrl+V',
-      click: () => sendMenuAction(window, 'paste'),
+      role: 'paste', // Use built-in role - automatically forwards to web content
     },
   ];
 }
@@ -121,13 +114,12 @@ function createCutCopyPasteItems(window) {
  * @param {object} window - BrowserWindow instance
  * @returns {Array} Select all menu items
  */
-function createSelectAllItems(window) {
+function createSelectAllItems(_window) {
+  // underscore indicates intentionally unused parameter
   return [
     { type: 'separator' },
     {
-      label: 'Select All',
-      accelerator: 'CmdOrCtrl+A',
-      click: () => sendMenuAction(window, 'selectall'),
+      role: 'selectall', // Use built-in role - automatically forwards to web content
     },
   ];
 }

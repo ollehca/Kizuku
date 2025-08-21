@@ -1,52 +1,152 @@
-# PenPot Desktop
+# 🎨 PenPot Desktop
 
-Professional offline design tool based on the open-source PenPot design platform.
+**Professional desktop application for PenPot design platform**
 
-## Overview
+## 🚀 Quick Start
 
-PenPot Desktop brings the power of PenPot to your desktop with offline capabilities, enhanced performance, and native desktop integration. Built on Electron, it provides a seamless design experience without requiring an internet connection.
+### One-Command Setup (Recommended)
+```bash
+./start-dev-environment.sh
+```
+This automatically:
+- ✅ Starts all PenPot services
+- ✅ Creates demo account
+- ✅ Validates everything works
+- ✅ Launches desktop app
 
-## Features
+### Demo Credentials
+- **Email**: `demo@penpot.local`
+- **Password**: `demo123`
 
-- **Offline Design**: Work on your projects without internet connection
-- **Native File System**: Direct file save/load operations
-- **Desktop Integration**: Native menus, shortcuts, and OS integration
-- **Enhanced Performance**: Optimized for desktop usage
-- **Cross-Platform**: Available for macOS, Windows, and Linux
-- **Auto-Updates**: Seamless updates (coming soon)
+---
 
-## Development Setup
+## 🔧 Manual Commands
 
-### Prerequisites
+### If Quick Start Fails
+```bash
+# Check what's wrong
+./scripts/health-check.sh
 
-- Node.js (v22.13.1 or later)
-- Docker and Docker Compose V2
-- Git
+# Fix issues automatically  
+./scripts/health-check.sh --repair
 
-### Getting Started
+# Create demo account only
+./scripts/create-demo-simple.sh
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/your-username/penpot-desktop.git
-   cd penpot-desktop
-   ```
+# Start desktop app
+npm start
+```
 
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
+### Troubleshooting
+```bash
+# Emergency reset (if everything breaks)
+./scripts/health-check.sh --repair
+./start-dev-environment.sh
 
-3. **Set up PenPot development environment:**
-   ```bash
-   cd ../penpot
-   ./manage.sh pull-devenv
-   ./manage.sh run-devenv
-   ```
+# Check system health
+./scripts/health-check.sh --quick
 
-4. **Start the desktop application:**
-   ```bash
-   npm run dev
-   ```
+# Backup your data
+./scripts/maintenance.sh backup-all
+```
+
+---
+
+## 📁 Important Files
+
+| File | Purpose |
+|------|---------|
+| `start-dev-environment.sh` | **🎯 Main startup script** |
+| `scripts/health-check.sh` | System health & auto-repair |
+| `scripts/create-demo-simple.sh` | Demo account creation |
+| `scripts/maintenance.sh` | Backup & maintenance |
+| `CLAUDE.md` | **📚 Complete documentation** |
+
+---
+
+## 🆘 Common Issues
+
+### ❌ Desktop App Shows 404 Error
+```bash
+./scripts/health-check.sh --repair
+```
+
+### ❌ Demo Login Doesn't Work  
+```bash
+./scripts/create-demo-simple.sh
+```
+
+### ❌ Services Won't Start
+```bash
+cd ../penpot
+./manage.sh drop-devenv
+./manage.sh start-devenv
+./start-dev-environment.sh
+```
+
+### ❌ Everything is Broken
+```bash
+./scripts/maintenance.sh reset
+./start-dev-environment.sh
+```
+
+---
+
+## 🎯 Development Workflow
+
+### Daily Routine
+1. **Start**: `./start-dev-environment.sh`
+2. **Work**: Use demo credentials to log in
+3. **Check**: Desktop app Help menu → "Run Health Check"
+
+### Before Making Changes
+1. **Backup**: `./scripts/maintenance.sh backup-all`
+2. **Health Check**: `./scripts/health-check.sh`
+
+### If Issues Occur
+1. **Auto-repair**: Desktop app Help menu → "Run Health Check" 
+2. **Manual repair**: `./scripts/health-check.sh --repair`
+3. **Emergency**: Desktop app Help menu → "Emergency Recovery"
+
+---
+
+## 📱 Desktop App Features
+
+### Automatic Recovery (Built-in)
+- 🔄 Monitors health every 2 minutes
+- 🛠️ Auto-repairs missing files
+- 🚨 Emergency recovery option
+- 📊 Status tracking
+
+### Help Menu Options
+- **Run Health Check** - Check system status
+- **Emergency Recovery** - Full system restart  
+- **Recovery Status** - View recovery info
+
+---
+
+## 📚 Need More Help?
+
+- **Complete Guide**: Read `CLAUDE.md`
+- **Health Issues**: Run `./scripts/health-check.sh`
+- **Data Problems**: Use `./scripts/maintenance.sh`
+- **Demo Account**: Try `./scripts/create-demo-simple.sh`
+
+---
+
+## 🎉 Success Indicators
+
+When everything works:
+- ✅ Desktop app opens without errors
+- ✅ Can log in with `demo@penpot.local / demo123`
+- ✅ PenPot interface loads completely
+- ✅ No 404 errors in console
+
+**Happy designing! 🎨**
+
+---
+
+## Development Setup (Original)
 
 ## Architecture
 
