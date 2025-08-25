@@ -7,6 +7,7 @@ const { initializeTabManager, registerTabHandlers } = require('./tab-manager');
 const { showLoadingScreen, hideLoadingScreen } = require('./utils/loading-helpers');
 const { createHeaderBar } = require('./utils/tab-helpers');
 const recovery = require('./utils/recovery');
+const authStorage = require('./services/auth-storage');
 // Initialize electron-store for settings persistence (fallback if not available)
 let store;
 try {
@@ -249,6 +250,21 @@ function injectCSSFiles(window) {
   }
 }
 
+// Helper function to inject authentication integration script
+function injectAuthIntegration(window) {
+  const authIntegrationPath = path.join(__dirname, 'frontend-integration', 'auth-integration.js');
+
+  try {
+    const authScript = fs.readFileSync(authIntegrationPath, 'utf8');
+    window.webContents.executeJavaScript(authScript).catch((error) => {
+      console.error('Failed to inject auth integration script:', error);
+    });
+    console.log('Auth integration script injected successfully');
+  } catch (error) {
+    console.error('Failed to load auth integration script:', error);
+  }
+}
+
 // Loading screen functions moved to ./utils/loading-helpers.js
 
 // Helper function to inject CSS and show loading screen
@@ -308,16 +324,54 @@ function setupWindowEventHandlers(window) {
   window.webContents.on('will-navigate', handleNavigation);
 }
 
+// Auto-login functionality
+/* eslint-disable-next-line max-lines-per-function */
+async function attemptAutoLogin(window) {
+  const storedCredentials = authStorage.getStoredCredentials();
+
+  if (!storedCredentials) {
+    console.log('No stored credentials found, proceeding to login screen');
+    return false;
+  }
+
+  console.log('Attempting auto-login for user:', storedCredentials.email);
+
+  // Inject stored credentials into the frontend for automatic authentication
+  const authScript = `
+    window.penpotDesktopAuth = {
+      autoLogin: true,
+      token: "${storedCredentials.token}",
+      email: "${storedCredentials.email}",
+      profile: ${JSON.stringify(storedCredentials.profile)},
+      rememberMe: ${storedCredentials.rememberMe}
+    };
+    console.log('🔐 Auto-login credentials injected for:', "${storedCredentials.email}");
+  `;
+
+  window.webContents.executeJavaScript(authScript).catch((error) => {
+    console.error('Failed to inject auto-login credentials:', error);
+  });
+
+  return true;
+}
+
 // Helper function to handle successful server connection
 function handleServerSuccess(window) {
   console.log('Loading URL:', PENPOT_CONFIG.frontend.dev);
   window
     .loadURL(PENPOT_CONFIG.frontend.dev)
-    .then(() => {
+    .then(async () => {
       console.log('URL loaded successfully');
 
       injectCSSAndLoadingScreen(window);
       createHeaderBar(window);
+
+      // Attempt auto-login after page loads
+      window.webContents.once('did-finish-load', async () => {
+        await attemptAutoLogin(window);
+        injectAuthIntegration(window);
+      });
+
       hideLoadingScreen(window);
       setupCSSHotReloading();
     })

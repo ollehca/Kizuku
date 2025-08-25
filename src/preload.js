@@ -46,6 +46,15 @@ contextBridge.exposeInMainWorld('electronAPI', {
     window.open(url, '_blank');
   },
 
+  // Authentication storage
+  auth: {
+    storeCredentials: (credentials) => ipcRenderer.invoke('auth:store-credentials', credentials),
+    getCredentials: () => ipcRenderer.invoke('auth:get-credentials'),
+    clearCredentials: () => ipcRenderer.invoke('auth:clear-credentials'),
+    hasValidCredentials: () => ipcRenderer.invoke('auth:has-valid-credentials'),
+    getSessionInfo: () => ipcRenderer.invoke('auth:get-session-info'),
+  },
+
   // Manual test function for debugging
   testTabDetection: () => {
     console.log('🧪 Manual tab detection test via electronAPI');

@@ -155,20 +155,27 @@ main() {
     sleep 5
     check_containers
     
-    # Step 4: Wait for services to be available
+    # Step 4: Start PenPot services inside container
+    print_status "Starting PenPot backend service..."
+    docker exec -d penpot-devenv-main bash -c "cd /home/penpot/penpot/backend && clojure -M:dev -m app.main"
+    
+    print_status "Starting PenPot frontend build process..."
+    docker exec -d penpot-devenv-main bash -c "cd /home/penpot/penpot/frontend && yarn watch"
+    
+    # Step 5: Wait for services to be available
     wait_for_service "http://localhost:3449" "PenPot Frontend"
     wait_for_service "http://localhost:6060/api" "PenPot Backend" 
     
-    # Step 5: Ensure frontend assets are built
+    # Step 6: Ensure frontend assets are built
     ensure_frontend_assets
     
-    # Step 6: Wait for frontend to serve assets properly
+    # Step 7: Wait for frontend to serve assets properly
     wait_for_service "http://localhost:3449/js/config.js" "Frontend Assets"
     
-    # Step 7: Create demo account
+    # Step 8: Create demo account
     create_demo_account
     
-    # Step 8: Final health check
+    # Step 9: Final health check
     print_status "Running final health checks..."
     if curl -f -s http://localhost:3449/css/debug.css > /dev/null && \
        curl -f -s http://localhost:3449/js/config.js > /dev/null; then

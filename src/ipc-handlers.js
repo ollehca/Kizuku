@@ -5,6 +5,7 @@
 const { ipcMain, dialog, app } = require('electron');
 const fs = require('fs').promises;
 const { createLogger } = require('./utils/logger');
+const authStorage = require('./services/auth-storage');
 
 const logger = createLogger('IPC');
 
@@ -109,6 +110,61 @@ function handleWebviewRetry(event, data) {
   // Future: Restart webview or refresh connection
 }
 
+// Authentication storage handlers
+
+/**
+ * Store authentication credentials
+ * @param {object} event - IPC event
+ * @param {object} credentials - Auth credentials
+ * @returns {boolean} Success status
+ */
+function storeAuthCredentials(event, credentials) {
+  logger.info('Storing auth credentials', {
+    email: credentials.email,
+    rememberMe: credentials.rememberMe,
+  });
+  return authStorage.storeCredentials(credentials);
+}
+
+/**
+ * Get stored authentication credentials
+ * @returns {object|null} Stored credentials or null
+ */
+function getStoredAuthCredentials() {
+  const credentials = authStorage.getStoredCredentials();
+  if (credentials) {
+    logger.info('Retrieved stored credentials', {
+      email: credentials.email,
+      rememberMe: credentials.rememberMe,
+    });
+  }
+  return credentials;
+}
+
+/**
+ * Clear stored authentication credentials
+ */
+function clearAuthCredentials() {
+  logger.info('Clearing stored auth credentials');
+  authStorage.clearStoredCredentials();
+}
+
+/**
+ * Check if valid credentials exist
+ * @returns {boolean} True if valid credentials exist
+ */
+function hasValidAuthCredentials() {
+  return authStorage.hasValidCredentials();
+}
+
+/**
+ * Get session info for debugging
+ * @returns {object} Session information
+ */
+function getAuthSessionInfo() {
+  return authStorage.getSessionInfo();
+}
+
 /**
  * Register all IPC handlers
  * @param {object} window - BrowserWindow instance
@@ -127,7 +183,14 @@ function registerIpcHandlers(window) {
   ipcMain.on('webview:error', handleWebviewError);
   ipcMain.on('webview:retry', handleWebviewRetry);
 
-  logger.info('IPC handlers registered for webview communication');
+  // Authentication storage handlers
+  ipcMain.handle('auth:store-credentials', storeAuthCredentials);
+  ipcMain.handle('auth:get-credentials', getStoredAuthCredentials);
+  ipcMain.handle('auth:clear-credentials', clearAuthCredentials);
+  ipcMain.handle('auth:has-valid-credentials', hasValidAuthCredentials);
+  ipcMain.handle('auth:get-session-info', getAuthSessionInfo);
+
+  logger.info('IPC handlers registered for webview communication and authentication');
 }
 
 module.exports = {

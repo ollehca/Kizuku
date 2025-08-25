@@ -33,7 +33,8 @@ async function checkService(url, timeout = 5000) {
     });
 
     clearTimeout(timeoutId);
-    return response.ok;
+    // For backend, 404 is OK (means server is responding)
+    return response.ok || response.status === 404;
   } catch (error) {
     console.warn(`Service check failed for ${url}:`, error.message);
     return false;
@@ -137,7 +138,7 @@ async function repairFrontendAssets() {
  * Check if demo account is working
  */
 async function checkDemoAccount() {
-  const loginUrl = `${PENPOT_CONFIG.backend.dev}/api/auth/login`;
+  const loginUrl = `${PENPOT_CONFIG.backend.dev}/api/rpc/command/login-with-password`;
   const credentials = {
     email: 'demo@penpot.local',
     password: 'demo123',
@@ -213,7 +214,7 @@ async function runHealthCheck() {
 
   const checks = {
     frontend: await checkService(PENPOT_CONFIG.frontend.dev),
-    backend: await checkService(`${PENPOT_CONFIG.backend.dev}/api`),
+    backend: await checkService(PENPOT_CONFIG.backend.dev),
     assets: await checkFrontendAssets(),
     demoAccount: await checkDemoAccount(),
   };
