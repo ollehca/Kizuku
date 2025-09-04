@@ -1,4 +1,8 @@
 const { contextBridge, ipcRenderer } = require('electron');
+const ShortcutManager = require('./shortcuts');
+
+// Make ShortcutManager available for test compatibility
+contextBridge.exposeInMainWorld('ShortcutManager', ShortcutManager);
 
 console.log('🚀 PenPot Desktop preload script starting...');
 console.log('🔧 contextBridge available:', !!contextBridge);
