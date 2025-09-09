@@ -199,12 +199,12 @@ function createHelpMenu(window) {
     role: 'help',
     submenu: [
       {
-        label: 'About PenPot Desktop',
+        label: 'About Kizu 築',
         click: () => {
           dialog.showMessageBox(window, {
             type: 'info',
-            title: 'About PenPot Desktop',
-            message: 'PenPot Desktop',
+            title: 'About Kizu 築',
+            message: 'Kizu 築',
             detail: `Version: ${app.getVersion()}\nProfessional offline design tool`,
           });
         },

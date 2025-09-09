@@ -36,7 +36,7 @@ async function showHealthCheckDialog(mainWindow, healthCheck) {
       ? 'All systems are healthy!'
       : `Issues found: ${healthCheck.issues.join(', ')}`,
     detail: healthCheck.healthy
-      ? 'PenPot development environment is working correctly.'
+      ? 'Kizu development environment is working correctly.'
       : 'Consider running automatic recovery or check the logs.',
     buttons: healthCheck.healthy ? ['OK'] : ['OK', 'Run Recovery'],
   });

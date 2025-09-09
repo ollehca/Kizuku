@@ -1,10 +1,10 @@
-# PenPot Desktop Development Guide
+# Kizu 築 Development Guide
 
-This document contains essential information for developing and maintaining the PenPot Desktop application.
+This document contains essential information for developing and maintaining the Kizu application.
 
 ## Overview
 
-PenPot Desktop is an Electron wrapper for the PenPot design platform. It provides a native desktop experience while connecting to either local development servers or production instances.
+Kizu is an Electron wrapper for the PenPot design platform. It provides a native desktop experience while connecting to either local development servers or production instances.
 
 ## Quick Start
 
@@ -20,7 +20,7 @@ This script will:
 - Build frontend assets
 - Create demo account
 - Validate everything is working
-- Launch the desktop app
+- Launch the Kizu app
 
 ### Manual Setup
 If you need to set up components individually:
@@ -38,7 +38,7 @@ sleep 30
 # 4. Setup demo account
 ./scripts/manage-demo-accounts.sh setup
 
-# 5. Start desktop app
+# 5. Start Kizu app
 npm start
 ```
 
@@ -51,7 +51,7 @@ npm start
 3. **Verify frontend build**: Check `/home/penpot/penpot/frontend/resources/public/js/config.js` exists
 4. **Ensure assets compilation**: If missing files, run frontend watch process
 5. **Validate demo account**: Ensure persistent demo credentials work
-6. **Start desktop app**: `npm start`
+6. **Start Kizu app**: `npm start`
 
 ## Demo Credentials Management
 
@@ -228,10 +228,10 @@ docker logs penpot-devenv-main -f
 ./manage.sh log-devenv       # View container logs
 ```
 
-### Desktop App Commands
+### Kizu App Commands
 ```bash
-npm start                    # Start desktop app in development
-npm run build               # Build desktop app for production
+npm start                    # Start Kizu app in development
+npm run build               # Build Kizu app for production
 npm test                    # Run tests (if available)
 ```
 
@@ -243,7 +243,7 @@ docker exec penpot-devenv-main bash -c "cd /home/penpot/penpot/frontend && yarn 
 
 ## Automated Recovery Features
 
-The desktop app includes automated recovery mechanisms:
+The Kizu app includes automated recovery mechanisms:
 - **Missing asset detection**: Automatically creates placeholder files
 - **Service health monitoring**: Checks backend connectivity
 - **Auto-restart mechanisms**: Attempts to recover from common failures

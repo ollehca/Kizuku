@@ -112,7 +112,7 @@ function createWindowConfig(windowState, isDev) {
     minHeight: MIN_HEIGHT,
     webPreferences: getWebPreferences(isDev),
     ...titleBarConfig,
-    title: 'PenPot Desktop',
+    title: 'Kizu',
     backgroundColor: '#1E1E20',
     show: true,
     icon: getAppIconPath(),

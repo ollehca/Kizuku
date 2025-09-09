@@ -494,7 +494,7 @@ function createWindow() {
 
 function showConnectionError() {
   dialog.showErrorBox(
-    'PenPot Connection Error',
+    'Kizu Connection Error',
     isDev
       ? 'PenPot development server not ready:\n\n' +
           '• Check if PenPot is fully started at localhost:3449\n' +
@@ -547,6 +547,6 @@ app.on('window-all-closed', () => {
   }
 });
 
-console.log('PenPot Desktop starting...');
+console.log('Kizu starting...');
 console.log('Development mode:', isDev);
 console.log('Electron version:', process.versions.electron);

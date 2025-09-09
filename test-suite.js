@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Comprehensive test suite for PenPot Desktop functionality
+// Comprehensive test suite for Kizu functionality
 // Tests Electron wrapper, menu system, keyboard shortcuts, and PenPot integration
 
 const { spawn } = require('child_process');
@@ -7,7 +7,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-class PenPotDesktopTester {
+class KizuTester {
   constructor() {
     this.results = {
       passed: 0,
@@ -388,7 +388,7 @@ class PenPotDesktopTester {
     const total = this.results.passed + this.results.failed + this.results.warnings;
 
     console.log('\n' + '='.repeat(60));
-    console.log('🧪 PENPOT DESKTOP TEST RESULTS');
+    console.log('🧪 KIZU TEST RESULTS');
     console.log('='.repeat(60));
     console.log(`✅ Passed: ${this.results.passed}`);
     console.log(`❌ Failed: ${this.results.failed}`);
@@ -397,7 +397,7 @@ class PenPotDesktopTester {
     console.log('');
 
     if (this.results.failed === 0) {
-      console.log('🎉 All critical tests passed! PenPot Desktop is ready for development.');
+      console.log('🎉 All critical tests passed! Kizu is ready for development.');
     } else {
       console.log('⚠️  Some tests failed. Please review the issues above.');
     }
@@ -410,7 +410,7 @@ class PenPotDesktopTester {
   }
 
   async runAllTests() {
-    this.log('Starting PenPot Desktop Test Suite...', 'info');
+    this.log('Starting Kizu Test Suite...', 'info');
     console.log('');
 
     // Critical tests (must pass)
@@ -437,11 +437,11 @@ class PenPotDesktopTester {
 
 // Run tests if called directly
 if (require.main === module) {
-  const tester = new PenPotDesktopTester();
+  const tester = new KizuTester();
   tester.runAllTests().catch((error) => {
     console.error('Test suite crashed:', error);
     process.exit(1);
   });
 }
 
-module.exports = PenPotDesktopTester;
+module.exports = KizuTester;

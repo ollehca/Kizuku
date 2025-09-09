@@ -4,7 +4,7 @@ const ShortcutManager = require('./shortcuts');
 // Make ShortcutManager available for test compatibility
 contextBridge.exposeInMainWorld('ShortcutManager', ShortcutManager);
 
-console.log('🚀 PenPot Desktop preload script starting...');
+console.log('🚀 Kizu preload script starting...');
 console.log('🔧 contextBridge available:', !!contextBridge);
 console.log('🔧 ipcRenderer available:', !!ipcRenderer);
 
@@ -167,4 +167,4 @@ window.addEventListener('load', () => {
   }, 5000);
 });
 
-console.log('✅ PenPot Desktop preload script loaded successfully');
+console.log('✅ Kizu preload script loaded successfully');

@@ -19,11 +19,11 @@ function createLoadingContentJS() {
   return `
     const logo = document.createElement('div');
     logo.className = 'loading-screen__logo';
-    logo.textContent = 'PD';
+    logo.textContent = 'K';
     
     const title = document.createElement('h1');
     title.className = 'loading-screen__title';
-    title.textContent = 'PenPot Desktop';
+    title.textContent = 'Kizu';
     
     const subtitle = document.createElement('p');
     subtitle.className = 'loading-screen__subtitle';

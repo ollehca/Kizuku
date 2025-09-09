@@ -1,7 +1,7 @@
 {
-  "name": "penpot-desktop",
+  "name": "kizu",
   "version": "0.1.0",
-  "description": "PenPot Desktop - Professional offline design tool",
+  "description": "Kizu - Professional offline design tool",
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",
@@ -33,7 +33,7 @@
     "figma-alternative",
     "offline"
   ],
-  "author": "PenPot Desktop Team",
+  "author": "Kizu Team",
   "license": "MIT",
   "homepage": "https://github.com/your-username/penpot-desktop",
   "repository": {
@@ -41,8 +41,8 @@
     "url": "https://github.com/your-username/penpot-desktop"
   },
   "build": {
-    "appId": "com.penpotdesktop.app",
-    "productName": "PenPot Desktop",
+    "appId": "com.kizu.app",
+    "productName": "Kizu 築",
     "directories": {
       "output": "dist"
     },
