@@ -1,4 +1,6 @@
 @charset "UTF-8";
+/* Import Typography System */
+@import url('./typography.css');
 .desktop-tabs__container {
   position: fixed !important;
   top: 0 !important;
@@ -121,7 +123,7 @@
 
 body.has-desktop-tabs .main_ui_dashboard__dashboard,
 body.has-desktop-tabs .main_ui_workspace__workspace {
-  padding-top: 40px;
+  padding-top: 80px;
 }
 body.has-desktop-tabs .main_ui_dashboard__dashboard-sidebar,
 body.has-desktop-tabs .main_ui_workspace__left-sidebar {
@@ -131,6 +133,89 @@ body.has-desktop-tabs .main_ui_workspace__left-sidebar {
 body.has-desktop-tabs .main_ui_dashboard__header,
 body.has-desktop-tabs .main_ui_workspace__header {
   top: 40px;
+}
+
+/* Replace PenPot logo with Kizu branding */
+.main_ui_header__logo,
+.main_ui_dashboard__logo,
+.main_ui_header__brand,
+[class*='logo'] img,
+[class*='brand'] img,
+svg[class*='logo'],
+.main_ui_header__logo svg,
+.main_ui_dashboard__logo svg {
+  display: none !important;
+}
+
+/* Hide the login page isometric illustration */
+.auth-content__illustration,
+.auth-illustration,
+[class*='illustration'],
+.auth-content > div:first-child,
+.main-auth > div:first-child {
+  display: none !important;
+}
+
+/* Make login form take full width */
+.auth-content,
+.main-auth {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 100% !important;
+}
+
+.auth-content__form,
+.auth-form,
+.auth-content > div:last-child {
+  width: 400px !important;
+  max-width: 400px !important;
+  margin: 0 auto !important;
+}
+
+.main_ui_header__logo::after,
+.main_ui_dashboard__logo::after,
+.main_ui_header__brand::after {
+  content: '';
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background-image: url('data:image/svg+xml;charset=utf8,%3Csvg width="24" height="21" viewBox="0 0 400 350" fill="none" xmlns="http://www.w3.org/2000/svg"%3E%3Cpath d="M200 50 L320 280 L80 280 Z" fill="%2311605A"/%3E%3Cpath d="M200 50 L140 170 L80 280 L200 230 Z" fill="%2327BDB1"/%3E%3Cpath d="M200 230 L320 280 L80 280 L200 230 Z" fill="%2335F6E6"/%3E%3C/svg%3E');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  margin-right: 8px;
+}
+
+/* Replace any PenPot text with Kizu */
+.main_ui_header__brand-text,
+.main_ui_dashboard__brand-text,
+[class*='brand'] span,
+[class*='logo'] + span {
+  font-family: 'Josefin Sans', sans-serif !important;
+  font-size: 18px !important;
+  font-weight: 400 !important;
+  color: #ffffff !important;
+}
+
+.main_ui_header__brand-text::before,
+.main_ui_dashboard__brand-text::before {
+  content: 'Kizu';
+  display: inline-block;
+}
+
+.main_ui_header__brand-text,
+.main_ui_dashboard__brand-text {
+  text-indent: -9999px;
+  position: relative;
+}
+
+.main_ui_header__brand-text::before,
+.main_ui_dashboard__brand-text::before {
+  text-indent: 0;
+  position: absolute;
+  left: 0;
+  top: 0;
 }
 
 /*# sourceMappingURL=desktop.css.map */

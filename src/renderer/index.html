@@ -4,6 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Kizu</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,100..700;1,100..700&display=swap"
+      rel="stylesheet"
+    />
     <style>
       body,
       html {
@@ -33,13 +39,6 @@
         align-items: center;
         z-index: 2000;
         color: white;
-      }
-
-      #loading-screen .logo {
-        font-size: 32px;
-        font-weight: bold;
-        margin-bottom: 20px;
-        color: #6c7ce0;
       }
 
       #loading-screen .spinner {
@@ -131,10 +130,45 @@
   <body>
     <!-- Loading screen while PenPot starts -->
     <div id="loading-screen">
-      <div class="logo">🎨 Kizu</div>
-      <div class="spinner"></div>
-      <p>Starting your liberation tool...</p>
-      <small>Connecting to PenPot development server</small>
+      <h1
+        style="
+          font-family: 'Josefin Sans', sans-serif;
+          font-weight: 400;
+          font-size: 4rem;
+          margin: 0 0 2px 0;
+          color: #ffffff;
+          letter-spacing: -0.02em;
+        "
+      >
+        Kizu
+      </h1>
+      <div
+        style="
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          margin: 0 0 16px 0;
+          padding: 0;
+          background: none;
+          border: none;
+        "
+      >
+        <svg
+          width="80"
+          height="70"
+          viewBox="0 0 400 350"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path d="M200 50 L320 280 L80 280 Z" fill="#11605A" />
+          <path d="M200 50 L140 170 L80 280 L200 230 Z" fill="#27BDB1" />
+          <path d="M200 230 L320 280 L80 280 L200 230 Z" fill="#35F6E6" />
+        </svg>
+      </div>
+      <div style="display: flex; justify-content: center; margin-bottom: 24px">
+        <div class="spinner"></div>
+      </div>
+      <p>Loading workspace...</p>
     </div>
 
     <!-- Error screen for connection issues -->

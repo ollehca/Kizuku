@@ -1,0 +1,186 @@
+/* Kizu Typography System */
+
+/* Import Josefin Sans font */
+@import url('https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,100..700;1,100..700&display=swap');
+
+/* Typography Variables */
+:root {
+  --font-heading:
+    'Josefin Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, system-ui, sans-serif;
+  --font-mono:
+    'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+}
+
+/* Heading Styles */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.heading,
+.logo-text,
+.app-title {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+/* Specific heading sizes */
+h1,
+.h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+h2,
+.h2 {
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+h3,
+.h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+h4,
+.h4 {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+h5,
+.h5 {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+h6,
+.h6 {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* Body Text */
+body,
+p,
+.body,
+.text {
+  font-family: var(--font-body);
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+/* Specific text sizes */
+.text-xs {
+  font-size: 0.75rem;
+}
+.text-sm {
+  font-size: 0.875rem;
+}
+.text-base {
+  font-size: 1rem;
+}
+.text-lg {
+  font-size: 1.125rem;
+}
+.text-xl {
+  font-size: 1.25rem;
+}
+.text-2xl {
+  font-size: 1.5rem;
+}
+
+/* Font weights */
+.font-light {
+  font-weight: 300;
+}
+.font-normal {
+  font-weight: 400;
+}
+.font-medium {
+  font-weight: 500;
+}
+.font-semibold {
+  font-weight: 600;
+}
+.font-bold {
+  font-weight: 700;
+}
+
+/* App-specific typography */
+.app-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.tab-title {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.loading-title {
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.loading-subtitle {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+/* Menu and UI elements */
+.menu-item,
+.button-text {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+/* Status text */
+.status-text {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+/* Code and monospace */
+code,
+pre,
+.code {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+}
+
+/* Responsive typography */
+@media (max-width: 768px) {
+  .loading-title {
+    font-size: 1.75rem;
+  }
+
+  .app-title {
+    font-size: 1.25rem;
+  }
+}
+
+/* Dark theme adjustments */
+@media (prefers-color-scheme: dark) {
+  /* Adjust letter spacing for better readability on dark backgrounds */
+  h1,
+  h2,
+  h3,
+  .loading-title {
+    letter-spacing: -0.015em;
+  }
+}

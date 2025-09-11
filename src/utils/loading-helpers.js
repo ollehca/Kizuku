@@ -16,18 +16,57 @@ function createLoadingStructureJS() {
 
 // Helper function to create loading content JS
 function createLoadingContentJS() {
+  return createFontImport() + createTitleElement() + createLogoElement() + createSpinnerElement();
+}
+
+function createFontImport() {
   return `
-    const logo = document.createElement('div');
-    logo.className = 'loading-screen__logo';
-    logo.textContent = 'K';
-    
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,100..700;1,100..700&display=swap';
+    document.head.appendChild(link);
+  `;
+}
+
+function createTitleElement() {
+  return `
     const title = document.createElement('h1');
-    title.className = 'loading-screen__title';
+    title.className = 'loading-screen__title loading-title';
     title.textContent = 'Kizu';
-    
-    const subtitle = document.createElement('p');
-    subtitle.className = 'loading-screen__subtitle';
-    subtitle.textContent = 'Professional Design Tool';
+    title.style.fontFamily = "'Josefin Sans', sans-serif";
+    title.style.fontWeight = '400';
+    title.style.fontSize = '4rem';
+    title.style.letterSpacing = '-0.02em';
+    title.style.color = '#FFFFFF';
+    title.style.margin = '0 0 2px 0';
+  `;
+}
+
+function createLogoElement() {
+  return `
+    const logoContainer = document.createElement('div');
+    logoContainer.style.display = 'flex';
+    logoContainer.style.justifyContent = 'center';
+    logoContainer.style.alignItems = 'center';
+    logoContainer.style.margin = '0 0 16px 0';
+    logoContainer.style.padding = '0';
+    logoContainer.style.background = 'none';
+    logoContainer.style.border = 'none';
+    logoContainer.innerHTML = '<svg width="80" height="70" viewBox="0 0 400 350" fill="none">' +
+      '<path d="M200 50 L320 280 L80 280 Z" fill="#11605A"/>' +
+      '<path d="M200 50 L140 170 L80 280 L200 230 Z" fill="#27BDB1"/>' +
+      '<path d="M200 230 L320 280 L80 280 L200 230 Z" fill="#35F6E6"/>' +
+      '</svg>';
+  `;
+}
+
+function createSpinnerElement() {
+  const systemFont = "-apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif";
+  return `
+    const spinnerContainer = document.createElement('div');
+    spinnerContainer.style.display = 'flex';
+    spinnerContainer.style.justifyContent = 'center';
+    spinnerContainer.style.marginBottom = '24px';
     
     const spinner = document.createElement('div');
     spinner.className = 'loading-screen__spinner';
@@ -35,16 +74,20 @@ function createLoadingContentJS() {
     const status = document.createElement('div');
     status.className = 'loading-screen__status loading-screen__status--pulse';
     status.textContent = 'Loading workspace...';
+    status.style.fontFamily = "${systemFont}";
+    status.style.fontSize = '0.875rem';
+    status.style.marginTop = '8px';
   `;
 }
 
 // Helper function to create loading assembly JS
 function createLoadingAssemblyJS() {
   return `
-    content.appendChild(logo);
+    spinnerContainer.appendChild(spinner);
+    
     content.appendChild(title);
-    content.appendChild(subtitle);
-    content.appendChild(spinner);
+    content.appendChild(logoContainer);
+    content.appendChild(spinnerContainer);
     content.appendChild(status);
     loadingOverlay.appendChild(content);
     
