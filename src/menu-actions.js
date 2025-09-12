@@ -3,6 +3,9 @@
  */
 
 const { dialog } = require('electron');
+const { createLogger } = require('./utils/logger');
+
+const logger = createLogger('MenuActions');
 
 /**
  * Send menu action to renderer process or handle directly for BrowserView
@@ -16,22 +19,59 @@ function sendMenuAction(window, action, data) {
 }
 
 /**
+ * Get project file filters configuration
+ */
+function getProjectFileFilters() {
+  return [
+    { name: 'Kizu Files', extensions: ['kizu'] },
+    { name: 'PenPot Files (Legacy)', extensions: ['penpot'] },
+    { name: 'JSON Files', extensions: ['json'] },
+    { name: 'All Files', extensions: ['*'] },
+  ];
+}
+
+/**
+ * Handle open dialog result
+ */
+function handleOpenDialogResult(result, window, logger) {
+  if (!result.canceled && result.filePaths.length > 0) {
+    const filePath = result.filePaths[0];
+    logger.info('Project file selected for opening', { filePath });
+    sendMenuAction(window, 'open-project', filePath);
+  } else {
+    logger.info('Open project dialog cancelled');
+  }
+}
+
+/**
  * Show file open dialog for projects
  * @param {object} window - BrowserWindow instance
  * @returns {Promise<void>}
  */
 async function showOpenProjectDialog(window) {
-  const result = await dialog.showOpenDialog(window, {
-    properties: ['openFile'],
-    filters: [
-      { name: 'PenPot Files', extensions: ['penpot'] },
-      { name: 'JSON Files', extensions: ['json'] },
-      { name: 'All Files', extensions: ['*'] },
-    ],
-  });
+  try {
+    logger.info('Opening project file dialog');
+    const result = await dialog.showOpenDialog(window, {
+      title: 'Open Kizu Project',
+      properties: ['openFile'],
+      filters: getProjectFileFilters(),
+    });
+    handleOpenDialogResult(result, window, logger);
+  } catch (error) {
+    logger.error('Error showing open project dialog', error);
+    dialog.showErrorBox('Error', `Failed to open file dialog: ${error.message}`);
+  }
+}
 
-  if (!result.canceled && result.filePaths.length > 0) {
-    sendMenuAction(window, 'open-project', result.filePaths[0]);
+/**
+ * Handle save dialog result
+ */
+function handleSaveDialogResult(result, window, logger) {
+  if (!result.canceled) {
+    logger.info('Save location selected', { filePath: result.filePath });
+    sendMenuAction(window, 'save-as-project', result.filePath);
+  } else {
+    logger.info('Save project dialog cancelled');
   }
 }
 
@@ -41,17 +81,45 @@ async function showOpenProjectDialog(window) {
  * @returns {Promise<void>}
  */
 async function showSaveAsDialog(window) {
-  const result = await dialog.showSaveDialog(window, {
-    defaultPath: 'Untitled Project.penpot',
-    filters: [
-      { name: 'PenPot Files', extensions: ['penpot'] },
-      { name: 'JSON Files', extensions: ['json'] },
-      { name: 'All Files', extensions: ['*'] },
-    ],
-  });
+  try {
+    logger.info('Opening save project dialog');
+    const result = await dialog.showSaveDialog(window, {
+      title: 'Save Kizu Project',
+      defaultPath: 'Untitled Project.kizu',
+      filters: getProjectFileFilters(),
+    });
+    handleSaveDialogResult(result, window, logger);
+  } catch (error) {
+    logger.error('Error showing save project dialog', error);
+    dialog.showErrorBox('Error', `Failed to open save dialog: ${error.message}`);
+  }
+}
 
-  if (!result.canceled) {
-    sendMenuAction(window, 'save-as-project', result.filePath);
+/**
+ * Get image file filters configuration
+ */
+function getImageFileFilters() {
+  return [
+    {
+      name: 'Images',
+      extensions: ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp', 'svg'],
+    },
+    { name: 'All Files', extensions: ['*'] },
+  ];
+}
+
+/**
+ * Handle import dialog result
+ */
+function handleImportDialogResult(result, window, logger, config) {
+  if (!result.canceled && result.filePaths.length > 0) {
+    logger.info(`${config.itemType} selected for import`, { 
+      count: result.filePaths.length, 
+      files: result.filePaths 
+    });
+    sendMenuAction(window, config.actionType, result.filePaths);
+  } else {
+    logger.info(`${config.itemType} import dialog cancelled`);
   }
 }
 
@@ -61,20 +129,28 @@ async function showSaveAsDialog(window) {
  * @returns {Promise<void>}
  */
 async function showImportImageDialog(window) {
-  const result = await dialog.showOpenDialog(window, {
-    properties: ['openFile', 'multiSelections'],
-    filters: [
-      {
-        name: 'Images',
-        extensions: ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp', 'svg'],
-      },
-      { name: 'All Files', extensions: ['*'] },
-    ],
-  });
-
-  if (!result.canceled && result.filePaths.length > 0) {
-    sendMenuAction(window, 'import-images', result.filePaths);
+  try {
+    logger.info('Opening image import dialog');
+    const result = await dialog.showOpenDialog(window, {
+      title: 'Import Images to Kizu',
+      properties: ['openFile', 'multiSelections'],
+      filters: getImageFileFilters(),
+    });
+    handleImportDialogResult(result, window, logger, { actionType: 'import-images', itemType: 'Images' });
+  } catch (error) {
+    logger.error('Error showing image import dialog', error);
+    dialog.showErrorBox('Error', `Failed to open image import dialog: ${error.message}`);
   }
+}
+
+/**
+ * Get font file filters configuration
+ */
+function getFontFileFilters() {
+  return [
+    { name: 'Fonts', extensions: ['ttf', 'otf', 'woff', 'woff2'] },
+    { name: 'All Files', extensions: ['*'] },
+  ];
 }
 
 /**
@@ -83,16 +159,17 @@ async function showImportImageDialog(window) {
  * @returns {Promise<void>}
  */
 async function showImportFontDialog(window) {
-  const result = await dialog.showOpenDialog(window, {
-    properties: ['openFile', 'multiSelections'],
-    filters: [
-      { name: 'Fonts', extensions: ['ttf', 'otf', 'woff', 'woff2'] },
-      { name: 'All Files', extensions: ['*'] },
-    ],
-  });
-
-  if (!result.canceled && result.filePaths.length > 0) {
-    sendMenuAction(window, 'import-fonts', result.filePaths);
+  try {
+    logger.info('Opening font import dialog');
+    const result = await dialog.showOpenDialog(window, {
+      title: 'Import Fonts to Kizu',
+      properties: ['openFile', 'multiSelections'],
+      filters: getFontFileFilters(),
+    });
+    handleImportDialogResult(result, window, logger, { actionType: 'import-fonts', itemType: 'Fonts' });
+  } catch (error) {
+    logger.error('Error showing font import dialog', error);
+    dialog.showErrorBox('Error', `Failed to open font import dialog: ${error.message}`);
   }
 }
 
