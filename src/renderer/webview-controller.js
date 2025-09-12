@@ -1,5 +1,5 @@
 /**
- * PenPot Desktop Webview Controller
+ * Kizu Webview Controller
  * Manages webview lifecycle and user experience
  */
 
@@ -55,7 +55,7 @@ const MAX_RETRY_ATTEMPTS = 3;
  * Initialize the webview controller
  */
 function initializeWebviewController() {
-  logger.info('Initializing PenPot Desktop webview controller');
+  logger.info('Initializing Kizu webview controller');
 
   setupWebviewEventHandlers();
   setupRetryButton();
@@ -256,11 +256,7 @@ function showWebview() {
  * Update loading screen message based on attempt count
  */
 function updateLoadingMessage() {
-  const messages = [
-    'Starting your liberation tool...',
-    'Reconnecting to PenPot...',
-    'Almost there...',
-  ];
+  const messages = ['Starting Kizu...', 'Reconnecting to PenPot...', 'Almost there...'];
 
   const messageIndex = Math.min(connectionAttempts, messages.length - 1);
   const messageElement = loadingScreen.querySelector('p');

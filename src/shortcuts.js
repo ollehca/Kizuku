@@ -1,4 +1,4 @@
-// Keyboard Shortcuts System for PenPot Desktop
+// Keyboard Shortcuts System for Kizu
 // Provides cross-platform shortcuts with Figma familiarity + extensibility
 
 class ShortcutManager {
@@ -268,8 +268,8 @@ class ShortcutManager {
   }
 
   callDirectHandler(action, event) {
-    if (window.penpotDesktop?.shortcutActions?.[action]) {
-      window.penpotDesktop.shortcutActions[action](event);
+    if (window.kizu?.shortcutActions?.[action]) {
+      window.kizu.shortcutActions[action](event);
     }
   }
 
@@ -321,13 +321,13 @@ if (typeof window !== 'undefined') {
 
   // Helper function for PenPot to register shortcut handlers
   window.registerShortcutHandler = function (action, handler) {
-    if (!window.penpotDesktop) {
-      window.penpotDesktop = {};
+    if (!window.kizu) {
+      window.kizu = {};
     }
-    if (!window.penpotDesktop.shortcutActions) {
-      window.penpotDesktop.shortcutActions = {};
+    if (!window.kizu.shortcutActions) {
+      window.kizu.shortcutActions = {};
     }
-    window.penpotDesktop.shortcutActions[action] = handler;
+    window.kizu.shortcutActions[action] = handler;
   };
 }
 */

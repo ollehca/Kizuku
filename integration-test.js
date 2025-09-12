@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Integration test specifically for PenPot Desktop features
+// Integration test specifically for Kizu features
 // Tests actual functionality rather than just code structure
 
 const { spawn } = require('child_process');
@@ -26,7 +26,7 @@ class IntegrationTester {
       env: {
         ...process.env,
         NODE_ENV: 'test',
-        PENPOT_DESKTOP_TEST: 'true',
+        KIZU_TEST: 'true',
       },
     });
 
@@ -42,7 +42,7 @@ class IntegrationTester {
 
     // Check if menu system is working
     const hasMenuSystem =
-      output.includes('PenPot Desktop starting') && !output.includes('Menu creation failed');
+      output.includes('Kizu starting') && !output.includes('Menu creation failed');
 
     electron.kill();
 

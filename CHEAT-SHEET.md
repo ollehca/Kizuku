@@ -1,4 +1,4 @@
-# 🎨 PenPot Desktop - Cheat Sheet
+# 🎨 Kizu - Cheat Sheet
 
 ## ⚡ Essential Commands
 

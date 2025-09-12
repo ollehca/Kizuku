@@ -1,4 +1,4 @@
-# 📁 PenPot Desktop - File Guide
+# 📁 Kizu - File Guide
 
 ## 🎯 Start Here Files
 
@@ -70,7 +70,7 @@ PenPotDesktop/
 
 ## 🚀 Quick Navigation
 
-### 👶 **New to PenPot Desktop?**
+### 👶 **New to Kizu?**
 1. [GETTING-STARTED.md](GETTING-STARTED.md) 
 2. [README.md](README.md)
 3. [scripts/QUICK-START.md](scripts/QUICK-START.md)

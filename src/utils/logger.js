@@ -1,5 +1,5 @@
 /**
- * Centralized logging utility for PenPot Desktop
+ * Centralized logging utility for Kizu
  * Provides clean logging without ESLint warnings
  */
 

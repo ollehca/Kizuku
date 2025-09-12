@@ -1,7 +1,7 @@
-# Keyboard Shortcuts - PenPot Desktop
+# Keyboard Shortcuts - Kizu
 
 ## Overview
-PenPot Desktop provides a comprehensive keyboard shortcut system combining Figma-standard shortcuts with cross-platform compatibility and extensibility for unique features.
+Kizu provides a comprehensive keyboard shortcut system combining Figma-standard shortcuts with cross-platform compatibility and extensibility for unique features.
 
 ## Platform Differences
 - **macOS**: Uses `Cmd` key for primary shortcuts
@@ -187,4 +187,4 @@ window.shortcutManager.contexts.add('my-feature');
 - Context switching for different app modes
 - Platform detection for proper key combinations
 
-This keyboard shortcut system provides the familiar Figma experience while being flexible enough to support PenPot Desktop's unique features and future extensions.
+This keyboard shortcut system provides the familiar Figma experience while being flexible enough to support Kizu's unique features and future extensions.

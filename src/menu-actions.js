@@ -1,5 +1,5 @@
 /**
- * Menu action handlers for PenPot Desktop
+ * Menu action handlers for Kizu
  */
 
 const { dialog } = require('electron');

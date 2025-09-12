@@ -1,8 +1,8 @@
-# PenPot Desktop Project - Development Summary
+# Kizu Project - Development Summary
 
 ## Project Overview
 
-Successfully established the foundation for **PenPot Desktop**, a commercial desktop application based on the open-source PenPot design tool. The goal is to create the first professional desktop version with offline capabilities, targeting a $2M seed round in 6 months.
+Successfully established the foundation for **Kizu**, a commercial desktop application based on the open-source PenPot design tool. The goal is to create the first professional desktop version with offline capabilities, targeting a $2M seed round in 6 months.
 
 ## Phase 1 Completed ✅ (Weeks 1-2)
 
@@ -62,7 +62,7 @@ PenPotDesktop/
 │   ├── backend/               # Clojure backend
 │   ├── common/                # Shared code
 │   └── docker/                # Development environment
-├── penpot-desktop/            # Electron desktop wrapper
+├── kizu/                      # Electron desktop wrapper
 │   ├── src/
 │   │   ├── main.js           # Electron main process
 │   │   └── preload.js        # IPC bridge
@@ -181,7 +181,7 @@ PenPotDesktop/
 
 **Phase 1 Status**: ✅ COMPLETE - All objectives achieved ahead of schedule
 
-The foundation for PenPot Desktop has been successfully established with:
+The foundation for Kizu has been successfully established with:
 - Complete development environment operational
 - Technical architecture validated and documented
 - Electron project structure created and ready for development
@@ -190,7 +190,7 @@ The foundation for PenPot Desktop has been successfully established with:
 
 **Confidence Level**: High - Technical feasibility proven, market opportunity validated, execution plan detailed.
 
-**Ready to Proceed**: Phase 2 development can begin immediately with Electron-PenPot integration.
+**Ready to Proceed**: Phase 2 development can begin immediately with Electron-PenPot integration in Kizu.
 
 ---
 

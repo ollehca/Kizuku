@@ -2,7 +2,7 @@ const { exec } = require('child_process');
 const fetch = require('node-fetch');
 const path = require('path');
 
-// Recovery and health monitoring utilities for PenPot Desktop
+// Recovery and health monitoring utilities for Kizu
 
 const PENPOT_CONFIG = {
   frontend: {

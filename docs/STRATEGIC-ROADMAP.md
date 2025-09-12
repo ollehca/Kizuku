@@ -1,4 +1,4 @@
-# PenPot Desktop Strategic Roadmap
+# Kizu Strategic Roadmap
 ## Liberation Strategy: Free Designers from Vendor Lock-In
 
 ---
@@ -39,7 +39,7 @@ Us: "Import from Figma, own forever, collaborate when you choose"
 
 ### **Phase 1: Liberation Model (Launch Period)**
 ```
-PenPot Desktop: One-time purchase
+Kizu: One-time purchase
 ✅ FIGMA IMPORT - Bring all existing work ⭐
 ✅ Full offline design capabilities
 ✅ BEST-IN-WORLD export system
@@ -64,8 +64,8 @@ PenPot Desktop: One-time purchase
 
 ### **Phase 2: Hybrid Model (Future Expansion)**
 ```
-PenPot Desktop: One-time purchase (unchanged)
-PenPot Desktop + Live Collaboration: Optional subscription
+Kizu: One-time purchase (unchanged)
+Kizu + Live Collaboration: Optional subscription
 ✅ Everything in Phase 1
 ✅ Real-time co-editing
 ✅ Live cursors and presence
@@ -86,7 +86,7 @@ PenPot Desktop + Live Collaboration: Optional subscription
 
 #### **Core Components:**
 ```
-PenPot Desktop Application
+Kizu Application
 ├── Local Design Engine (PenPot web embedded)
 ├── FIGMA IMPORT ENGINE ⭐
 ├── Advanced File Management System

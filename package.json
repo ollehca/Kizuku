@@ -29,16 +29,16 @@
   "keywords": [
     "design",
     "desktop",
-    "penpot",
+    "kizu",
     "figma-alternative",
     "offline"
   ],
   "author": "Kizu Team",
   "license": "MIT",
-  "homepage": "https://github.com/your-username/penpot-desktop",
+  "homepage": "https://github.com/ollehca/Kizu",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/penpot-desktop"
+    "url": "https://github.com/ollehca/Kizu"
   },
   "build": {
     "appId": "com.kizu.app",

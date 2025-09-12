@@ -1,5 +1,5 @@
 /**
- * PenPot Desktop Authentication Integration
+ * Kizu Authentication Integration
  * This script integrates with the PenPot frontend to provide persistent login functionality
  */
 
@@ -63,7 +63,7 @@ const AutoLogin = {
 
   // Check if auto-login should proceed
   shouldPerformAutoLogin() {
-    return window.penpotDesktopAuth && window.penpotDesktopAuth.autoLogin && this.isOnLoginPage();
+    return window.kizuAuth && window.kizuAuth.autoLogin && this.isOnLoginPage();
   },
 
   // Perform redirect to dashboard
@@ -88,10 +88,10 @@ const AutoLogin = {
       return;
     }
 
-    console.log('🔐 Attempting auto-login for:', window.penpotDesktopAuth.email);
+    console.log('🔐 Attempting auto-login for:', window.kizuAuth.email);
 
     try {
-      const authToken = window.penpotDesktopAuth.token;
+      const authToken = window.kizuAuth.token;
       if (authToken) {
         this.setAuthCookie(authToken);
         this.redirectToDashboard();
@@ -131,7 +131,7 @@ const UIEnhancement = {
   createRememberCheckbox() {
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
-    checkbox.id = 'penpot-desktop-remember-me';
+    checkbox.id = 'kizu-remember-me';
     checkbox.checked = true;
     checkbox.style.cssText = 'margin-right: 8px; cursor: pointer;';
     return checkbox;
@@ -140,7 +140,7 @@ const UIEnhancement = {
   // Create remember me label
   createRememberLabel() {
     const label = document.createElement('label');
-    label.htmlFor = 'penpot-desktop-remember-me';
+    label.htmlFor = 'kizu-remember-me';
     label.textContent = 'Remember me for 30 days';
     label.style.cssText = 'cursor: pointer; user-select: none;';
     return label;
@@ -279,7 +279,7 @@ const AuthIntegration = {
 
   // Gather credentials from form and API
   async gatherCredentials() {
-    const rememberMeCheckbox = document.getElementById('penpot-desktop-remember-me');
+    const rememberMeCheckbox = document.getElementById('kizu-remember-me');
     const rememberMe = rememberMeCheckbox ? rememberMeCheckbox.checked : true;
     const emailInput = document.querySelector('[type="email"], [name="email"]');
     const email = emailInput ? emailInput.value : '';
@@ -315,10 +315,10 @@ const FormEnhancer = {
   // Enhance existing form
   enhanceExistingForm() {
     const existingForm = UIEnhancement.findLoginForm();
-    if (existingForm && !existingForm.dataset.desktopEnhanced) {
+    if (existingForm && !existingForm.dataset.kizuEnhanced) {
       AuthIntegration.addRememberMeCheckbox(existingForm);
       AuthIntegration.hookLoginSubmission(existingForm);
-      existingForm.dataset.desktopEnhanced = 'true';
+      existingForm.dataset.kizuEnhanced = 'true';
     }
   },
 
@@ -328,10 +328,10 @@ const FormEnhancer = {
     const observer = new MutationObserver(() => {
       const loginForm = UIEnhancement.findLoginForm();
 
-      if (loginForm && !loginForm.dataset.desktopEnhanced) {
+      if (loginForm && !loginForm.dataset.kizuEnhanced) {
         AuthIntegration.addRememberMeCheckbox(loginForm);
         AuthIntegration.hookLoginSubmission(loginForm);
-        loginForm.dataset.desktopEnhanced = 'true';
+        loginForm.dataset.kizuEnhanced = 'true';
         observer.disconnect();
       }
     });
@@ -375,7 +375,7 @@ const LogoutMonitor = {
 (function () {
   'use strict';
 
-  console.log('🔐 PenPot Desktop Auth Integration loaded');
+  console.log('🔐 Kizu Auth Integration loaded');
 
   // Initialize the authentication integration
   async function initialize() {
@@ -390,9 +390,9 @@ const LogoutMonitor = {
       FormEnhancer.enhanceLoginForm();
       LogoutMonitor.hookLogout();
 
-      console.log('🔐 Desktop auth integration fully initialized');
+      console.log('🔐 Kizu auth integration fully initialized');
     } catch (error) {
-      console.error('🔐 Failed to initialize desktop auth integration:', error);
+      console.error('🔐 Failed to initialize Kizu auth integration:', error);
     }
   }
 

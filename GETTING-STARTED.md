@@ -1,4 +1,4 @@
-# 🎨 Getting Started with PenPot Desktop
+# 🎨 Getting Started with Kizu
 
 ## ⚡ Super Quick Start
 

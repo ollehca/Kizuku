@@ -1,5 +1,5 @@
-// PenPot Desktop Configuration
-window.penpotConfig = {
+// Kizu Configuration
+window.kizuConfig = {
   // Desktop-specific configuration
   isDesktop: true,
   version: process?.versions?.electron || 'unknown',

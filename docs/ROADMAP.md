@@ -1,4 +1,4 @@
-# PenPot Desktop Development Roadmap
+# Kizu Development Roadmap
 
 ## Project Timeline: 6 Months to Investor Demo
 

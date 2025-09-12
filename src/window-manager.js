@@ -1,5 +1,5 @@
 /**
- * Window management for PenPot Desktop
+ * Window management for Kizu
  */
 
 const { BrowserWindow, dialog } = require('electron');
@@ -147,7 +147,7 @@ function showConnectionError(isDev) {
     ? 'Could not connect to PenPot development server at localhost:3449.\n\nPlease ensure PenPot is running with: ./manage.sh run-devenv'
     : 'Could not load the PenPot application. Please check the installation.';
 
-  dialog.showErrorBox('PenPot Connection Error', message);
+  dialog.showErrorBox('Kizu Connection Error', message);
 }
 
 module.exports = {

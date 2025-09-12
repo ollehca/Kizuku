@@ -1,7 +1,7 @@
-# Testing Documentation - PenPot Desktop
+# Testing Documentation - Kizu
 
 ## Overview
-Comprehensive testing framework for PenPot Desktop including functionality tests, integration tests, and manual testing procedures.
+Comprehensive testing framework for Kizu including functionality tests, integration tests, and manual testing procedures.
 
 ## Automated Testing
 
@@ -91,7 +91,7 @@ npm start
 
 ### 6. Cross-Platform Testing
 **macOS:**
-- Menu shows "PenPot Desktop" application menu
+- Menu shows "Kizu" application menu
 - Shortcuts use Cmd key (⌘N, ⌘S, ⌘C, etc.)
 - Native macOS file dialogs
 
@@ -188,7 +188,7 @@ if (window.penpotDesktop?.platform === 'darwin') {
 
 ## Conclusion
 
-✅ **PenPot Desktop is ready for development and testing!**
+✅ **Kizu is ready for development and testing!**
 
 **Next Steps:**
 1. Connect to PenPot development server

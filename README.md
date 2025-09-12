@@ -1,4 +1,4 @@
-# 🎨 PenPot Desktop
+# 🎨 Kizu
 
 **Professional desktop application for PenPot design platform**
 
@@ -150,7 +150,7 @@ When everything works:
 
 ## Architecture
 
-PenPot Desktop consists of:
+Kizu consists of:
 
 - **Electron Main Process** (`src/main.js`): Application window management, file system access, and native OS integration
 - **Renderer Process**: The PenPot web application running in Chromium
@@ -160,7 +160,7 @@ PenPot Desktop consists of:
 ## File Structure
 
 ```
-penpot-desktop/
+kizu/
 ├── src/
 │   ├── main.js          # Electron main process
 │   ├── preload.js       # Preload script for renderer
@@ -219,9 +219,9 @@ The desktop app integrates with PenPot by:
 ## Configuration
 
 Configuration is stored in the user's data directory:
-- macOS: `~/Library/Application Support/PenPot Desktop/`
-- Windows: `%APPDATA%/PenPot Desktop/`
-- Linux: `~/.config/PenPot Desktop/`
+- macOS: `~/Library/Application Support/Kizu/`
+- Windows: `%APPDATA%/Kizu/`
+- Linux: `~/.config/Kizu/`
 
 ## License Compliance
 

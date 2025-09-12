@@ -1,4 +1,4 @@
-# Electron Wrapper for PenPot
+# Electron Wrapper for Kizu
 
 ## Overview
 This Electron wrapper provides a native desktop experience for PenPot, embedding the web application in a desktop container with native OS integration.

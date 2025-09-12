@@ -193,7 +193,7 @@ class KizuTester {
 
         if (isRunning) {
           // Check for success indicators in output
-          const hasStartMessage = output.includes('PenPot Desktop starting');
+          const hasStartMessage = output.includes('Kizu starting');
           const hasElectronVersion = output.includes('Electron version');
           const noFatalErrors =
             !errorOutput.includes('Error:') ||
