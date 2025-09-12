@@ -25,6 +25,7 @@ function getProjectFileFilters() {
   return [
     { name: 'Kizu Files', extensions: ['kizu'] },
     { name: 'PenPot Files (Legacy)', extensions: ['penpot'] },
+    { name: 'Figma Files', extensions: ['fig'] },
     { name: 'JSON Files', extensions: ['json'] },
     { name: 'All Files', extensions: ['*'] },
   ];
@@ -113,9 +114,9 @@ function getImageFileFilters() {
  */
 function handleImportDialogResult(result, window, logger, config) {
   if (!result.canceled && result.filePaths.length > 0) {
-    logger.info(`${config.itemType} selected for import`, { 
-      count: result.filePaths.length, 
-      files: result.filePaths 
+    logger.info(`${config.itemType} selected for import`, {
+      count: result.filePaths.length,
+      files: result.filePaths,
     });
     sendMenuAction(window, config.actionType, result.filePaths);
   } else {
@@ -136,7 +137,10 @@ async function showImportImageDialog(window) {
       properties: ['openFile', 'multiSelections'],
       filters: getImageFileFilters(),
     });
-    handleImportDialogResult(result, window, logger, { actionType: 'import-images', itemType: 'Images' });
+    handleImportDialogResult(result, window, logger, {
+      actionType: 'import-images',
+      itemType: 'Images',
+    });
   } catch (error) {
     logger.error('Error showing image import dialog', error);
     dialog.showErrorBox('Error', `Failed to open image import dialog: ${error.message}`);
@@ -166,7 +170,10 @@ async function showImportFontDialog(window) {
       properties: ['openFile', 'multiSelections'],
       filters: getFontFileFilters(),
     });
-    handleImportDialogResult(result, window, logger, { actionType: 'import-fonts', itemType: 'Fonts' });
+    handleImportDialogResult(result, window, logger, {
+      actionType: 'import-fonts',
+      itemType: 'Fonts',
+    });
   } catch (error) {
     logger.error('Error showing font import dialog', error);
     dialog.showErrorBox('Error', `Failed to open font import dialog: ${error.message}`);
