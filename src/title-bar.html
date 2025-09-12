@@ -1,0 +1,192 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Kizu Title Bar</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: #1e1e20;
+        color: #ffffff;
+        height: 40px;
+        overflow: hidden;
+        -webkit-app-region: drag;
+      }
+
+      .title-bar {
+        display: flex;
+        height: 40px;
+        background: #1e1e20;
+        border-bottom: 1px solid #2a2a2d;
+      }
+
+      /* Traffic lights area (macOS) */
+      .traffic-lights {
+        width: 78px;
+        -webkit-app-region: no-drag;
+      }
+
+      /* Windows controls area */
+      .windows-controls {
+        width: 138px;
+        -webkit-app-region: no-drag;
+      }
+
+      /* File tabs container */
+      .tabs-container {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        min-width: 0;
+        -webkit-app-region: no-drag;
+      }
+
+      .tab {
+        display: flex;
+        align-items: center;
+        height: 32px;
+        padding: 0 12px;
+        background: #2a2a2d;
+        border-radius: 6px 6px 0 0;
+        margin-right: 2px;
+        font-size: 13px;
+        color: #cccccc;
+        cursor: pointer;
+        max-width: 200px;
+        min-width: 120px;
+        position: relative;
+      }
+
+      .tab.active {
+        background: #3a3a3d;
+        color: #ffffff;
+      }
+
+      .tab-title {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .tab-close {
+        margin-left: 8px;
+        width: 16px;
+        height: 16px;
+        border-radius: 3px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        opacity: 0.6;
+        cursor: pointer;
+      }
+
+      .tab-close:hover {
+        background: #ff5f56;
+        opacity: 1;
+      }
+
+      /* Drag area on the right */
+      .drag-area {
+        width: 100px;
+        -webkit-app-region: drag;
+      }
+
+      /* New tab button */
+      .new-tab-btn {
+        margin-left: 8px;
+        width: 24px;
+        height: 24px;
+        border-radius: 4px;
+        background: transparent;
+        border: none;
+        color: #cccccc;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        -webkit-app-region: no-drag;
+      }
+
+      .new-tab-btn:hover {
+        background: #3a3a3d;
+      }
+
+      .project-indicator {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #00d4ff;
+        margin-right: 6px;
+      }
+
+      .project-indicator.unsaved {
+        background: #ff9500;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="title-bar">
+      <!-- Traffic lights space (macOS only) -->
+      <div class="traffic-lights" id="traffic-lights"></div>
+
+      <!-- File tabs -->
+      <div class="tabs-container">
+        <!-- Example tabs - will be populated dynamically -->
+        <div class="tab active">
+          <div class="project-indicator"></div>
+          <div class="tab-title">New File 1</div>
+          <div class="tab-close">×</div>
+        </div>
+
+        <button class="new-tab-btn" title="New Project">+</button>
+      </div>
+
+      <!-- Drag area -->
+      <div class="drag-area"></div>
+
+      <!-- Windows controls (Windows only) -->
+      <div class="windows-controls" id="windows-controls"></div>
+    </div>
+
+    <script>
+      // Platform-specific adjustments
+      if (process.platform === 'darwin') {
+        document.getElementById('windows-controls').style.display = 'none';
+      } else {
+        document.getElementById('traffic-lights').style.display = 'none';
+      }
+
+      // Tab management
+      document.addEventListener('DOMContentLoaded', () => {
+        // Handle tab close
+        document.querySelectorAll('.tab-close').forEach((closeBtn) => {
+          closeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            // TODO: Send close tab message to main process
+          });
+        });
+
+        // Handle tab click
+        document.querySelectorAll('.tab').forEach((tab) => {
+          tab.addEventListener('click', () => {
+            // TODO: Switch to this tab
+          });
+        });
+
+        // Handle new tab
+        document.querySelector('.new-tab-btn').addEventListener('click', () => {
+          // TODO: Create new project
+        });
+      });
+    </script>
+  </body>
+</html>

@@ -1,4 +1,4 @@
-# Git Branching Strategy - PenPot Desktop
+# Git Branching Strategy - Kizu
 
 ## Branch Structure
 

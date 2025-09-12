@@ -1,0 +1,221 @@
+@charset "UTF-8";
+/* Import Typography System */
+@import url('./typography.css');
+.desktop-tabs__container {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 40px !important;
+  background-color: #1e1e1e !important;
+  display: flex !important;
+  align-items: stretch !important;
+  z-index: 999999 !important;
+  border-bottom: 1px solid #2d2d2d !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+}
+.desktop-tabs__drag-left {
+  width: 78px !important;
+  background-color: #1e1e1e !important;
+  flex-shrink: 0;
+  -webkit-app-region: drag;
+}
+.desktop-tabs__drag-center {
+  flex: 1 !important;
+  background-color: #1e1e1e !important;
+  min-width: 0;
+  -webkit-app-region: drag;
+}
+.desktop-tabs__drag-right {
+  width: 20px !important;
+  background-color: #1e1e1e !important;
+  flex-shrink: 0;
+  -webkit-app-region: drag;
+}
+.desktop-tabs__bar {
+  flex: 0 1 auto !important;
+  height: 100% !important;
+  background-color: #1e1e1e !important;
+  display: flex !important;
+  align-items: stretch !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif !important;
+  max-width: calc(100vw - 98px) !important;
+  -webkit-app-region: no-drag;
+}
+.desktop-tabs__bar:empty::after {
+  content: '🎨 No files open - Click + NEW PROJECT to start';
+  color: #999999;
+  font-size: 12px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  font-style: italic;
+  opacity: 0.6;
+}
+.desktop-tabs__tab {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  background-color: transparent;
+  border-right: 1px solid #2d2d2d;
+  color: #999999;
+  font-size: 13px;
+  cursor: pointer;
+  user-select: none;
+  min-width: 120px;
+  max-width: 200px;
+  position: relative;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+.desktop-tabs__tab:not(:last-child) {
+  border-right: 1px solid #2d2d2d;
+}
+.desktop-tabs__tab--active {
+  background-color: #313131;
+  color: #ffffff;
+}
+.desktop-tabs__tab--active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: #31efb8;
+}
+.desktop-tabs__tab:hover:not(.desktop-tabs__tab--active) {
+  background-color: #2a2a2a;
+  color: #cccccc;
+}
+.desktop-tabs__tab-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 8px;
+  font-weight: 500;
+}
+.desktop-tabs__tab-close {
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  font-size: 14px;
+  opacity: 0;
+  transition:
+    opacity 0.15s ease,
+    background-color 0.15s ease;
+  color: #999999;
+}
+.desktop-tabs__tab:hover .desktop-tabs__tab-close {
+  opacity: 1;
+}
+.desktop-tabs__tab-close:hover {
+  background-color: #4a4a4a;
+  color: #ffffff;
+}
+
+body.has-desktop-tabs .main_ui_dashboard__dashboard,
+body.has-desktop-tabs .main_ui_workspace__workspace {
+  padding-top: 80px;
+}
+body.has-desktop-tabs .main_ui_dashboard__dashboard-sidebar,
+body.has-desktop-tabs .main_ui_workspace__left-sidebar {
+  top: 40px;
+  height: calc(100vh - 40px);
+}
+body.has-desktop-tabs .main_ui_dashboard__header,
+body.has-desktop-tabs .main_ui_workspace__header {
+  top: 40px;
+}
+
+/* Replace PenPot logo with Kizu branding */
+.main_ui_header__logo,
+.main_ui_dashboard__logo,
+.main_ui_header__brand,
+[class*='logo'] img,
+[class*='brand'] img,
+svg[class*='logo'],
+.main_ui_header__logo svg,
+.main_ui_dashboard__logo svg {
+  display: none !important;
+}
+
+/* Hide the login page isometric illustration */
+.auth-content__illustration,
+.auth-illustration,
+[class*='illustration'],
+.auth-content > div:first-child,
+.main-auth > div:first-child {
+  display: none !important;
+}
+
+/* Make login form take full width */
+.auth-content,
+.main-auth {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 100% !important;
+}
+
+.auth-content__form,
+.auth-form,
+.auth-content > div:last-child {
+  width: 400px !important;
+  max-width: 400px !important;
+  margin: 0 auto !important;
+}
+
+.main_ui_header__logo::after,
+.main_ui_dashboard__logo::after,
+.main_ui_header__brand::after {
+  content: '';
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background-image: url('data:image/svg+xml;charset=utf8,%3Csvg width="24" height="21" viewBox="0 0 400 350" fill="none" xmlns="http://www.w3.org/2000/svg"%3E%3Cpath d="M200 50 L320 280 L80 280 Z" fill="%2311605A"/%3E%3Cpath d="M200 50 L140 170 L80 280 L200 230 Z" fill="%2327BDB1"/%3E%3Cpath d="M200 230 L320 280 L80 280 L200 230 Z" fill="%2335F6E6"/%3E%3C/svg%3E');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  margin-right: 8px;
+}
+
+/* Replace any PenPot text with Kizu */
+.main_ui_header__brand-text,
+.main_ui_dashboard__brand-text,
+[class*='brand'] span,
+[class*='logo'] + span {
+  font-family: 'Josefin Sans', sans-serif !important;
+  font-size: 18px !important;
+  font-weight: 400 !important;
+  color: #ffffff !important;
+}
+
+.main_ui_header__brand-text::before,
+.main_ui_dashboard__brand-text::before {
+  content: 'Kizu';
+  display: inline-block;
+}
+
+.main_ui_header__brand-text,
+.main_ui_dashboard__brand-text {
+  text-indent: -9999px;
+  position: relative;
+}
+
+.main_ui_header__brand-text::before,
+.main_ui_dashboard__brand-text::before {
+  text-indent: 0;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+/*# sourceMappingURL=desktop.css.map */

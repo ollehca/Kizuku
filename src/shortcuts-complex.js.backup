@@ -1,4 +1,4 @@
-// Keyboard Shortcuts System for Kizu
+// Keyboard Shortcuts System for PenPot Desktop
 // Provides cross-platform shortcuts with Figma familiarity + extensibility
 
 class ShortcutManager {
@@ -8,26 +8,12 @@ class ShortcutManager {
     this.currentContext = 'global';
     this.platform = process.platform;
     this.modifierKey = this.platform === 'darwin' ? 'cmd' : 'ctrl';
-
+    
     this.setupDefaultShortcuts();
     this.bindEvents();
   }
 
   setupDefaultShortcuts() {
-    this.setupToolShortcuts();
-    this.setupNavigationShortcuts();
-    this.setupUIControlShortcuts();
-    this.setupFileOperationShortcuts();
-    this.setupEditOperationShortcuts();
-    this.setupObjectOperationShortcuts();
-    this.setupLayerOrderShortcuts();
-    this.setupPanelToggleShortcuts();
-    this.setupViewHelperShortcuts();
-    this.setupTextEditingShortcuts();
-    this.setupModifierShortcuts();
-  }
-
-  setupToolShortcuts() {
     // FIGMA-STANDARD TOOL SHORTCUTS (Global Context)
     this.register('v', 'select-tool', 'global', 'Move/Select tool');
     this.register('r', 'rectangle-tool', 'global', 'Rectangle tool');
@@ -39,25 +25,19 @@ class ShortcutManager {
     this.register('k', 'place-image', 'global', 'Place image');
     this.register('z', 'zoom-tool', 'global', 'Zoom tool');
     this.register('h', 'hand-tool', 'global', 'Hand tool');
-  }
 
-  setupNavigationShortcuts() {
     // NAVIGATION & VIEW (Cross-platform aware)
     this.register(`${this.modifierKey}+0`, 'zoom-fit', 'global', 'Zoom to fit');
     this.register(`${this.modifierKey}+1`, 'zoom-actual', 'global', 'Actual size (100%)');
     this.register(`${this.modifierKey}+2`, 'zoom-selection', 'global', 'Zoom to selection');
     this.register(`${this.modifierKey}+plus`, 'zoom-in', 'global', 'Zoom in');
     this.register(`${this.modifierKey}+minus`, 'zoom-out', 'global', 'Zoom out');
-  }
-
-  setupUIControlShortcuts() {
+    
     // UI CONTROLS
     this.register('tab', 'toggle-ui', 'global', 'Hide/show UI panels');
     this.register('escape', 'exit-mode', 'global', 'Exit current tool/mode');
     this.register('space', 'pan-mode', 'global', 'Pan canvas (hold)');
-  }
 
-  setupFileOperationShortcuts() {
     // FILE OPERATIONS (Platform-aware)
     this.register(`${this.modifierKey}+n`, 'new-project', 'global', 'New project');
     this.register(`${this.modifierKey}+o`, 'open-project', 'global', 'Open project');
@@ -65,25 +45,18 @@ class ShortcutManager {
     this.register(`${this.modifierKey}+shift+s`, 'save-as', 'global', 'Save as...');
     this.register(`${this.modifierKey}+i`, 'import-image', 'global', 'Import image');
     this.register(`${this.modifierKey}+e`, 'export-selection', 'global', 'Export selection');
-  }
 
-  setupEditOperationShortcuts() {
-    // ONLY register shortcuts that need custom PenPot handling
-    // Let basic editing shortcuts (Cmd+V, Cmd+A, Cmd+C, Cmd+X) work natively
-    this.register(`${this.modifierKey}+z`, 'undo', 'canvas', 'Undo');
-    this.register(
-      this.platform === 'darwin' ? `${this.modifierKey}+shift+z` : `ctrl+y`,
-      'redo',
-      'canvas',
-      'Redo'
-    );
-    this.register(`${this.modifierKey}+shift+v`, 'paste-in-place', 'canvas', 'Paste in place');
-    this.register(`${this.modifierKey}+d`, 'duplicate', 'canvas', 'Duplicate');
-    this.register(`${this.modifierKey}+shift+a`, 'select-none', 'canvas', 'Select none');
-    // Note: Removed Cmd+V, Cmd+A, Cmd+C, Cmd+X to allow native functionality
-  }
+    // EDIT OPERATIONS (Platform-aware)
+    this.register(`${this.modifierKey}+z`, 'undo', 'global', 'Undo');
+    this.register(this.platform === 'darwin' ? `${this.modifierKey}+shift+z` : `ctrl+y`, 'redo', 'global', 'Redo');
+    this.register(`${this.modifierKey}+x`, 'cut', 'global', 'Cut');
+    this.register(`${this.modifierKey}+c`, 'copy', 'global', 'Copy');
+    this.register(`${this.modifierKey}+v`, 'paste', 'global', 'Paste');
+    this.register(`${this.modifierKey}+shift+v`, 'paste-in-place', 'global', 'Paste in place');
+    this.register(`${this.modifierKey}+d`, 'duplicate', 'global', 'Duplicate');
+    this.register(`${this.modifierKey}+a`, 'select-all', 'global', 'Select all');
+    this.register(`${this.modifierKey}+shift+a`, 'select-none', 'global', 'Select none');
 
-  setupObjectOperationShortcuts() {
     // OBJECT OPERATIONS (Platform-aware)
     this.register(`${this.modifierKey}+g`, 'group', 'global', 'Group selection');
     this.register(`${this.modifierKey}+shift+g`, 'ungroup', 'global', 'Ungroup selection');
@@ -91,42 +64,37 @@ class ShortcutManager {
     this.register(`${this.modifierKey}+shift+l`, 'unlock', 'global', 'Unlock objects');
     this.register(`${this.modifierKey}+h`, 'hide', 'global', 'Hide objects');
     this.register(`${this.modifierKey}+shift+h`, 'show', 'global', 'Show objects');
-  }
 
-  setupLayerOrderShortcuts() {
     // LAYER ORDER (Platform-aware)
     this.register(`${this.modifierKey}+shift+]`, 'bring-to-front', 'global', 'Bring to front');
     this.register(`${this.modifierKey}+]`, 'bring-forward', 'global', 'Bring forward');
     this.register(`${this.modifierKey}+[`, 'send-backward', 'global', 'Send backward');
     this.register(`${this.modifierKey}+shift+[`, 'send-to-back', 'global', 'Send to back');
-  }
 
-  setupPanelToggleShortcuts() {
     // PANEL TOGGLES
     this.register('f7', 'toggle-layers', 'global', 'Toggle layers panel');
     this.register('f8', 'toggle-assets', 'global', 'Toggle assets panel');
     this.register('f9', 'toggle-properties', 'global', 'Toggle properties panel');
-  }
 
-  setupViewHelperShortcuts() {
     // VIEW HELPERS (Platform-aware)
     this.register(`${this.modifierKey}+'`, 'toggle-grid', 'global', 'Show/hide grid');
     this.register(`${this.modifierKey}+r`, 'toggle-rulers', 'global', 'Show/hide rulers');
     this.register(`${this.modifierKey}+.`, 'toggle-ui', 'global', 'Show/hide UI');
-  }
 
-  setupTextEditingShortcuts() {
     // TEXT EDITING CONTEXT
     this.register('enter', 'start-text-edit', 'global', 'Edit selected text');
     this.register('escape', 'exit-text-edit', 'text-editing', 'Exit text editing');
+
+    // SPECIAL MODIFIERS (handled differently)
+    this.setupModifierShortcuts();
   }
 
   setupModifierShortcuts() {
     // These are handled in mouse events, not keydown
     this.modifierShortcuts = {
       shift: 'constrain-proportions', // Shift+drag for squares/circles
-      alt: 'duplicate-drag', // Alt+drag to duplicate
-      [`${this.modifierKey}`]: 'multi-select', // Cmd/Ctrl+click for multi-select
+      alt: 'duplicate-drag',          // Alt+drag to duplicate
+      [`${this.modifierKey}`]: 'multi-select' // Cmd/Ctrl+click for multi-select
     };
   }
 
@@ -136,7 +104,7 @@ class ShortcutManager {
       action,
       context,
       description,
-      shortcut: shortcut.toLowerCase(),
+      shortcut: shortcut.toLowerCase()
     });
   }
 
@@ -156,120 +124,72 @@ class ShortcutManager {
     const shortcut = this.buildShortcutString(event);
     const globalKey = `global:${shortcut}`;
     const contextKey = `${this.currentContext}:${shortcut}`;
-
+    
     // Check context-specific shortcuts first, then global
     const shortcutData = this.shortcuts.get(contextKey) || this.shortcuts.get(globalKey);
-
+    
     if (shortcutData) {
-      // Only prevent default for custom shortcuts, not basic editing
-      const isBasicEdit = this.isBasicEditShortcut(shortcut);
-      if (!isBasicEdit) {
-        event.preventDefault();
-        event.stopPropagation();
-      }
-
+      event.preventDefault();
+      event.stopPropagation();
+      
       console.log(`Shortcut triggered: ${shortcut} -> ${shortcutData.action}`);
       this.executeAction(shortcutData.action, event);
       return true;
     }
-
+    
     return false;
-  }
-
-  isBasicEditShortcut(shortcut) {
-    const basicShortcuts = [
-      `${this.modifierKey}+v`,
-      `${this.modifierKey}+a`,
-      `${this.modifierKey}+c`,
-      `${this.modifierKey}+x`,
-    ];
-    return basicShortcuts.includes(shortcut);
   }
 
   buildShortcutString(event) {
     const parts = [];
-    this.addModifiers(parts, event);
-    this.addMainKey(parts, event);
+    
+    // Add modifiers in consistent order
+    if (event.ctrlKey && this.platform !== 'darwin') parts.push('ctrl');
+    if (event.metaKey && this.platform === 'darwin') parts.push('cmd');
+    if (event.altKey) parts.push('alt');
+    if (event.shiftKey) parts.push('shift');
+    
+    // Add the main key
+    const key = event.key.toLowerCase();
+    if (key !== 'control' && key !== 'meta' && key !== 'alt' && key !== 'shift') {
+      // Handle special keys
+      const keyMap = {
+        ' ': 'space',
+        'arrowup': 'up',
+        'arrowdown': 'down',
+        'arrowleft': 'left',
+        'arrowright': 'right',
+        '+': 'plus',
+        '-': 'minus',
+        '=': 'plus', // + key without shift on many keyboards
+        "'": "'"
+      };
+      parts.push(keyMap[key] || key);
+    }
+    
     return parts.join('+');
   }
 
-  addModifiers(parts, event) {
-    this.addControlModifier(parts, event);
-    this.addCmdModifier(parts, event);
-    if (event.altKey) {
-      parts.push('alt');
-    }
-    if (event.shiftKey) {
-      parts.push('shift');
-    }
-  }
-
-  addControlModifier(parts, event) {
-    if (event.ctrlKey && this.platform !== 'darwin') {
-      parts.push('ctrl');
-    }
-  }
-
-  addCmdModifier(parts, event) {
-    if (event.metaKey && this.platform === 'darwin') {
-      parts.push('cmd');
-    }
-  }
-
-  addMainKey(parts, event) {
-    const key = event.key.toLowerCase();
-    if (this.isModifierKey(key)) {
-      return;
-    }
-    parts.push(this.mapSpecialKey(key));
-  }
-
-  isModifierKey(key) {
-    return ['control', 'meta', 'alt', 'shift'].includes(key);
-  }
-
-  mapSpecialKey(key) {
-    const keyMap = {
-      ' ': 'space',
-      arrowup: 'up',
-      arrowdown: 'down',
-      arrowleft: 'left',
-      arrowright: 'right',
-      '+': 'plus',
-      '-': 'minus',
-      '=': 'plus',
-      "'": "'",
-    };
-    return keyMap[key] || key;
-  }
-
   executeAction(action, event) {
-    this.sendToElectronAPI(action);
-    this.dispatchPenpotEvent(action, event);
-    this.callDirectHandler(action, event);
-  }
-
-  sendToElectronAPI(action) {
+    // Send to both menu system and custom event system
     if (window.electronAPI) {
       window.electronAPI.onMenuAction?.(action);
     }
-  }
-
-  dispatchPenpotEvent(action, event) {
+    
+    // Dispatch custom event for PenPot integration
     const customEvent = new CustomEvent('penpot-shortcut', {
-      detail: {
-        action,
+      detail: { 
+        action, 
         originalEvent: event,
         context: this.currentContext,
-        platform: this.platform,
-      },
+        platform: this.platform
+      }
     });
     document.dispatchEvent(customEvent);
-  }
-
-  callDirectHandler(action, event) {
-    if (window.kizu?.shortcutActions?.[action]) {
-      window.kizu.shortcutActions[action](event);
+    
+    // Try direct handler if registered
+    if (window.penpotDesktop?.shortcutActions?.[action]) {
+      window.penpotDesktop.shortcutActions[action](event);
     }
   }
 
@@ -289,13 +209,13 @@ class ShortcutManager {
 
   getShortcutsList(context = null) {
     const list = [];
-    for (const [, data] of this.shortcuts) {
+    for (const [key, data] of this.shortcuts) {
       if (!context || data.context === context) {
         list.push({
           shortcut: data.shortcut,
           action: data.action,
           context: data.context,
-          description: data.description,
+          description: data.description
         });
       }
     }
@@ -313,21 +233,18 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports = ShortcutManager;
 }
 
-// Initialize if in browser context - DISABLED FOR DEBUGGING
-// TODO: Enable when debugging is complete
-/*
+// Initialize if in browser context
 if (typeof window !== 'undefined') {
   window.shortcutManager = new ShortcutManager();
-
+  
   // Helper function for PenPot to register shortcut handlers
-  window.registerShortcutHandler = function (action, handler) {
-    if (!window.kizu) {
-      window.kizu = {};
+  window.registerShortcutHandler = function(action, handler) {
+    if (!window.penpotDesktop) {
+      window.penpotDesktop = {};
     }
-    if (!window.kizu.shortcutActions) {
-      window.kizu.shortcutActions = {};
+    if (!window.penpotDesktop.shortcutActions) {
+      window.penpotDesktop.shortcutActions = {};
     }
-    window.kizu.shortcutActions[action] = handler;
+    window.penpotDesktop.shortcutActions[action] = handler;
   };
 }
-*/

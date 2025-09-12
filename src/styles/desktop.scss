@@ -1,0 +1,196 @@
+// PenPot Desktop - SCSS with BEM methodology
+// Variables
+$desktop-titlebar-height: 40px;
+$desktop-tab-height: 32px;
+$desktop-colors: (
+  tab-bar-bg: #1e1e1e,
+  // Match PenPot's dark background
+  tab-bar-border: #2d2d2d,
+  tab-bg: transparent,
+  tab-bg-hover: #2a2a2a,
+  tab-bg-active: #313131,
+  tab-text: #999999,
+  tab-text-hover: #cccccc,
+  tab-text-active: #ffffff,
+  tab-accent: #31efb8,
+  // PenPot's teal accent color
+  tab-close-hover: #4a4a4a,
+);
+
+// BEM Block: Desktop Tab System
+.desktop-tabs {
+  // Tab container INTEGRATED into title bar (ACTUAL Figma style)
+  &__container {
+    position: fixed !important;
+    top: 0 !important; // At the very top - integrated with title bar
+    left: 0 !important;
+    right: 0 !important;
+    height: $desktop-titlebar-height !important;
+    background-color: map-get($desktop-colors, tab-bar-bg) !important;
+    display: flex !important;
+    align-items: stretch !important;
+    z-index: 999999 !important;
+    border-bottom: 1px solid map-get($desktop-colors, tab-bar-border) !important;
+
+    // Ensure it's always visible
+    opacity: 1 !important;
+    visibility: visible !important;
+
+    // Add some visual depth
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+  }
+
+  // Left area - space for macOS traffic lights (like Figma)
+  &__drag-left {
+    width: 78px !important; // Space for traffic lights like Figma
+    background-color: map-get($desktop-colors, tab-bar-bg) !important;
+    flex-shrink: 0;
+    // Make draggable ONLY in empty areas
+    -webkit-app-region: drag;
+  }
+
+  // Center area - draggable empty space (like Figma)
+  &__drag-center {
+    flex: 1 !important; // Takes remaining space after tabs
+    background-color: map-get($desktop-colors, tab-bar-bg) !important;
+    min-width: 0;
+    // Make draggable like Figma's empty title bar area
+    -webkit-app-region: drag;
+  }
+
+  // Right spacing - draggable
+  &__drag-right {
+    width: 20px !important; // Right margin
+    background-color: map-get($desktop-colors, tab-bar-bg) !important;
+    flex-shrink: 0;
+    -webkit-app-region: drag;
+  }
+
+  // Tab area - clickable tabs (NOT draggable like Figma)
+  &__bar {
+    flex: 0 1 auto !important; // Shrink to content, can grow if needed, auto width
+    height: 100% !important;
+    background-color: map-get($desktop-colors, tab-bar-bg) !important;
+    display: flex !important;
+    align-items: stretch !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif !important;
+    max-width: calc(100vw - 98px) !important; // Account for left (78px) + right (20px)
+    // Critical: Make tabs clickable, not draggable
+    -webkit-app-region: no-drag;
+
+    // Show message when empty
+    &:empty::after {
+      content: '🎨 No files open - Click + NEW PROJECT to start';
+      color: map-get($desktop-colors, tab-text);
+      font-size: 12px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      font-style: italic;
+      opacity: 0.6;
+    }
+  }
+
+  &__tab {
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    background-color: map-get($desktop-colors, tab-bg);
+    border-right: 1px solid map-get($desktop-colors, tab-bar-border);
+    color: map-get($desktop-colors, tab-text);
+    font-size: 13px;
+    cursor: pointer;
+    user-select: none;
+    min-width: 120px;
+    max-width: 200px;
+    position: relative;
+    transition:
+      background-color 0.15s ease,
+      color 0.15s ease;
+
+    // Add visual separator between tabs
+    &:not(:last-child) {
+      border-right: 1px solid map-get($desktop-colors, tab-bar-border);
+    }
+
+    // Modifiers
+    &--active {
+      background-color: map-get($desktop-colors, tab-bg-active);
+      color: map-get($desktop-colors, tab-text-active);
+
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background-color: map-get($desktop-colors, tab-accent);
+      }
+    }
+
+    &:hover:not(&--active) {
+      background-color: map-get($desktop-colors, tab-bg-hover);
+      color: map-get($desktop-colors, tab-text-hover);
+    }
+  }
+
+  &__tab-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-right: 8px;
+    font-weight: 500;
+  }
+
+  &__tab-close {
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 3px;
+    font-size: 14px;
+    opacity: 0;
+    transition:
+      opacity 0.15s ease,
+      background-color 0.15s ease;
+    color: map-get($desktop-colors, tab-text);
+
+    .desktop-tabs__tab:hover & {
+      opacity: 1;
+    }
+
+    &:hover {
+      background-color: map-get($desktop-colors, tab-close-hover);
+      color: map-get($desktop-colors, tab-text-active);
+    }
+  }
+}
+
+// PenPot Layout Adjustments - Target specific PenPot elements
+// Only adjust layout when tabs are present
+body.has-desktop-tabs {
+  // Account for integrated title bar (40px total - like Figma)
+  $total-header-height: 40px;
+
+  // Target PenPot's main containers specifically
+  .main_ui_dashboard__dashboard,
+  .main_ui_workspace__workspace {
+    padding-top: $total-header-height;
+  }
+
+  // Adjust PenPot sidebars
+  .main_ui_dashboard__dashboard-sidebar,
+  .main_ui_workspace__left-sidebar {
+    top: $total-header-height;
+    height: calc(100vh - #{$total-header-height});
+  }
+
+  // Fix PenPot fixed position elements
+  .main_ui_dashboard__header,
+  .main_ui_workspace__header {
+    top: $total-header-height;
+  }
+}

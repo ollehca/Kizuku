@@ -1,8 +1,8 @@
-# PenPot Desktop Development Setup Guide
+# Kizu Development Setup Guide
 
 ## Overview
 
-This guide will help you set up the complete development environment for PenPot Desktop. The project consists of two main components:
+This guide will help you set up the complete development environment for Kizu. The project consists of two main components:
 
 1. **PenPot Core**: The original PenPot application (ClojureScript frontend + Clojure backend)
 2. **Electron Desktop App**: The desktop wrapper providing offline capabilities and native integration
@@ -35,7 +35,7 @@ mkdir PenPotDesktop && cd PenPotDesktop
 git clone https://github.com/penpot/penpot.git
 
 # Clone desktop wrapper (this project)
-git clone https://github.com/your-username/penpot-desktop.git
+git clone https://github.com/your-username/kizu.git
 ```
 
 ### 2. Set up Node.js Environment
@@ -73,7 +73,7 @@ cd penpot
 ### 4. Set up Electron Desktop App
 
 ```bash
-cd ../penpot-desktop
+cd ../kizu
 
 # Install dependencies
 npm install
@@ -94,7 +94,7 @@ npm run dev
 
 2. **Start Electron App**:
    ```bash
-   cd penpot-desktop
+   cd kizu
    npm run dev
    ```
 
@@ -154,7 +154,7 @@ penpot/
 ### Electron Desktop Structure
 
 ```
-penpot-desktop/
+kizu/
 ├── src/
 │   ├── main.js               # Electron main process
 │   ├── preload.js           # Secure IPC bridge

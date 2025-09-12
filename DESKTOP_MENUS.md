@@ -1,7 +1,7 @@
 # Desktop Menu System
 
 ## Overview
-PenPot Desktop provides comprehensive native menus that integrate seamlessly with the PenPot web application. The menu system includes professional design tool functionality with proper keyboard shortcuts and platform-specific behaviors.
+Kizu provides comprehensive native menus that integrate seamlessly with the PenPot web application. The menu system includes professional design tool functionality with proper keyboard shortcuts and platform-specific behaviors.
 
 ## Menu Structure
 
@@ -90,7 +90,7 @@ Standard window management:
 - `Zoom` (macOS) - Toggle window zoom
 
 ### Help Menu
-- `About PenPot Desktop` - Version and app information
+- `About Kizu` - Version and app information
 
 ## Platform-Specific Features
 
