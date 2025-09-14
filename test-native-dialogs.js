@@ -18,7 +18,7 @@ class DialogTester {
 
   async initialize() {
     await app.whenReady();
-    
+
     this.window = new BrowserWindow({
       width: 800,
       height: 600,
@@ -34,28 +34,28 @@ class DialogTester {
 
   async runTests() {
     console.log('🧪 Starting native file dialogs tests...\n');
-    
+
     await this.testProjectDialogs();
     await this.testImportDialogs();
     await this.testErrorHandling();
     await this.testCrossPlatformCompatibility();
-    
+
     this.printResults();
   }
 
   async testProjectDialogs() {
     console.log('📁 Testing project file dialogs...');
-    
+
     // Test open project dialog
     await this.testFunction(
       'showOpenProjectDialog',
       () => menuActions.showOpenProjectDialog(this.window),
       'Open project dialog should display with .kizu extensions'
     );
-    
+
     // Test save as dialog
     await this.testFunction(
-      'showSaveAsDialog', 
+      'showSaveAsDialog',
       () => menuActions.showSaveAsDialog(this.window),
       'Save as dialog should display with .kizu default extension'
     );
@@ -63,14 +63,14 @@ class DialogTester {
 
   async testImportDialogs() {
     console.log('🖼️ Testing import dialogs...');
-    
+
     // Test image import
     await this.testFunction(
       'showImportImageDialog',
       () => menuActions.showImportImageDialog(this.window),
       'Image import dialog should support multiple image formats'
     );
-    
+
     // Test font import
     await this.testFunction(
       'showImportFontDialog',
@@ -81,7 +81,7 @@ class DialogTester {
 
   async testErrorHandling() {
     console.log('⚠️ Testing error handling...');
-    
+
     // Test with invalid window object
     await this.testFunction(
       'errorHandling_nullWindow',
@@ -93,10 +93,10 @@ class DialogTester {
 
   async testCrossPlatformCompatibility() {
     console.log('🌐 Testing cross-platform compatibility...');
-    
+
     const platform = process.platform;
     console.log(`   Platform: ${platform}`);
-    
+
     // Test platform-specific dialog options
     const testDialog = {
       title: 'Cross-Platform Test',
@@ -105,7 +105,7 @@ class DialogTester {
         { name: 'All Files', extensions: ['*'] },
       ],
     };
-    
+
     await this.testFunction(
       'crossPlatform_dialog',
       async () => {
@@ -121,22 +121,25 @@ class DialogTester {
   async testFunction(name, fn, description, expectError = false, skipExecution = false) {
     try {
       console.log(`   Testing: ${name}...`);
-      
+
       if (skipExecution) {
         this.recordResult(name, true, description, 'Skipped - would require user interaction');
         return;
       }
-      
+
       const startTime = Date.now();
-      
+
       // Set a timeout for dialog tests since they require user interaction
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Dialog test timeout - user interaction required')), 2000);
+        setTimeout(
+          () => reject(new Error('Dialog test timeout - user interaction required')),
+          2000
+        );
       });
-      
+
       try {
         await Promise.race([fn(), timeoutPromise]);
-        
+
         if (expectError) {
           this.recordResult(name, false, description, 'Expected error but none occurred');
         } else {
@@ -145,12 +148,18 @@ class DialogTester {
         }
       } catch (error) {
         if (expectError || error.message.includes('timeout')) {
-          this.recordResult(name, true, description, error.message.includes('timeout') ? 'User interaction required (expected)' : 'Expected error occurred');
+          this.recordResult(
+            name,
+            true,
+            description,
+            error.message.includes('timeout')
+              ? 'User interaction required (expected)'
+              : 'Expected error occurred'
+          );
         } else {
           throw error;
         }
       }
-      
     } catch (error) {
       this.recordResult(name, false, description, `Error: ${error.message}`);
     }
@@ -169,24 +178,24 @@ class DialogTester {
   printResults() {
     console.log('\n📊 Test Results Summary:');
     console.log('='.repeat(60));
-    
+
     let totalTests = this.testResults.length;
-    let passedTests = this.testResults.filter(r => r.passed).length;
+    let passedTests = this.testResults.filter((r) => r.passed).length;
     let failedTests = totalTests - passedTests;
-    
+
     this.testResults.forEach((result) => {
       const status = result.passed ? '✅ PASS' : '❌ FAIL';
       console.log(`${status} ${result.testName}`);
       console.log(`     ${result.description}`);
       console.log(`     ${result.details}\n`);
     });
-    
+
     console.log('='.repeat(60));
     console.log(`Total Tests: ${totalTests}`);
     console.log(`✅ Passed: ${passedTests}`);
     console.log(`❌ Failed: ${failedTests}`);
     console.log(`📈 Success Rate: ${((passedTests / totalTests) * 100).toFixed(1)}%`);
-    
+
     if (failedTests === 0) {
       console.log('\n🎉 All native file dialog tests passed!');
     } else {
@@ -205,8 +214,9 @@ class DialogTester {
 // Run tests when executed directly
 if (require.main === module) {
   const tester = new DialogTester();
-  
-  tester.initialize()
+
+  tester
+    .initialize()
     .then(() => tester.runTests())
     .then(() => tester.cleanup())
     .catch((error) => {
