@@ -44,6 +44,19 @@ contextBridge.exposeInMainWorld('electronAPI', {
   platform: process.platform,
   isDesktop: true,
 
+  // Clipboard operations
+  clipboard: {
+    writeText: (text) => ipcRenderer.invoke('clipboard:write-text', text),
+    readText: () => ipcRenderer.invoke('clipboard:read-text'),
+    writeHTML: (html) => ipcRenderer.invoke('clipboard:write-html', html),
+    readHTML: () => ipcRenderer.invoke('clipboard:read-html'),
+    writeImage: (image) => ipcRenderer.invoke('clipboard:write-image', image),
+    readImage: () => ipcRenderer.invoke('clipboard:read-image'),
+    clear: () => ipcRenderer.invoke('clipboard:clear'),
+    hasText: () => ipcRenderer.invoke('clipboard:has-text'),
+    hasImage: () => ipcRenderer.invoke('clipboard:has-image'),
+  },
+
   // Desktop-specific features
   openExternal: (url) => {
     // This will be handled by the main process

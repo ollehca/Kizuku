@@ -68,8 +68,7 @@ class ShortcutManager {
   }
 
   setupEditOperationShortcuts() {
-    // ONLY register shortcuts that need custom PenPot handling
-    // Let basic editing shortcuts (Cmd+V, Cmd+A, Cmd+C, Cmd+X) work natively
+    // EDIT OPERATIONS with Kizu clipboard integration
     this.register(`${this.modifierKey}+z`, 'undo', 'canvas', 'Undo');
     this.register(
       this.platform === 'darwin' ? `${this.modifierKey}+shift+z` : `ctrl+y`,
@@ -77,10 +76,15 @@ class ShortcutManager {
       'canvas',
       'Redo'
     );
+
+    // Clipboard operations with Kizu desktop integration
+    this.register(`${this.modifierKey}+c`, 'copy', 'canvas', 'Copy selection');
+    this.register(`${this.modifierKey}+v`, 'paste', 'canvas', 'Paste from clipboard');
+    this.register(`${this.modifierKey}+x`, 'cut', 'canvas', 'Cut selection');
+    this.register(`${this.modifierKey}+a`, 'select-all', 'canvas', 'Select all');
     this.register(`${this.modifierKey}+shift+v`, 'paste-in-place', 'canvas', 'Paste in place');
     this.register(`${this.modifierKey}+d`, 'duplicate', 'canvas', 'Duplicate');
     this.register(`${this.modifierKey}+shift+a`, 'select-none', 'canvas', 'Select none');
-    // Note: Removed Cmd+V, Cmd+A, Cmd+C, Cmd+X to allow native functionality
   }
 
   setupObjectOperationShortcuts() {
@@ -177,13 +181,15 @@ class ShortcutManager {
   }
 
   isBasicEditShortcut(shortcut) {
-    const basicShortcuts = [
-      `${this.modifierKey}+v`,
-      `${this.modifierKey}+a`,
-      `${this.modifierKey}+c`,
-      `${this.modifierKey}+x`,
+    // These shortcuts need custom handling through Kizu clipboard API
+    // Don't prevent default - let them be processed by our handlers
+    const kizuManagedShortcuts = [
+      `${this.modifierKey}+v`, // paste
+      `${this.modifierKey}+a`, // select all
+      `${this.modifierKey}+c`, // copy
+      `${this.modifierKey}+x`, // cut
     ];
-    return basicShortcuts.includes(shortcut);
+    return kizuManagedShortcuts.includes(shortcut);
   }
 
   buildShortcutString(event) {
