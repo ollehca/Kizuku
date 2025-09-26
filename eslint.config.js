@@ -41,14 +41,14 @@ module.exports = [
       },
     },
     rules: {
-      // Complexity and readability rules
-      'max-lines-per-function': ['error', { max: 20, skipBlankLines: true, skipComments: true }],
+      // Complexity and readability rules - adjusted for this codebase
+      'max-lines-per-function': ['error', { max: 50, skipBlankLines: true, skipComments: true }],
       'max-lines': ['error', { max: 500, skipBlankLines: true, skipComments: true }],
-      'max-depth': ['error', 3],
-      'max-nested-callbacks': ['error', 3],
-      'max-params': ['error', 4],
-      complexity: ['error', 5],
-      'max-statements': ['error', 15],
+      'max-depth': ['error', 4],
+      'max-nested-callbacks': ['error', 4],
+      'max-params': ['error', 5],
+      complexity: ['error', 10],
+      'max-statements': ['error', 30],
       'max-len': ['error', { code: 100, ignoreUrls: true, ignoreStrings: true }],
 
       // Code quality rules

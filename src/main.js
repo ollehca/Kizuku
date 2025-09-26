@@ -8,7 +8,6 @@ const { showLoadingScreen, hideLoadingScreen } = require('./utils/loading-helper
 const { createHeaderBar } = require('./utils/tab-helpers');
 const recovery = require('./utils/recovery');
 const authStorage = require('./services/auth-storage');
-const { addRecoveryMenuItems } = require('./utils/recovery-menu');
 
 // Legacy menu function for test compatibility
 function createMenu() {
@@ -65,9 +64,11 @@ let mainWindow;
 // Backend process reference (unused but kept for future implementation)
 // const penpotBackendProcess = null;
 
-// Development mode detection - default to dev if penpot directory exists
+// Development mode detection - always use dev mode if localhost:3449 is accessible
 const isDev =
-  process.env.NODE_ENV === 'development' || fs.existsSync(path.join(__dirname, '../../penpot'));
+  process.env.NODE_ENV === 'development' ||
+  fs.existsSync(path.join(__dirname, '../../penpot')) ||
+  process.env.NODE_ENV !== 'production'; // Default to dev unless explicitly production
 
 // CSS Hot Reloading Setup
 let cssWatcher;
@@ -295,22 +296,25 @@ function injectAuthIntegration(window) {
 
   try {
     const authScript = fs.readFileSync(authIntegrationPath, 'utf8');
-    window.webContents.executeJavaScript(authScript).catch((error) => {
-      console.error('Failed to inject auth integration script:', error);
-    });
-    console.log('Auth integration script injected successfully');
+    console.log('Auth script loaded, length:', authScript.length, 'characters');
+    console.log('Auth script preview:', authScript.substring(0, 200) + '...');
+
+    window.webContents
+      .executeJavaScript(authScript)
+      .then(() => {
+        console.log('✅ Auth integration script executed successfully');
+      })
+      .catch((error) => {
+        console.error('❌ Failed to execute auth integration script:', error);
+        console.error('Error details:', error.message);
+        console.error('Stack trace:', error.stack);
+      });
   } catch (error) {
-    console.error('Failed to load auth integration script:', error);
+    console.error('❌ Failed to load auth integration script file:', error);
   }
 }
 
 // Loading screen functions moved to ./utils/loading-helpers.js
-
-// Helper function to inject CSS and show loading screen
-function injectCSSAndLoadingScreen(window) {
-  injectCSSFiles(window);
-  showLoadingScreen(window);
-}
 
 // Tab helper functions moved to ./utils/tab-helpers.js
 
@@ -364,7 +368,7 @@ function setupWindowEventHandlers(window) {
 }
 
 // Auto-login functionality
-/* eslint-disable-next-line max-lines-per-function */
+
 async function attemptAutoLogin(window) {
   const storedCredentials = authStorage.getStoredCredentials();
 
@@ -397,21 +401,35 @@ async function attemptAutoLogin(window) {
 // Helper function to handle successful server connection
 function handleServerSuccess(window) {
   console.log('Loading URL:', PENPOT_CONFIG.frontend.dev);
+
+  // Inject loading screen immediately when DOM is ready (before PenPot content appears)
+  window.webContents.once('dom-ready', () => {
+    console.log('DOM ready - injecting loading screen immediately');
+    injectCSSFiles(window);
+    showLoadingScreen(window);
+  });
+
+  // Set up event listeners BEFORE loading the URL
+  window.webContents.once('did-finish-load', async () => {
+    console.log('PenPot finished loading, waiting before injecting customizations...');
+
+    // Wait a bit more for the PenPot app to fully initialize its routing
+    setTimeout(() => {
+      console.log('Injecting Kizu customizations...');
+
+      createHeaderBar(window);
+      attemptAutoLogin(window);
+      injectAuthIntegration(window);
+
+      // Hide loading screen once everything is ready
+      hideLoadingScreen(window);
+    }, 2000); // Wait 2 seconds for PenPot to settle
+  });
+
   window
     .loadURL(PENPOT_CONFIG.frontend.dev)
     .then(async () => {
       console.log('URL loaded successfully');
-
-      injectCSSAndLoadingScreen(window);
-      createHeaderBar(window);
-
-      // Attempt auto-login after page loads
-      window.webContents.once('did-finish-load', async () => {
-        await attemptAutoLogin(window);
-        injectAuthIntegration(window);
-      });
-
-      hideLoadingScreen(window);
       setupCSSHotReloading();
     })
     .catch((err) => {
@@ -466,14 +484,18 @@ function setupWindowDisplay(window) {
 
   window.once('ready-to-show', () => {
     console.log('Window ready to show - showing again and focusing');
-    window.show();
-    window.focus();
-    app.focus();
 
-    if (isDev) {
-      console.log('Opening dev tools');
-      window.webContents.openDevTools();
-    }
+    // Small delay to ensure loading screen is injected before showing
+    setTimeout(() => {
+      window.show();
+      window.focus();
+      app.focus();
+
+      if (isDev) {
+        console.log('Opening dev tools');
+        window.webContents.openDevTools();
+      }
+    }, 50);
   });
 }
 
@@ -525,14 +547,14 @@ app.whenReady().then(() => {
   initializeTabManager(store, mainWindow);
   registerTabHandlers();
 
-  // Start health monitoring in development mode
-  if (isDev) {
-    console.log('🔄 Starting automated health monitoring...');
-    recovery.startHealthMonitoring(120000); // Check every 2 minutes
-
-    // Add recovery menu items to help menu
-    addRecoveryMenuItems(mainWindow);
-  }
+  // Start health monitoring in development mode (temporarily disabled to prevent crashes)
+  // TODO: Re-enable when health monitoring is stable
+  // if (isDev) {
+  //   console.log('🔄 Starting automated health monitoring...');
+  //   recovery.startHealthMonitoring(120000); // Check every 2 minutes
+  //   // Add recovery menu items to help menu
+  //   addRecoveryMenuItems(mainWindow);
+  // }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

@@ -1,6 +1,58 @@
 const { exec } = require('child_process');
-const fetch = require('node-fetch');
 const path = require('path');
+
+// Use native fetch if available, otherwise use a simple HTTP implementation
+let fetch;
+try {
+  // Try to use global fetch (Node.js 18+)
+  fetch = globalThis.fetch;
+  if (!fetch) {
+    // Fallback to require if global fetch is not available
+    fetch = require('node-fetch');
+  }
+} catch {
+  // If node-fetch is not available, create a simple fetch implementation
+  const http = require('http');
+  const https = require('https');
+  const { URL } = require('url');
+
+  fetch = function (url, options = {}) {
+    return new Promise((resolve, reject) => {
+      const parsedUrl = new URL(url);
+      const requestModule = parsedUrl.protocol === 'https:' ? https : http;
+
+      const req = requestModule.request(
+        {
+          hostname: parsedUrl.hostname,
+          port: parsedUrl.port,
+          path: parsedUrl.pathname + parsedUrl.search,
+          method: options.method || 'GET',
+          headers: options.headers || {},
+        },
+        (res) => {
+          let data = '';
+          res.on('data', (chunk) => (data += chunk));
+          res.on('end', () => {
+            resolve({
+              ok: res.statusCode >= 200 && res.statusCode < 300,
+              status: res.statusCode,
+              text: () => Promise.resolve(data),
+              json: () => Promise.resolve(JSON.parse(data)),
+            });
+          });
+        }
+      );
+
+      req.on('error', reject);
+
+      if (options.body) {
+        req.write(options.body);
+      }
+
+      req.end();
+    });
+  };
+}
 
 // Recovery and health monitoring utilities for Kizu
 

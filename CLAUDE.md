@@ -55,10 +55,16 @@ npm start
 
 ## Demo Credentials Management
 
-### Current Persistent Demo Account
-- **Email**: `demo@penpot.local`
-- **Password**: `demo123`
-- **Full Name**: Demo User
+### Current Working Demo Account (CONFIRMED WORKING)
+- **Email**: `local@demo.dev`
+- **Password**: `test123`
+- **Full Name**: Local Demo User
+
+### Manual Login Process (WORKING AS OF LATEST UPDATE)
+1. **Start Kizu app**: `npm start`
+2. **Automatic redirect**: App will redirect to login page
+3. **Manual login**: Enter credentials `local@demo.dev` / `test123`
+4. **Access dashboard**: Successfully reach working dashboard
 
 ### Demo Account Commands
 ```bash

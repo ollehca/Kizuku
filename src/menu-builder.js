@@ -218,7 +218,7 @@ function createHelpMenu(window) {
  * @param {object} window - BrowserWindow instance
  * @returns {object} Session info menu item
  */
-/* eslint-disable-next-line max-lines-per-function */
+
 function createSessionInfoItem(window) {
   return {
     label: 'Session Info',

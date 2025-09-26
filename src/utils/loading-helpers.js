@@ -67,10 +67,10 @@ function createSpinnerElement() {
     spinnerContainer.style.display = 'flex';
     spinnerContainer.style.justifyContent = 'center';
     spinnerContainer.style.marginBottom = '24px';
-    
+
     const spinner = document.createElement('div');
     spinner.className = 'loading-screen__spinner';
-    
+
     const status = document.createElement('div');
     status.className = 'loading-screen__status loading-screen__status--pulse';
     status.textContent = 'Loading workspace...';
@@ -84,13 +84,13 @@ function createSpinnerElement() {
 function createLoadingAssemblyJS() {
   return `
     spinnerContainer.appendChild(spinner);
-    
+
     content.appendChild(title);
     content.appendChild(logoContainer);
     content.appendChild(spinnerContainer);
     content.appendChild(status);
     loadingOverlay.appendChild(content);
-    
+
     document.body.appendChild(loadingOverlay);
   `;
 }
@@ -130,6 +130,7 @@ function showLoadingScreen(window) {
   setTimeout(() => {
     if (window && !window.isDestroyed()) {
       const jsCode = createLoadingScreenJS();
+
       window.webContents
         .executeJavaScript(jsCode)
         .catch((err) => console.log('Loading overlay failed:', err));

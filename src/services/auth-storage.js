@@ -29,7 +29,7 @@ class AuthStorageService {
    * @param {Object} credentials - Auth data to store
    * @returns {boolean} Success status
    */
-  /* eslint-disable-next-line max-lines-per-function */
+
   storeCredentials(credentials) {
     try {
       if (!safeStorage.isEncryptionAvailable()) {
