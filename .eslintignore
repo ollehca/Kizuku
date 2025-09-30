@@ -1,0 +1,6 @@
+node_modules/
+penpot/
+tests/**/*.test.js
+coverage/
+backup/
+*.log

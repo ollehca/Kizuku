@@ -1,0 +1,63 @@
+/**
+ * Jest Test Setup
+ *
+ * Global setup for all tests.
+ */
+
+// Set environment to test
+process.env.NODE_ENV = 'test';
+
+// Set test secret for license generation
+process.env.KIZU_LICENSE_SECRET = 'test-secret-key-for-testing-only';
+
+// Mock Electron globally
+jest.mock('electron', () => ({
+  app: {
+    getPath: jest.fn(() => './test-data'),
+    getVersion: jest.fn(() => '0.1.0'),
+  },
+  ipcMain: {
+    handle: jest.fn(),
+    on: jest.fn(),
+  },
+  shell: {
+    openExternal: jest.fn(),
+  },
+}), { virtual: true });
+
+// Global test utilities
+global.testUtils = {
+  /**
+   * Wait for a specified time
+   */
+  wait: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+
+  /**
+   * Generate random string
+   */
+  randomString: (length = 10) => {
+    return Math.random().toString(36).substring(2, 2 + length);
+  },
+
+  /**
+   * Generate test user data
+   */
+  generateTestUser: () => ({
+    username: `testuser_${Date.now()}`,
+    fullName: 'Test User',
+    email: `test_${Date.now()}@example.com`,
+    password: 'TestPassword123!',
+  }),
+};
+
+// Suppress console output during tests (optional)
+if (process.env.SILENT_TESTS === 'true') {
+  global.console = {
+    ...console,
+    log: jest.fn(),
+    debug: jest.fn(),
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+  };
+}
