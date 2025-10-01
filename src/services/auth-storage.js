@@ -37,6 +37,9 @@ class AuthStorageService {
         return false;
       }
 
+      // Ensure directory exists before writing
+      this.setupStorageDirectory();
+
       const now = Date.now();
       // 30 days or 7 days
       const duration = credentials.rememberMe ? 30 * 24 * 60 * 60 * 1000 : 7 * 24 * 60 * 60 * 1000;
@@ -133,7 +136,7 @@ class AuthStorageService {
    */
   hasValidCredentials() {
     const credentials = this.getStoredCredentials();
-    return credentials !== null && credentials.token;
+    return credentials !== null && !!credentials.token;
   }
 
   /**

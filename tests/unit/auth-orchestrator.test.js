@@ -80,7 +80,8 @@ describe('Authentication Orchestrator', () => {
 
       expect(state.authenticated).toBe(true);
       expect(state.nextScreen).toBe('main-app');
-      expect(state.reason).toBe('authenticated');
+      expect(state.reason).toBe('private-license-auto-login');
+      expect(state.licenseType).toBe('private');
     });
 
     test('handles corrupted storage gracefully', async () => {
@@ -351,6 +352,209 @@ describe('Authentication Orchestrator', () => {
       const user = await userStorage.getUser();
       expect(license).toBeNull();
       expect(user).toBeNull();
+    });
+  });
+
+  describe('Business License Flow', () => {
+    beforeEach(async () => {
+      // Setup business license
+      const { generateLicense } = require('../../src/services/license-code');
+      const businessLicense = generateLicense({ type: 'business' });
+      await licenseStorage.saveLicense({
+        code: businessLicense.code,
+        type: 'business',
+        validated: true,
+        validatedAt: new Date().toISOString(),
+      });
+    });
+
+    test('requires password for business license account creation', async () => {
+      const noPassword = { ...testUserData };
+      delete noPassword.password;
+
+      const result = await authOrchestrator.createUserAccount(noPassword);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Password is required');
+    });
+
+    test('creates session token on business license account creation', async () => {
+      const result = await authOrchestrator.createUserAccount(testUserData);
+
+      expect(result.success).toBe(true);
+      expect(result.user.licenseType).toBe('business');
+
+      // Verify session token was stored
+      const authStorage = require('../../src/services/auth-storage');
+      const hasSession = authStorage.hasValidCredentials();
+      expect(hasSession).toBe(true);
+    });
+
+    test('business license with valid session auto-logs in', async () => {
+      // Create account (creates session token)
+      await authOrchestrator.createUserAccount(testUserData);
+
+      // Check auth state
+      const state = await authOrchestrator.checkAuthenticationState();
+
+      expect(state.authenticated).toBe(true);
+      expect(state.nextScreen).toBe('main-app');
+      expect(state.reason).toBe('valid-session-token');
+      expect(state.licenseType).toBe('business');
+    });
+
+    test('business license without session requires login', async () => {
+      // Create account
+      await authOrchestrator.createUserAccount(testUserData);
+
+      // Clear session
+      const authStorage = require('../../src/services/auth-storage');
+      authStorage.clearStoredCredentials();
+
+      // Check auth state
+      const state = await authOrchestrator.checkAuthenticationState();
+
+      expect(state.authenticated).toBe(false);
+      expect(state.nextScreen).toBe('login');
+      expect(state.reason).toBe('session-expired');
+      expect(state.licenseType).toBe('business');
+    });
+
+    test('authenticateUser creates new session token', async () => {
+      // Create account
+      await authOrchestrator.createUserAccount(testUserData);
+
+      // Clear session
+      const authStorage = require('../../src/services/auth-storage');
+      authStorage.clearStoredCredentials();
+
+      // Authenticate
+      const result = await authOrchestrator.authenticateUser(
+        testUserData.username,
+        testUserData.password,
+        true // rememberMe
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.sessionToken).toBeDefined();
+
+      // Verify session was stored
+      const hasSession = authStorage.hasValidCredentials();
+      expect(hasSession).toBe(true);
+    });
+
+    test('authenticateUser rejects private license authentication', async () => {
+      // Switch to private license
+      await licenseStorage.clearLicense();
+      const { generateLicense } = require('../../src/services/license-code');
+      const privateLicense = generateLicense({ type: 'private' });
+      await licenseStorage.saveLicense({
+        code: privateLicense.code,
+        type: 'private',
+        validated: true,
+        validatedAt: new Date().toISOString(),
+      });
+
+      // Create account without password
+      const noPassword = { ...testUserData };
+      delete noPassword.password;
+      await authOrchestrator.createUserAccount(noPassword);
+
+      // Try to authenticate (should fail)
+      const result = await authOrchestrator.authenticateUser('testuser', 'anypassword');
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Private licenses do not require password');
+    });
+  });
+
+  describe('Private License Flow', () => {
+    beforeEach(async () => {
+      // Setup private license
+      const { generateLicense } = require('../../src/services/license-code');
+      const privateLicense = generateLicense({ type: 'private' });
+      await licenseStorage.saveLicense({
+        code: privateLicense.code,
+        type: 'private',
+        validated: true,
+        validatedAt: new Date().toISOString(),
+      });
+    });
+
+    test('allows account creation without password', async () => {
+      const noPassword = { ...testUserData };
+      delete noPassword.password;
+
+      const result = await authOrchestrator.createUserAccount(noPassword);
+
+      expect(result.success).toBe(true);
+      expect(result.user.licenseType).toBe('private');
+    });
+
+    test('does not create session token for private license', async () => {
+      const noPassword = { ...testUserData };
+      delete noPassword.password;
+
+      await authOrchestrator.createUserAccount(noPassword);
+
+      // Verify no session token
+      const authStorage = require('../../src/services/auth-storage');
+      const hasSession = authStorage.hasValidCredentials();
+      expect(hasSession).toBe(false);
+    });
+
+    test('auto-logs in on every launch', async () => {
+      const noPassword = { ...testUserData };
+      delete noPassword.password;
+      await authOrchestrator.createUserAccount(noPassword);
+
+      const state = await authOrchestrator.checkAuthenticationState();
+
+      expect(state.authenticated).toBe(true);
+      expect(state.nextScreen).toBe('main-app');
+      expect(state.reason).toBe('private-license-auto-login');
+    });
+  });
+
+  describe('Session Management', () => {
+    test('logoutUser clears session token', () => {
+      const authStorage = require('../../src/services/auth-storage');
+      authStorage.storeCredentials({
+        email: 'test@example.com',
+        token: 'test-token',
+        rememberMe: false,
+      });
+
+      const result = authOrchestrator.logoutUser();
+
+      expect(result.success).toBe(true);
+      expect(authStorage.hasValidCredentials()).toBe(false);
+    });
+
+    test('getAuthenticationStatus returns complete status', async () => {
+      // Setup
+      await licenseStorage.saveLicense({
+        code: validLicenseCode,
+        type: 'private',
+        validated: true,
+        validatedAt: new Date().toISOString(),
+      });
+      await userStorage.saveUser({
+        username: 'testuser',
+        fullName: 'Test User',
+        preferences: {},
+      });
+
+      const status = await authOrchestrator.getAuthenticationStatus();
+
+      expect(status.success).toBe(true);
+      expect(status.hasLicense).toBe(true);
+      expect(status.hasUser).toBe(true);
+      expect(status.licenseType).toBe('private');
+      expect(status.isPrivateLicense).toBe(true);
+      expect(status.requiresPassword).toBe(false);
+      expect(status.user).toBeDefined();
+      expect(status.user.username).toBe('testuser');
     });
   });
 });

@@ -11,19 +11,32 @@ process.env.NODE_ENV = 'test';
 process.env.KIZU_LICENSE_SECRET = 'test-secret-key-for-testing-only';
 
 // Mock Electron globally
-jest.mock('electron', () => ({
-  app: {
-    getPath: jest.fn(() => './test-data'),
-    getVersion: jest.fn(() => '0.1.0'),
-  },
-  ipcMain: {
-    handle: jest.fn(),
-    on: jest.fn(),
-  },
-  shell: {
-    openExternal: jest.fn(),
-  },
-}), { virtual: true });
+jest.mock(
+  'electron',
+  () => ({
+    app: {
+      getPath: jest.fn(() => './test-data'),
+      getVersion: jest.fn(() => '0.1.0'),
+    },
+    ipcMain: {
+      handle: jest.fn(),
+      on: jest.fn(),
+    },
+    shell: {
+      openExternal: jest.fn(),
+    },
+    safeStorage: {
+      isEncryptionAvailable: jest.fn(() => true),
+      encryptString: jest.fn((str) => Buffer.from(str, 'utf8').toString('base64')),
+      decryptString: jest.fn((encrypted) => {
+        // Handle both Buffer and string input
+        const base64Str = Buffer.isBuffer(encrypted) ? encrypted.toString('utf8') : encrypted;
+        return Buffer.from(base64Str, 'base64').toString('utf8');
+      }),
+    },
+  }),
+  { virtual: true }
+);
 
 // Global test utilities
 global.testUtils = {

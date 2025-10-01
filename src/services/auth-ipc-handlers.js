@@ -35,7 +35,19 @@ function registerQueryHandlers() {
   });
 
   ipcMain.handle('authenticate-user', async (_event, credentials) => {
-    return await authOrchestrator.authenticateUser(credentials.username, credentials.password);
+    return await authOrchestrator.authenticateUser(
+      credentials.username,
+      credentials.password,
+      credentials.rememberMe || false
+    );
+  });
+
+  ipcMain.handle('logout-user', async () => {
+    return authOrchestrator.logoutUser();
+  });
+
+  ipcMain.handle('get-auth-status', async () => {
+    return await authOrchestrator.getAuthenticationStatus();
   });
 
   ipcMain.handle('get-user-summary', async () => {
@@ -177,6 +189,7 @@ async function initializeAuthFlow(mainWindow) {
     const screenMap = {
       'license-selection': 'src/ui/license-selection.html',
       'account-creation': 'src/ui/account-creation.html',
+      login: 'src/ui/login.html',
       'main-app': null, // Handled above
     };
 

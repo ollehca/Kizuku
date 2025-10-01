@@ -115,6 +115,7 @@ describe('License Storage Service', () => {
       expect(loaded.type).toBe(testLicense.type);
       expect(loaded.validated).toBe(testLicense.validated);
       expect(loaded.activatedBy).toBe(testLicense.activatedBy);
+      expect(loaded.validatedAt).toBe(testLicense.validatedAt);
     });
 
     test('throws error on corrupted data', async () => {

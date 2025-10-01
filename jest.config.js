@@ -54,4 +54,7 @@ module.exports = {
 
   // Restore mocks after each test
   restoreMocks: true,
+
+  // Run tests serially to avoid file system conflicts
+  maxWorkers: 1,
 };
