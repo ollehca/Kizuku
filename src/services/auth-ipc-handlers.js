@@ -108,6 +108,13 @@ function registerOnboardingHandlers(mainWindow) {
     }
   });
 
+  ipcMain.on('authentication-successful', () => {
+    console.log('Authentication successful, loading main app...');
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      loadMainApp(mainWindow);
+    }
+  });
+
   ipcMain.on('onboarding-complete', () => {
     console.log('Onboarding complete, loading main app...');
     if (mainWindow && !mainWindow.isDestroyed()) {
