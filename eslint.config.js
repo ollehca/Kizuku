@@ -5,7 +5,7 @@ module.exports = [
   js.configs.recommended,
   prettier,
   {
-    files: ['src/**/*.js', '*.js', 'tools/**/*.js'],
+    files: ['src/**/*.js', '*.js', 'tools/**/*.js', 'scripts/**/*.js'],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',
@@ -23,6 +23,7 @@ module.exports = [
         Buffer: 'readonly',
         global: 'readonly',
         globalThis: 'readonly',
+        jest: 'readonly',
         // Browser/Electron renderer globals
         window: 'readonly',
         document: 'readonly',

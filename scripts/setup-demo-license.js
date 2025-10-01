@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+/* eslint-env node, commonjs */
+/* eslint-disable max-lines-per-function, max-statements */
 /**
  * Demo License Setup Script
  *
@@ -19,8 +21,8 @@ const mockApp = {
 };
 
 // Inject mock before requiring services
-jest = undefined; // Disable Jest if present
-global.jest = undefined;
+// eslint-disable-next-line no-global-assign
+if (typeof jest !== 'undefined') {jest = undefined;}
 
 // Mock Electron module
 require.cache[require.resolve('electron')] = {
