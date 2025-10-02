@@ -75,56 +75,43 @@ class ConfigManager {
     };
   }
 
+  _getPrivateFeatures() {
+    return {
+      collaboration: false,
+      teams: false,
+      cloudSync: false,
+      versionHistory: true,
+      versionHistoryDuration: 24 * 60 * 60 * 1000,
+      versionHistoryInterval: 5 * 60 * 1000,
+    };
+  }
+
   _getPrivateConfig() {
     return {
-      database: {
-        type: 'embedded-postgres',
-        port: 54321,
-        host: 'localhost',
-      },
-      storage: {
-        type: 'local',
-        basePath: path.join(app.getPath('userData'), 'assets'),
-      },
-      auth: {
-        type: 'local',
-        autoLogin: true,
-      },
-      features: {
-        collaboration: false,
-        teams: false,
-        cloudSync: false,
-        versionHistory: true,
-        versionHistoryDuration: 24 * 60 * 60 * 1000,
-        versionHistoryInterval: 5 * 60 * 1000,
-      },
+      database: { type: 'embedded-postgres', port: 54321, host: 'localhost' },
+      storage: { type: 'local', basePath: path.join(app.getPath('userData'), 'assets') },
+      auth: { type: 'local', autoLogin: true },
+      features: this._getPrivateFeatures(),
+    };
+  }
+
+  _getBusinessFeatures() {
+    return {
+      collaboration: true,
+      teams: true,
+      cloudSync: true,
+      versionHistory: true,
+      versionHistoryDuration: 30 * 24 * 60 * 60 * 1000,
+      versionHistoryInterval: 15 * 60 * 1000,
     };
   }
 
   _getBusinessConfig() {
     return {
-      database: {
-        type: 'cloud-postgres',
-        connectionString: process.env.CLOUD_DB_URL,
-      },
-      storage: {
-        type: 'cloud-s3',
-        bucket: process.env.S3_BUCKET,
-        region: process.env.S3_REGION,
-      },
-      auth: {
-        type: 'cloud',
-        apiUrl: process.env.AUTH_API_URL,
-        autoLogin: false,
-      },
-      features: {
-        collaboration: true,
-        teams: true,
-        cloudSync: true,
-        versionHistory: true,
-        versionHistoryDuration: 30 * 24 * 60 * 60 * 1000,
-        versionHistoryInterval: 15 * 60 * 1000,
-      },
+      database: { type: 'cloud-postgres', connectionString: process.env.CLOUD_DB_URL },
+      storage: { type: 'cloud-s3', bucket: process.env.S3_BUCKET, region: process.env.S3_REGION },
+      auth: { type: 'cloud', apiUrl: process.env.AUTH_API_URL, autoLogin: false },
+      features: this._getBusinessFeatures(),
     };
   }
 
