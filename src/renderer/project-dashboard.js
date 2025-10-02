@@ -260,10 +260,26 @@ function showEmptyState(container) {
   `;
 }
 
-function openProjectInWorkspace(filePath) {
+async function openProjectInWorkspace(filePath) {
   console.log('Opening project in workspace:', filePath);
-  // TODO: Implement workspace launcher
-  showStatus('Opening workspace...', 'success');
+
+  try {
+    showStatus('Opening workspace...', 'success');
+
+    // Call IPC to launch workspace
+    const result = await window.electronAPI.launchWorkspace(filePath);
+
+    if (result.success) {
+      console.log('Workspace launched:', result.project.name);
+      // Close dashboard window after successful launch
+      setTimeout(() => window.close(), 500);
+    } else {
+      showStatus('Failed to launch workspace', 'error');
+    }
+  } catch (error) {
+    showStatus(`Workspace launch error: ${error.message}`, 'error');
+    console.error('Workspace launch error:', error);
+  }
 }
 
 function importFromFigma() {
