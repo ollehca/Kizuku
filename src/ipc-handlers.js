@@ -6,6 +6,7 @@ const { ipcMain, dialog, app, clipboard, nativeImage } = require('electron');
 const fs = require('fs').promises;
 const { createLogger } = require('./utils/logger');
 const authStorage = require('./services/auth-storage');
+const { registerBackendIpcHandlers } = require('./services/backend-ipc-handlers');
 
 const logger = createLogger('IPC');
 
@@ -364,8 +365,9 @@ function registerIpcHandlers(window) {
   registerWebviewHandlers();
   registerAuthHandlers();
   registerClipboardHandlers();
+  registerBackendIpcHandlers();
   logger.info(
-    'IPC handlers registered for webview communication, authentication, and clipboard operations'
+    'IPC handlers registered for webview, authentication, clipboard, and backend services'
   );
 }
 

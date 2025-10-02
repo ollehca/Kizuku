@@ -9,6 +9,7 @@ const { createHeaderBar } = require('./utils/tab-helpers');
 const recovery = require('./utils/recovery');
 const authStorage = require('./services/auth-storage');
 const { addRecoveryMenuItems } = require('./utils/recovery-menu');
+const { getBackendServiceManager } = require('./services/backend-service-manager');
 
 // Legacy menu function for test compatibility
 function createMenu() {
@@ -517,8 +518,25 @@ function getAppIcon() {
   return path.join(__dirname, '../assets', iconName);
 }
 
+// Initialize backend services before app starts
+async function initializeBackendServices() {
+  try {
+    console.log('🚀 Initializing backend services...');
+    const backendManager = getBackendServiceManager();
+    await backendManager.initialize();
+    console.log('✅ Backend services initialized');
+    return true;
+  } catch (error) {
+    console.error('❌ Failed to initialize backend services:', error);
+    return false;
+  }
+}
+
 // App event handlers
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  // Initialize backend services first
+  await initializeBackendServices();
+
   createWindow();
   buildApplicationMenu(mainWindow);
   registerIpcHandlers(mainWindow);

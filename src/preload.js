@@ -63,13 +63,62 @@ contextBridge.exposeInMainWorld('electronAPI', {
     window.open(url, '_blank');
   },
 
-  // Authentication storage
+  // Authentication storage (legacy)
   auth: {
     storeCredentials: (credentials) => ipcRenderer.invoke('auth:store-credentials', credentials),
     getCredentials: () => ipcRenderer.invoke('auth:get-credentials'),
     clearCredentials: () => ipcRenderer.invoke('auth:clear-credentials'),
     hasValidCredentials: () => ipcRenderer.invoke('auth:has-valid-credentials'),
     getSessionInfo: () => ipcRenderer.invoke('auth:get-session-info'),
+  },
+
+  // Backend Services API
+  backend: {
+    // Config API
+    config: {
+      get: () => ipcRenderer.invoke('backend:config:get'),
+      getValue: (key) => ipcRenderer.invoke('backend:config:get-value', key),
+      isFeatureEnabled: (featureName) =>
+        ipcRenderer.invoke('backend:config:is-feature-enabled', featureName),
+    },
+
+    // Auth API
+    auth: {
+      authenticate: (credentials) => ipcRenderer.invoke('backend:auth:authenticate', credentials),
+      getState: () => ipcRenderer.invoke('backend:auth:get-state'),
+      logout: () => ipcRenderer.invoke('backend:auth:logout'),
+      createAccount: (userData) => ipcRenderer.invoke('backend:auth:create-account', userData),
+      hasAccount: () => ipcRenderer.invoke('backend:auth:has-account'),
+    },
+
+    // Storage API
+    storage: {
+      storeFile: (category, fileName, data) =>
+        ipcRenderer.invoke('backend:storage:store-file', category, fileName, data),
+      retrieveFile: (category, fileName) =>
+        ipcRenderer.invoke('backend:storage:retrieve-file', category, fileName),
+      listFiles: (category) => ipcRenderer.invoke('backend:storage:list-files', category),
+      deleteFile: (category, fileName) =>
+        ipcRenderer.invoke('backend:storage:delete-file', category, fileName),
+    },
+
+    // Project API
+    project: {
+      create: (metadata) => ipcRenderer.invoke('backend:project:create', metadata),
+      load: (filePath) => ipcRenderer.invoke('backend:project:load', filePath),
+      save: (filePath) => ipcRenderer.invoke('backend:project:save', filePath),
+      getCurrent: () => ipcRenderer.invoke('backend:project:get-current'),
+      getCurrentPath: () => ipcRenderer.invoke('backend:project:get-current-path'),
+      close: () => ipcRenderer.invoke('backend:project:close'),
+      getDirectory: () => ipcRenderer.invoke('backend:project:get-directory'),
+      listRecent: (limit) => ipcRenderer.invoke('backend:project:list-recent', limit),
+    },
+
+    // System API
+    system: {
+      getStatus: () => ipcRenderer.invoke('backend:system:get-status'),
+      isInitialized: () => ipcRenderer.invoke('backend:system:is-initialized'),
+    },
   },
 
   // Manual test function for debugging
