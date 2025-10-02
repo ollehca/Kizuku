@@ -8,6 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Project Dashboard UI** - Beautiful gradient UI for project management
+  - Quick action cards (New, Open, Import Figma)
+  - Recent projects grid with thumbnails
+  - Project creation modal with form validation
+  - Real-time status messages
+  - File → Project Dashboard menu (Cmd+Shift+D)
+- **Workspace Launcher** - Direct .kizu file opening in PenPot workspace
+  - Bypasses PenPot dashboard/auth flow
+  - Automatic project validation
+  - Main window integration
+  - Auto-closes dashboard after launch
 - Complete embedded backend architecture foundation
 - License-aware configuration system (private/business)
 - Authentication abstraction layer (local/cloud)
@@ -23,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Native desktop menus
 - Interactive backend API test page
 - Complete API documentation
+- SEMVER versioning strategy and changelog
 
 ### Changed
 - Rebranded from PenPot Desktop to Kizu 築
@@ -35,6 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - .kizu file format specification
 - Development environment setup guide
 - Week-by-week implementation plans
+- Versioning documentation (VERSIONING.md)
 
 ## [0.1.0] - TBD
 

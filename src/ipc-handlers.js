@@ -7,6 +7,7 @@ const fs = require('fs').promises;
 const { createLogger } = require('./utils/logger');
 const authStorage = require('./services/auth-storage');
 const { registerBackendIpcHandlers } = require('./services/backend-ipc-handlers');
+const { launchWorkspace } = require('./utils/workspace-launcher');
 
 const logger = createLogger('IPC');
 
@@ -309,6 +310,23 @@ function clipboardHasImage() {
 }
 
 /**
+ * Handle workspace launch
+ * @param {object} event - IPC event
+ * @param {string} filePath - Path to .kizu file
+ * @param {object} window - BrowserWindow instance
+ */
+async function handleLaunchWorkspace(event, filePath, window) {
+  try {
+    logger.info('Launching workspace', { filePath });
+    const result = await launchWorkspace(filePath, window);
+    return result;
+  } catch (error) {
+    logger.error('Workspace launch failed', { filePath, error });
+    return { success: false, error: error.message };
+  }
+}
+
+/**
  * Register core IPC handlers
  * @param {object} window - BrowserWindow instance
  */
@@ -319,6 +337,9 @@ function registerCoreHandlers(window) {
   ipcMain.handle('write-file', writeFile);
   ipcMain.handle('read-file', readFile);
   ipcMain.handle('check-for-updates', checkForUpdates);
+  ipcMain.handle('launch-workspace', (event, filePath) =>
+    handleLaunchWorkspace(event, filePath, window)
+  );
 }
 
 /**

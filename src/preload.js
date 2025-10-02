@@ -62,6 +62,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     window.open(url, '_blank');
   },
 
+  // Workspace launcher
+  launchWorkspace: (filePath) => ipcRenderer.invoke('launch-workspace', filePath),
+
   // Authentication storage (legacy)
   auth: {
     storeCredentials: (credentials) => ipcRenderer.invoke('auth:store-credentials', credentials),

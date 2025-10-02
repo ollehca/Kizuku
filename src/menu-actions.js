@@ -4,6 +4,7 @@
 
 const { dialog } = require('electron');
 const { createLogger } = require('./utils/logger');
+const { showProjectDashboard } = require('./utils/dashboard-launcher');
 
 const logger = createLogger('MenuActions');
 
@@ -14,6 +15,12 @@ const logger = createLogger('MenuActions');
  * @param {any} data - Optional action data
  */
 function sendMenuAction(window, action, data) {
+  // Handle dashboard action directly
+  if (action === 'show-dashboard') {
+    showProjectDashboard();
+    return;
+  }
+
   // Since we're using webview tag, send actions to main window which will handle webview
   window.webContents.send('menu-action', action, data);
 }
