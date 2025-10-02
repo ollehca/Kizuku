@@ -1,5 +1,9 @@
 # 🎨 Kizu
 
+![Version](https://img.shields.io/badge/version-0.1.0--dev-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-lightgrey)
+
 **Professional desktop application for PenPot design platform**
 
 ## 🚀 Quick Start
@@ -125,9 +129,11 @@ cd ../penpot
 
 ---
 
-## 📚 Need More Help?
+## 📚 Documentation
 
 - **Complete Guide**: Read `CLAUDE.md`
+- **Versioning**: See `VERSIONING.md` for release strategy
+- **Changelog**: See `CHANGELOG.md` for version history
 - **Health Issues**: Run `./scripts/health-check.sh`
 - **Data Problems**: Use `./scripts/maintenance.sh`
 - **Demo Account**: Try `./scripts/create-demo-simple.sh`
