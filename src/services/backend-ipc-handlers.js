@@ -77,6 +77,50 @@ async function handleDeleteFile(event, category, fileName) {
 }
 
 /**
+ * Project IPC Handlers
+ */
+
+async function handleCreateProject(event, metadata) {
+  const manager = getBackendServiceManager();
+  return manager.createProject(metadata);
+}
+
+async function handleLoadProject(event, filePath) {
+  const manager = getBackendServiceManager();
+  return manager.loadProject(filePath);
+}
+
+async function handleSaveProject(event, filePath) {
+  const manager = getBackendServiceManager();
+  return manager.saveProject(filePath);
+}
+
+async function handleGetCurrentProject() {
+  const manager = getBackendServiceManager();
+  return manager.getCurrentProject();
+}
+
+async function handleGetCurrentProjectPath() {
+  const manager = getBackendServiceManager();
+  return manager.getCurrentProjectPath();
+}
+
+async function handleCloseProject() {
+  const manager = getBackendServiceManager();
+  return manager.closeProject();
+}
+
+async function handleGetProjectsDirectory() {
+  const manager = getBackendServiceManager();
+  return manager.getProjectsDirectory();
+}
+
+async function handleListRecentProjects(event, limit) {
+  const manager = getBackendServiceManager();
+  return manager.listRecentProjects(limit);
+}
+
+/**
  * System IPC Handlers
  */
 
@@ -94,29 +138,50 @@ async function handleIsInitialized() {
  * Register all backend IPC handlers
  */
 function registerBackendIpcHandlers() {
-  // Config handlers
+  registerConfigHandlers();
+  registerAuthHandlers();
+  registerStorageHandlers();
+  registerProjectHandlers();
+  registerSystemHandlers();
+
+  logger.info('Backend IPC handlers registered');
+}
+
+function registerConfigHandlers() {
   ipcMain.handle('backend:config:get', handleGetConfig);
   ipcMain.handle('backend:config:get-value', handleGetConfigValue);
   ipcMain.handle('backend:config:is-feature-enabled', handleIsFeatureEnabled);
+}
 
-  // Auth handlers
+function registerAuthHandlers() {
   ipcMain.handle('backend:auth:authenticate', handleAuthenticate);
   ipcMain.handle('backend:auth:get-state', handleGetAuthState);
   ipcMain.handle('backend:auth:logout', handleLogout);
   ipcMain.handle('backend:auth:create-account', handleCreateAccount);
   ipcMain.handle('backend:auth:has-account', handleHasAccount);
+}
 
-  // Storage handlers
+function registerStorageHandlers() {
   ipcMain.handle('backend:storage:store-file', handleStoreFile);
   ipcMain.handle('backend:storage:retrieve-file', handleRetrieveFile);
   ipcMain.handle('backend:storage:list-files', handleListFiles);
   ipcMain.handle('backend:storage:delete-file', handleDeleteFile);
+}
 
-  // System handlers
+function registerProjectHandlers() {
+  ipcMain.handle('backend:project:create', handleCreateProject);
+  ipcMain.handle('backend:project:load', handleLoadProject);
+  ipcMain.handle('backend:project:save', handleSaveProject);
+  ipcMain.handle('backend:project:get-current', handleGetCurrentProject);
+  ipcMain.handle('backend:project:get-current-path', handleGetCurrentProjectPath);
+  ipcMain.handle('backend:project:close', handleCloseProject);
+  ipcMain.handle('backend:project:get-directory', handleGetProjectsDirectory);
+  ipcMain.handle('backend:project:list-recent', handleListRecentProjects);
+}
+
+function registerSystemHandlers() {
   ipcMain.handle('backend:system:get-status', handleGetServiceStatus);
   ipcMain.handle('backend:system:is-initialized', handleIsInitialized);
-
-  logger.info('Backend IPC handlers registered');
 }
 
 module.exports = {

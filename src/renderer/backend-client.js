@@ -141,6 +141,82 @@ class BackendClient {
   }
 
   /**
+   * Project Methods
+   */
+
+  createProject(metadata) {
+    try {
+      return this.api.project.create(metadata);
+    } catch (error) {
+      console.error('Failed to create project:', error);
+      throw new Error(`Project creation failed: ${error.message}`);
+    }
+  }
+
+  async loadProject(filePath) {
+    try {
+      return await this.api.project.load(filePath);
+    } catch (error) {
+      console.error(`Failed to load project from ${filePath}:`, error);
+      throw new Error(`Project load failed: ${error.message}`);
+    }
+  }
+
+  async saveProject(filePath) {
+    try {
+      return await this.api.project.save(filePath);
+    } catch (error) {
+      console.error('Failed to save project:', error);
+      throw new Error(`Project save failed: ${error.message}`);
+    }
+  }
+
+  async getCurrentProject() {
+    try {
+      return await this.api.project.getCurrent();
+    } catch (error) {
+      console.error('Failed to get current project:', error);
+      return null;
+    }
+  }
+
+  async getCurrentProjectPath() {
+    try {
+      return await this.api.project.getCurrentPath();
+    } catch (error) {
+      console.error('Failed to get current project path:', error);
+      return null;
+    }
+  }
+
+  async closeProject() {
+    try {
+      return await this.api.project.close();
+    } catch (error) {
+      console.error('Failed to close project:', error);
+      throw new Error(`Project close failed: ${error.message}`);
+    }
+  }
+
+  async getProjectsDirectory() {
+    try {
+      return await this.api.project.getDirectory();
+    } catch (error) {
+      console.error('Failed to get projects directory:', error);
+      return null;
+    }
+  }
+
+  async listRecentProjects(limit = 10) {
+    try {
+      return await this.api.project.listRecent(limit);
+    } catch (error) {
+      console.error('Failed to list recent projects:', error);
+      return [];
+    }
+  }
+
+  /**
    * System Methods
    */
 
@@ -154,6 +230,7 @@ class BackendClient {
         config: false,
         auth: false,
         storage: false,
+        projects: false,
       };
     }
   }
