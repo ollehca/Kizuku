@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Project creation modal with form validation
   - Real-time status messages
   - File → Project Dashboard menu (Cmd+Shift+D)
+- **Workspace Launcher** - Direct .kizu file opening in PenPot workspace
+  - Bypasses PenPot dashboard/auth flow
+  - Automatic project validation
+  - Main window integration
+  - Auto-closes dashboard after launch
 - Complete embedded backend architecture foundation
 - License-aware configuration system (private/business)
 - Authentication abstraction layer (local/cloud)
