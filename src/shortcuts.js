@@ -6,7 +6,7 @@ class ShortcutManager {
     this.shortcuts = new Map();
     this.contexts = new Set(['global', 'canvas', 'text-editing']);
     this.currentContext = 'global';
-    this.platform = process.platform;
+    this.platform = (typeof process !== 'undefined' && process.platform) || 'linux';
     this.modifierKey = this.platform === 'darwin' ? 'cmd' : 'ctrl';
 
     this.setupDefaultShortcuts();
@@ -337,3 +337,5 @@ if (typeof window !== 'undefined') {
   };
 }
 */
+
+module.exports = ShortcutManager;

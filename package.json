@@ -18,6 +18,7 @@
     "test:integration": "node integration-test.js",
     "test:functionality": "node kizu-functionality-test.js",
     "test:design-tools": "node kizu-design-tools-test.js",
+    "test:basic-functionality": "node test-basic-penpot-functionality.js",
     "test:unit": "jest",
     "lint": "eslint src/ --fix",
     "lint:check": "eslint src/",

@@ -4,9 +4,6 @@
  */
 
 const menuActions = require('./src/menu-actions');
-const { createLogger } = require('./src/utils/logger');
-
-const logger = createLogger('ManualDialogTest');
 
 console.log('🧪 Kizu Native File Dialogs - Manual Test');
 console.log('='.repeat(50));
@@ -166,7 +163,7 @@ function runManualTests() {
   ];
 
   let passed = 0;
-  let total = tests.length;
+  const total = tests.length;
 
   tests.forEach((test) => {
     try {

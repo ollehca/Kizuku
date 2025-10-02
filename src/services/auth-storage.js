@@ -29,13 +29,16 @@ class AuthStorageService {
    * @param {Object} credentials - Auth data to store
    * @returns {boolean} Success status
    */
-  /* eslint-disable-next-line max-lines-per-function */
+
   storeCredentials(credentials) {
     try {
       if (!safeStorage.isEncryptionAvailable()) {
         console.warn('Encryption not available, skipping credential storage');
         return false;
       }
+
+      // Ensure directory exists before writing
+      this.setupStorageDirectory();
 
       const now = Date.now();
       // 30 days or 7 days
@@ -133,7 +136,7 @@ class AuthStorageService {
    */
   hasValidCredentials() {
     const credentials = this.getStoredCredentials();
-    return credentials !== null && credentials.token;
+    return credentials !== null && !!credentials.token;
   }
 
   /**

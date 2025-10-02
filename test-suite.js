@@ -32,7 +32,9 @@ class KizuTester {
       if (result.success) {
         this.results.passed++;
         this.log(`PASS: ${name}`, 'success');
-        if (result.details) this.log(`  ${result.details}`, 'info');
+        if (result.details) {
+          this.log(`  ${result.details}`, 'info');
+        }
       } else {
         if (critical) {
           this.results.failed++;
@@ -105,7 +107,7 @@ class KizuTester {
       try {
         const content = fs.readFileSync(path.join(__dirname, file), 'utf8');
         // Basic syntax check - try to parse without executing
-        new Function(content);
+        this._validateJavaScript(content);
       } catch (error) {
         errors.push(`${file}: ${error.message}`);
       }
@@ -160,64 +162,85 @@ class KizuTester {
   // Test 5: Electron Application Launch
   async testElectronLaunch() {
     return new Promise((resolve) => {
-      this.log('Launching Electron app (10 second test)...', 'info');
-
-      const electron = spawn('npm', ['start'], {
-        stdio: ['pipe', 'pipe', 'pipe'],
-        env: { ...process.env, NODE_ENV: 'development' },
-        detached: false,
-      });
-
-      this.electronProcess = electron;
-      let output = '';
-      let errorOutput = '';
-
-      electron.stdout.on('data', (data) => {
-        output += data.toString();
-      });
-
-      electron.stderr.on('data', (data) => {
-        errorOutput += data.toString();
-      });
-
-      electron.on('error', (error) => {
-        resolve({
-          success: false,
-          error: `Failed to start: ${error.message}`,
-        });
-      });
-
-      // Test for 10 seconds
-      setTimeout(() => {
-        const isRunning = !electron.killed && electron.pid;
-
-        if (isRunning) {
-          // Check for success indicators in output
-          const hasStartMessage = output.includes('Kizu starting');
-          const hasElectronVersion = output.includes('Electron version');
-          const noFatalErrors =
-            !errorOutput.includes('Error:') ||
-            !errorOutput.includes('TypeError:') ||
-            !errorOutput.includes('ReferenceError:');
-
-          resolve({
-            success: hasStartMessage && noFatalErrors,
-            error: !hasStartMessage
-              ? 'App started but missing start message'
-              : !noFatalErrors
-                ? 'Fatal errors detected in output'
-                : null,
-            details: `Electron app launched successfully (PID: ${electron.pid})`,
-          });
-        } else {
-          resolve({
-            success: false,
-            error: 'Electron process died during startup',
-            details: `Output: ${output.slice(-200)}`,
-          });
-        }
-      }, 10000);
+      const electron = this._startElectronApp();
+      this._setupElectronMonitoring(electron, resolve);
     });
+  }
+
+  _startElectronApp() {
+    this.log('Launching Electron app (10 second test)...', 'info');
+
+    const electron = spawn('npm', ['start'], {
+      stdio: ['pipe', 'pipe', 'pipe'],
+      env: { ...process.env, NODE_ENV: 'development' },
+      detached: false,
+    });
+
+    this.electronProcess = electron;
+    return electron;
+  }
+
+  _setupElectronMonitoring(electron, resolve) {
+    let output = '';
+    let errorOutput = '';
+
+    electron.stdout.on('data', (data) => {
+      output += data.toString();
+    });
+
+    electron.stderr.on('data', (data) => {
+      errorOutput += data.toString();
+    });
+
+    electron.on('error', (error) => {
+      resolve({
+        success: false,
+        error: `Failed to start: ${error.message}`,
+      });
+    });
+
+    setTimeout(() => {
+      this._evaluateElectronTest(electron, output, errorOutput, resolve);
+    }, 10000);
+  }
+
+  _evaluateElectronTest(electron, output, errorOutput, resolve) {
+    const isRunning = !electron.killed && electron.pid;
+
+    if (isRunning) {
+      const hasStartMessage = output.includes('Kizu starting');
+      const noFatalErrors = this._checkNoFatalErrors(errorOutput);
+
+      resolve({
+        success: hasStartMessage && noFatalErrors,
+        error: this._getElectronError(hasStartMessage, noFatalErrors),
+        details: `Electron app launched successfully (PID: ${electron.pid})`,
+      });
+    } else {
+      resolve({
+        success: false,
+        error: 'Electron process died during startup',
+        details: `Output: ${output.slice(-200)}`,
+      });
+    }
+  }
+
+  _checkNoFatalErrors(errorOutput) {
+    return (
+      !errorOutput.includes('Error:') ||
+      !errorOutput.includes('TypeError:') ||
+      !errorOutput.includes('ReferenceError:')
+    );
+  }
+
+  _getElectronError(hasStartMessage, noFatalErrors) {
+    if (!hasStartMessage) {
+      return 'App started but missing start message';
+    }
+    if (!noFatalErrors) {
+      return 'Fatal errors detected in output';
+    }
+    return null;
   }
 
   // Test 6: Window Management
@@ -350,12 +373,18 @@ class KizuTester {
         let score = 0;
 
         // Check for basic documentation elements
-        if (content.includes('# ')) score++; // Has title
-        if (content.includes('## ')) score++; // Has sections
-        if (content.length > 1000) score++; // Substantial content
+        if (content.includes('# ')) {
+          score++;
+        } // Has title
+        if (content.includes('## ')) {
+          score++;
+        } // Has sections
+        if (content.length > 1000) {
+          score++;
+        } // Substantial content
 
         totalScore += score;
-      } catch (error) {
+      } catch {
         // File missing, no points
       }
     }
@@ -432,6 +461,12 @@ class KizuTester {
 
     // Exit with appropriate code
     process.exit(this.results.failed > 0 ? 1 : 0);
+  }
+
+  _validateJavaScript(content) {
+    // Use Function constructor for syntax validation (safer than eval)
+    // eslint-disable-next-line no-new-func
+    new Function(content);
   }
 }
 

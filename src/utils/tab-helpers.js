@@ -136,22 +136,66 @@ function createTabFunctionalityJS() {
   `;
 }
 
-// Helper function to create header bar
+// Helper function to create header bar with persistence
 function createHeaderBar(window) {
-  setTimeout(() => {
+  const injectHeader = () => {
     if (window && !window.isDestroyed()) {
       const headerJS = createHeaderBarJS();
       const tabJS = createTabFunctionalityJS();
-      const fullJS = headerJS + tabJS;
+
+      // Add persistence logic to detect when header is removed
+      const persistenceJS = `
+        // Check if header bar exists and recreate if needed
+        function ensureHeaderBar() {
+          if (!document.getElementById('desktop-tab-container')) {
+            console.log('🔄 Header bar missing, recreating...');
+            ${headerJS}
+            ${tabJS}
+          }
+        }
+
+        // Watch for DOM changes that might remove the header
+        if (typeof window.headerObserver === 'undefined') {
+          window.headerObserver = new MutationObserver(() => {
+            setTimeout(ensureHeaderBar, 100);
+          });
+
+          window.headerObserver.observe(document.body, {
+            childList: true,
+            subtree: true
+          });
+        }
+
+        // Initial creation
+        ensureHeaderBar();
+
+        // Also check periodically
+        if (typeof window.headerInterval === 'undefined') {
+          window.headerInterval = setInterval(ensureHeaderBar, 2000);
+        }
+      `;
 
       window.webContents
-        .executeJavaScript(fullJS)
+        .executeJavaScript(persistenceJS)
         .then(() => {
-          console.log('✅ Header bar creation completed - tab system ready');
+          console.log('✅ Persistent header bar system activated');
         })
         .catch((err) => console.log('Header creation failed, but app should still work:', err));
     }
-  }, 1000);
+  };
+
+  // Initial injection after a delay
+  setTimeout(injectHeader, 1000);
+
+  // Also inject when page finishes loading
+  window.webContents.on('did-finish-load', () => {
+    setTimeout(injectHeader, 500);
+  });
+
+  // Inject when navigation occurs
+  window.webContents.on('did-navigate-in-page', () => {
+    setTimeout(injectHeader, 300);
+  });
 }
 
 module.exports = {

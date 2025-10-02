@@ -1,8 +1,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
-const ShortcutManager = require('./shortcuts');
 
-// Make ShortcutManager available for test compatibility
-contextBridge.exposeInMainWorld('ShortcutManager', ShortcutManager);
+// ShortcutManager is loaded directly in the renderer context
+// No need to load it in preload script
 
 console.log('🚀 Kizu preload script starting...');
 console.log('🔧 contextBridge available:', !!contextBridge);

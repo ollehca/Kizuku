@@ -53,14 +53,43 @@ npm start
 5. **Validate demo account**: Ensure persistent demo credentials work
 6. **Start Kizu app**: `npm start`
 
-## Demo Credentials Management
+## Demo License and Account Management
 
-### Current Persistent Demo Account
+### Quick Demo Setup (NEW - Recommended)
+```bash
+# One-command setup for Kizu authentication demo
+KIZU_LICENSE_SECRET='test-secret-key-for-testing-only' node scripts/setup-demo-license.js
+```
+
+This creates:
+- **License Code**: `KIZU-50019-99FF9-D4EFF-5DE58-DC837`
+- **License Type**: Private (auto-login, no password required)
+- **Username**: `demouser`
+- **Full Name**: Demo User
+- **Email**: `demo@penpot.local`
+
+### Authentication Flow (NEW)
+1. **First Launch**: App automatically detects demo license and account
+2. **Auto-Login**: No license entry or password needed
+3. **Direct Access**: Goes straight to main app
+
+### Legacy PenPot Demo Account (For PenPot Backend)
 - **Email**: `demo@penpot.local`
 - **Password**: `demo123`
 - **Full Name**: Demo User
 
 ### Demo Account Commands
+
+**Kizu Authentication (NEW):**
+```bash
+# Setup Kizu demo license and account
+KIZU_LICENSE_SECRET='test-secret-key-for-testing-only' node scripts/setup-demo-license.js
+
+# Clean up demo data
+rm -rf test-data/
+```
+
+**PenPot Backend (Legacy):**
 ```bash
 # Complete setup (create + validate + cleanup old accounts)
 ./scripts/manage-demo-accounts.sh setup
@@ -73,10 +102,11 @@ npm start
 ./scripts/manage-demo-accounts.sh cleanup   # Remove old temp accounts
 ```
 
-### Why Demo Accounts Break
-- Temporary demo accounts (pattern: `demo-[timestamp].demo@example.com`) are automatically cleaned up
-- Database resets during development can remove accounts
-- Container restarts without persistent volumes lose data
+### Important Notes
+- **Kizu demo** is for testing authentication flow (local-first, offline)
+- **PenPot demo** is for backend services (database, file storage)
+- Private license = auto-login (no password ever needed)
+- Test data stored in `./test-data/` directory
 
 ## Health Monitoring
 

@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; style-src 'self' 'unsafe-inline';"
+    />
+    <title>Welcome to Kizu</title>
+    <link rel="stylesheet" href="license-selection.css" />
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header -->
+      <header class="header">
+        <div class="logo">
+          <h1>Kizu <span class="logo-kanji">築</span></h1>
+        </div>
+        <p class="tagline">Professional design tools for creators</p>
+      </header>
+
+      <!-- Main Content -->
+      <main class="content">
+        <h2 class="title">Choose Your License Type</h2>
+        <p class="subtitle">Select the license that best fits your needs</p>
+
+        <!-- License Options -->
+        <div class="license-options">
+          <!-- Private License -->
+          <div class="license-card" data-type="private">
+            <div class="card-header">
+              <div class="icon-wrapper">
+                <svg
+                  class="icon"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+              </div>
+              <h3>Private / Individual</h3>
+            </div>
+            <div class="card-body">
+              <p class="description">Perfect for solo creators and personal projects</p>
+              <ul class="features">
+                <li>Local-only storage</li>
+                <li>Full design tools</li>
+                <li>No cloud dependency</li>
+                <li>One-time license code</li>
+              </ul>
+              <div class="price">One-time purchase</div>
+            </div>
+            <div class="card-footer">
+              <button class="btn btn-primary" data-action="select-private">Get Started</button>
+            </div>
+          </div>
+
+          <!-- Business License -->
+          <div class="license-card" data-type="business">
+            <div class="badge">Coming Soon</div>
+            <div class="card-header">
+              <div class="icon-wrapper">
+                <svg
+                  class="icon"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+              </div>
+              <h3>Business / Collaborative</h3>
+            </div>
+            <div class="card-body">
+              <p class="description">For teams that need real-time collaboration</p>
+              <ul class="features">
+                <li>Cloud-based storage</li>
+                <li>Real-time collaboration</li>
+                <li>Team management</li>
+                <li>Priority support</li>
+              </ul>
+              <div class="price">Monthly subscription</div>
+            </div>
+            <div class="card-footer">
+              <button class="btn btn-secondary" data-action="select-business" disabled>
+                Notify Me
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Demo Account Notice -->
+        <div class="demo-notice">
+          <svg
+            class="info-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+          <p>
+            <strong>Development Mode:</strong> Demo account active. License validation will be
+            required in production.
+          </p>
+        </div>
+      </main>
+
+      <!-- Footer -->
+      <footer class="footer">
+        <p>Need help choosing? <a href="#" id="compare-link">Compare license types</a></p>
+      </footer>
+    </div>
+
+    <script src="license-selection.js"></script>
+  </body>
+</html>

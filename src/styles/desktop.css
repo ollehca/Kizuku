@@ -135,6 +135,16 @@ body.has-desktop-tabs .main_ui_workspace__header {
   top: 40px;
 }
 
+/* Add general top margin to prevent header bar from cutting off content */
+body.has-desktop-tabs {
+  margin-top: 40px !important;
+}
+
+/* Ensure specific PenPot UI elements also have proper spacing */
+body.has-desktop-tabs * {
+  box-sizing: border-box;
+}
+
 /* Replace PenPot logo with Kizu branding */
 .main_ui_header__logo,
 .main_ui_dashboard__logo,

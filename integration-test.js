@@ -78,7 +78,9 @@ class IntegrationTester {
       this.results.push({
         test: 'Keyboard Shortcut Registration',
         passed: passed,
-        details: `${totalShortcuts} total shortcuts, ${figmaShortcuts} Figma tools, ${platformShortcuts} platform-specific`,
+        details:
+          `${totalShortcuts} total shortcuts, ${figmaShortcuts} Figma tools, ` +
+          `${platformShortcuts} platform-specific`,
       });
     } catch (error) {
       this.results.push({
@@ -101,16 +103,15 @@ class IntegrationTester {
       // Check platform detection
       const hasPlatformDetection = shortcutsContent.includes('process.platform');
       const hasModifierLogic = shortcutsContent.includes("platform === 'darwin' ? 'cmd' : 'ctrl'");
-      const hasCorrectModifier =
-        shortcutsContent.includes(`modifierKey = '${expectedModifier}'`) ||
-        shortcutsContent.includes(`${expectedModifier}+`);
 
       const passed = hasPlatformDetection && hasModifierLogic;
 
       this.results.push({
         test: 'Cross-Platform Compatibility',
         passed: passed,
-        details: `Platform: ${platform}, Expected modifier: ${expectedModifier}, Detection working: ${passed}`,
+        details:
+          `Platform: ${platform}, Expected modifier: ${expectedModifier}, ` +
+          `Detection working: ${passed}`,
       });
     } catch (error) {
       this.results.push({

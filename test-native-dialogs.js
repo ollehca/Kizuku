@@ -4,7 +4,6 @@
  */
 
 const { app, BrowserWindow, dialog } = require('electron');
-const path = require('path');
 const { createLogger } = require('./src/utils/logger');
 const menuActions = require('./src/menu-actions');
 
@@ -179,9 +178,9 @@ class DialogTester {
     console.log('\n📊 Test Results Summary:');
     console.log('='.repeat(60));
 
-    let totalTests = this.testResults.length;
-    let passedTests = this.testResults.filter((r) => r.passed).length;
-    let failedTests = totalTests - passedTests;
+    const totalTests = this.testResults.length;
+    const passedTests = this.testResults.filter((r) => r.passed).length;
+    const failedTests = totalTests - passedTests;
 
     this.testResults.forEach((result) => {
       const status = result.passed ? '✅ PASS' : '❌ FAIL';
