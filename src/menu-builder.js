@@ -48,14 +48,28 @@ function createFileOperationItems(window) {
 }
 
 /**
+ * Create project dashboard menu item
+ * @param {object} window - BrowserWindow instance
+ * @returns {object} Dashboard menu item
+ */
+function createDashboardItem(window) {
+  return {
+    label: 'Project Dashboard',
+    accelerator: 'CmdOrCtrl+Shift+D',
+    click: () => sendMenuAction(window, 'show-dashboard'),
+  };
+}
+
+/**
  * Create basic file menu items
  * @param {object} window - BrowserWindow instance
  * @returns {Array} Basic file menu items
  */
 function createBasicFileItems(window) {
+  const dashboardItem = createDashboardItem(window);
   const newItem = createNewProjectItem(window);
   const fileItems = createFileOperationItems(window);
-  return [newItem, ...fileItems];
+  return [dashboardItem, { type: 'separator' }, newItem, ...fileItems];
 }
 
 /**
