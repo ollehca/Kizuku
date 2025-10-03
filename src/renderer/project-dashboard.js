@@ -282,9 +282,46 @@ async function openProjectInWorkspace(filePath) {
   }
 }
 
-function importFromFigma() {
-  showStatus('Figma import coming soon!', 'error');
-  // TODO: Implement Figma import
+async function importFromFigma() {
+  try {
+    // Show file picker for Figma files
+    const result = await window.electronAPI.showOpenDialog({
+      title: 'Import Figma File',
+      filters: [
+        { name: 'Figma Files', extensions: ['fig', 'penpot', 'zip'] },
+        { name: 'All Files', extensions: ['*'] },
+      ],
+      properties: ['openFile', 'multiSelections'],
+    });
+
+    if (result.canceled || !result.filePaths || result.filePaths.length === 0) {
+      return;
+    }
+
+    // Import each file
+    showStatus('Importing files...', 'success');
+
+    for (const filePath of result.filePaths) {
+      const importResult = await window.electronAPI.figmaAPI.importFile(filePath, {
+        importAsLibrary: true,
+        preserveNames: true,
+        convertPrototyping: false,
+      });
+
+      if (!importResult.success) {
+        showStatus(`Import failed: ${importResult.error}`, 'error');
+        return;
+      }
+    }
+
+    showStatus(`Successfully imported ${result.filePaths.length} file(s)!`, 'success');
+
+    // Reload recent projects
+    await loadRecentProjects();
+  } catch (error) {
+    showStatus(`Import error: ${error.message}`, 'error');
+    console.error('Import error:', error);
+  }
 }
 
 function openSettings() {
