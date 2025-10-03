@@ -97,4 +97,4 @@ release/
 .idea/
 *.swp
 *.swo
-*~
+*~test-data/

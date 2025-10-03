@@ -65,6 +65,20 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Workspace launcher
   launchWorkspace: (filePath) => ipcRenderer.invoke('launch-workspace', filePath),
 
+  // Figma import
+  figmaAPI: {
+    importFile: (filePath, options) => ipcRenderer.invoke('figma:import-file', filePath, options),
+    validateFile: (filePath) => ipcRenderer.invoke('figma:validate-file', filePath),
+    getImportStatus: () => ipcRenderer.invoke('figma:get-import-status'),
+    cancelImport: () => ipcRenderer.invoke('figma:cancel-import'),
+    onImportProgress: (callback) => {
+      ipcRenderer.on('figma:import-progress', (event, progress) => callback(progress));
+    },
+    onImportStatus: (callback) => {
+      ipcRenderer.on('figma:import-status', (event, status) => callback(status));
+    },
+  },
+
   // Authentication storage (legacy)
   auth: {
     storeCredentials: (credentials) => ipcRenderer.invoke('auth:store-credentials', credentials),

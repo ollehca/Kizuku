@@ -8,6 +8,7 @@ const { createLogger } = require('./utils/logger');
 const authStorage = require('./services/auth-storage');
 const { registerBackendIpcHandlers } = require('./services/backend-ipc-handlers');
 const { launchWorkspace } = require('./utils/workspace-launcher');
+const { getFigmaImporter } = require('./services/figma/figma-importer');
 
 const logger = createLogger('IPC');
 
@@ -327,6 +328,71 @@ async function handleLaunchWorkspace(event, filePath, window) {
 }
 
 /**
+ * Handle Figma file import
+ * @param {object} event - IPC event
+ * @param {string} filePath - Path to Figma file
+ * @param {object} options - Import options
+ * @returns {Promise<object>} Import result
+ */
+async function handleFigmaImport(event, filePath, options = {}) {
+  try {
+    logger.info('Starting Figma import', { filePath, options });
+    const importer = getFigmaImporter();
+
+    // Set up progress tracking
+    importer.on('progress', (progress) => {
+      event.sender.send('figma:import-progress', progress);
+    });
+
+    importer.on('status-change', (status) => {
+      event.sender.send('figma:import-status', status);
+    });
+
+    const result = await importer.importFromFile(filePath, options);
+    return result;
+  } catch (error) {
+    logger.error('Figma import failed', { filePath, error });
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Validate Figma file before import
+ * @param {object} event - IPC event
+ * @param {string} filePath - Path to Figma file
+ * @returns {Promise<object>} Validation result
+ */
+async function handleFigmaValidation(event, filePath) {
+  try {
+    const importer = getFigmaImporter();
+    const validation = await importer.validateFile(filePath);
+    return { success: true, ...validation };
+  } catch (error) {
+    logger.error('Figma validation failed', { filePath, error });
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Get current Figma import status
+ * @returns {object} Status object
+ */
+function getFigmaImportStatus() {
+  const importer = getFigmaImporter();
+  return importer.getStatus();
+}
+
+/**
+ * Cancel current Figma import
+ * @returns {object} Result
+ */
+function cancelFigmaImport() {
+  const importer = getFigmaImporter();
+  importer.cancel();
+  return { success: true };
+}
+
+/**
  * Register core IPC handlers
  * @param {object} window - BrowserWindow instance
  */
@@ -340,6 +406,16 @@ function registerCoreHandlers(window) {
   ipcMain.handle('launch-workspace', (event, filePath) =>
     handleLaunchWorkspace(event, filePath, window)
   );
+}
+
+/**
+ * Register Figma import IPC handlers
+ */
+function registerFigmaHandlers() {
+  ipcMain.handle('figma:import-file', handleFigmaImport);
+  ipcMain.handle('figma:validate-file', handleFigmaValidation);
+  ipcMain.handle('figma:get-import-status', getFigmaImportStatus);
+  ipcMain.handle('figma:cancel-import', cancelFigmaImport);
 }
 
 /**
@@ -387,8 +463,9 @@ function registerIpcHandlers(window) {
   registerAuthHandlers();
   registerClipboardHandlers();
   registerBackendIpcHandlers();
+  registerFigmaHandlers();
   logger.info(
-    'IPC handlers registered for webview, authentication, clipboard, and backend services'
+    'IPC handlers registered for webview, authentication, clipboard, backend services, and Figma import'
   );
 }
 
