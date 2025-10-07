@@ -1,9 +1,9 @@
 // Loading Screen - Professional splash screen
 $loading-colors: (
   background: #1a1a1a,
-  overlay: rgba(26, 26, 26, 0.95),
-  text-primary: #ffffff,
-  text-secondary: #999999,
+  overlay: rgb(26 26 26 / 95%),
+  text-primary: #fff,
+  text-secondary: #999,
   accent: #31efb8,
   spinner: #31efb8,
 );
@@ -11,10 +11,7 @@ $loading-colors: (
 // BEM Block: Loading Screen
 .loading-screen {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background: map-get($loading-colors, background);
   display: flex;
   flex-direction: column;
@@ -52,7 +49,7 @@ $loading-colors: (
     font-size: 32px;
     font-weight: 700;
     color: map-get($loading-colors, background);
-    box-shadow: 0 4px 16px rgba(49, 239, 184, 0.3);
+    box-shadow: 0 4px 16px rgb(49 239 184 / 30%);
   }
 
   &__title {
@@ -73,7 +70,7 @@ $loading-colors: (
   &__spinner {
     width: 32px;
     height: 32px;
-    border: 3px solid rgba(49, 239, 184, 0.2);
+    border: 3px solid rgb(49 239 184 / 20%);
     border-top: 3px solid map-get($loading-colors, spinner);
     border-radius: 50%;
     animation: loadingSpin 1s linear infinite;
@@ -97,6 +94,7 @@ $loading-colors: (
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -107,6 +105,7 @@ $loading-colors: (
   0% {
     transform: rotate(0deg);
   }
+
   100% {
     transform: rotate(360deg);
   }
@@ -117,6 +116,7 @@ $loading-colors: (
   100% {
     opacity: 0.6;
   }
+
   50% {
     opacity: 1;
   }

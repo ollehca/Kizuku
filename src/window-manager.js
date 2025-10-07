@@ -144,8 +144,8 @@ function createBrowserWindow(store) {
  */
 function showConnectionError(isDev) {
   const message = isDev
-    ? 'Could not connect to PenPot development server at localhost:3449.\n\nPlease ensure PenPot is running with: ./manage.sh run-devenv'
-    : 'Could not load the PenPot application. Please check the installation.';
+    ? 'Could not connect to Kizu development server at localhost:3449.\n\nPlease ensure Kizu is running with: ./manage.sh run-devenv'
+    : 'Could not load the Kizu application. Please check the installation.';
 
   dialog.showErrorBox('Kizu Connection Error', message);
 }

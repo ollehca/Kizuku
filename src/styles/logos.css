@@ -23,21 +23,27 @@
 .kizu-logo--xs {
   width: 16px;
 }
+
 .kizu-logo--sm {
   width: 24px;
 }
+
 .kizu-logo--md {
   width: 32px;
 }
+
 .kizu-logo--lg {
   width: 48px;
 }
+
 .kizu-logo--xl {
   width: 64px;
 }
+
 .kizu-logo--2xl {
   width: 96px;
 }
+
 .kizu-logo--3xl {
   width: 128px;
 }
@@ -94,7 +100,7 @@
 }
 
 /* Responsive logo sizing */
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .loading-screen__logo .kizu-logo {
     width: 48px;
   }
@@ -144,6 +150,7 @@
   100% {
     filter: drop-shadow(0 0 5px var(--logo-color-primary));
   }
+
   50% {
     filter: drop-shadow(0 0 15px var(--logo-color-primary));
   }

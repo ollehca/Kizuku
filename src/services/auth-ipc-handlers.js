@@ -161,7 +161,7 @@ function registerAuthIPCHandlers(mainWindow) {
 }
 
 /**
- * Load main PenPot application
+ * Load main Kizu application
  */
 function loadMainApp(mainWindow) {
   // Determine URL based on environment

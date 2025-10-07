@@ -1,13 +1,14 @@
-const { app, BrowserWindow, dialog, shell } = require('electron');
+const { app, BrowserWindow, dialog, shell, protocol, net } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { buildApplicationMenu } = require('./menu-builder');
 const { registerIpcHandlers } = require('./ipc-handlers');
 const { initializeTabManager, registerTabHandlers } = require('./tab-manager');
-const { showLoadingScreen, hideLoadingScreen } = require('./utils/loading-helpers');
 const { createHeaderBar } = require('./utils/tab-helpers');
+const cssManager = require('./utils/css-manager');
 const recovery = require('./utils/recovery');
 const authStorage = require('./services/auth-storage');
+const authOrchestrator = require('./services/auth-orchestrator');
 // const { addRecoveryMenuItems } = require('./utils/recovery-menu'); // Disabled - see line 575
 const { getBackendServiceManager } = require('./services/backend-service-manager');
 
@@ -72,52 +73,7 @@ const isDev =
   fs.existsSync(path.join(__dirname, '../../penpot')) ||
   process.env.NODE_ENV !== 'production'; // Default to dev unless explicitly production
 
-// CSS Hot Reloading Setup
-let cssWatcher;
-
-function reloadCSS(cssPath) {
-  try {
-    const cssContent = fs.readFileSync(cssPath, 'utf8');
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.insertCSS(cssContent);
-      console.log('CSS hot-reloaded!');
-    }
-  } catch (cssError) {
-    console.error('Failed to reload CSS:', cssError);
-  }
-}
-
-function compileSCSS(scssPath, cssPath) {
-  const { exec } = require('child_process');
-  exec(`npx sass ${scssPath} ${cssPath}`, (error, stdout, stderr) => {
-    if (error) {
-      console.error('SCSS compilation error:', error);
-      return;
-    }
-    if (stderr) {
-      console.warn('SCSS warnings:', stderr);
-    }
-    console.log('SCSS compiled successfully');
-    reloadCSS(cssPath);
-  });
-}
-
-function setupCSSHotReloading() {
-  if (!isDev) {
-    return;
-  }
-  const scssPath = path.join(__dirname, 'styles', 'desktop.scss');
-  const cssPath = path.join(__dirname, 'styles', 'desktop.css');
-  console.log('Setting up CSS hot reloading...');
-  cssWatcher = fs.watch(scssPath, (eventType) => {
-    if (eventType === 'change') {
-      console.log('SCSS file changed, recompiling...');
-      compileSCSS(scssPath, cssPath);
-    }
-  });
-}
-
-// PenPot configuration
+// Kizu configuration
 const PENPOT_CONFIG = {
   frontend: {
     dev: 'http://localhost:3449',
@@ -129,7 +85,7 @@ const PENPOT_CONFIG = {
   },
 };
 
-// Check if response contains PenPot content
+// Check if response contains Kizu content
 function validatePenpotContent(htmlContent) {
   return htmlContent.includes('penpotTranslations') && htmlContent.includes('penpotWorkerURI');
 }
@@ -164,13 +120,13 @@ async function attemptRecoveryAndRetry() {
   return false;
 }
 
-// Validate PenPot frontend content
+// Validate Kizu frontend content
 async function validateFrontendResponse(frontendResponse) {
   const htmlContent = await frontendResponse.text();
   const isPenpotApp = validatePenpotContent(htmlContent);
 
   console.log('Frontend status:', frontendResponse.ok);
-  console.log('PenPot app detected:', isPenpotApp);
+  console.log('Kizu app detected:', isPenpotApp);
 
   return isPenpotApp;
 }
@@ -188,7 +144,7 @@ async function handleServerError(error) {
   return false;
 }
 
-// Check if PenPot development server is running
+// Check if Kizu development server is running
 async function checkPenpotServer() {
   try {
     const frontendResponse = await createTimeoutFetch(PENPOT_CONFIG.frontend.dev);
@@ -268,28 +224,14 @@ function createBrowserWindow() {
   const options = createWindowOptions(windowState);
   const window = new BrowserWindow(options);
 
+  // Set empty title to remove "No files open - Click + NEW PROJECT to start"
+  window.setTitle('');
+
   if (windowState.maximized) {
     window.maximize();
   }
 
   return window;
-}
-
-// Helper function to inject CSS files
-function injectCSSFiles(window) {
-  const cssPath = path.join(__dirname, 'styles', 'desktop.css');
-  const loadingCssPath = path.join(__dirname, 'styles', 'loading.css');
-
-  try {
-    const cssContent = require('fs').readFileSync(cssPath, 'utf8');
-    const loadingCssContent = require('fs').readFileSync(loadingCssPath, 'utf8');
-    console.log('CSS files loaded');
-    window.webContents.insertCSS(cssContent);
-    window.webContents.insertCSS(loadingCssContent);
-    console.log('CSS injected successfully');
-  } catch (cssError) {
-    console.error('Failed to load CSS file:', cssError);
-  }
 }
 
 // Helper function to inject authentication integration script
@@ -316,6 +258,27 @@ function injectAuthIntegration(window) {
   }
 }
 
+// Helper function to inject Kizu branding
+function injectKizuBranding(window) {
+  const brandingPath = path.join(__dirname, 'frontend-integration', 'kizu-branding.js');
+
+  try {
+    const brandingScript = fs.readFileSync(brandingPath, 'utf8');
+    console.log('Kizu branding script loaded');
+
+    window.webContents
+      .executeJavaScript(brandingScript)
+      .then(() => {
+        console.log('✅ Kizu branding applied successfully');
+      })
+      .catch((error) => {
+        console.error('Failed to execute branding script:', error);
+      });
+  } catch (error) {
+    console.error('Failed to load branding script:', error);
+  }
+}
+
 // Loading screen functions moved to ./utils/loading-helpers.js
 
 // Tab helper functions moved to ./utils/tab-helpers.js
@@ -338,10 +301,6 @@ function saveWindowState(window) {
 
 // Helper function to cleanup on window close
 function cleanupWindowResources() {
-  if (cssWatcher) {
-    cssWatcher.close();
-    cssWatcher = null;
-  }
   mainWindow = null;
 }
 
@@ -404,45 +363,54 @@ async function attemptAutoLogin(window) {
 function handleServerSuccess(window) {
   console.log('Loading URL:', PENPOT_CONFIG.frontend.dev);
 
-  // Inject loading screen immediately when DOM is ready (before PenPot content appears)
+  // Inject loading screen immediately when DOM is ready (before Kizu content appears)
   window.webContents.once('dom-ready', () => {
-    console.log('DOM ready - injecting loading screen immediately');
-    injectCSSFiles(window);
-    showLoadingScreen(window);
+    console.log('DOM ready - injecting CSS files');
+    cssManager.injectCSSFiles(window);
+    // showLoadingScreen(window); // Disabled - causes conflicts
   });
 
-  // Set up event listeners BEFORE loading the URL
-  window.webContents.once('did-finish-load', async () => {
-    console.log('PenPot finished loading, waiting before injecting customizations...');
+  // Helper function to inject all customizations
+  const injectCustomizations = () => {
+    console.log('Kizu finished loading, waiting before injecting customizations...');
 
-    // Wait a bit more for the PenPot app to fully initialize its routing
+    // Wait a bit more for the Kizu app to fully initialize its routing
     setTimeout(() => {
       console.log('Injecting Kizu customizations...');
 
       createHeaderBar(window);
       attemptAutoLogin(window);
       injectAuthIntegration(window);
+      injectKizuBranding(window);
 
       // Hide loading screen once everything is ready
-      hideLoadingScreen(window);
-    }, 2000); // Wait 2 seconds for PenPot to settle
-  });
+      // hideLoadingScreen(window); // Disabled - causes conflicts
+    }, 2000); // Wait 2 seconds for Kizu to settle
+  };
+
+  // Set up event listeners BEFORE loading the URL
+  // Use .on() instead of .once() to handle page reloads
+  window.webContents.on('did-finish-load', injectCustomizations);
+
+  // Also handle navigation events (when user reloads or navigates)
+  window.webContents.on('did-navigate', injectCustomizations);
+  window.webContents.on('did-navigate-in-page', injectCustomizations);
 
   window
     .loadURL(PENPOT_CONFIG.frontend.dev)
     .then(async () => {
       console.log('URL loaded successfully');
-      setupCSSHotReloading();
+      cssManager.setupCSSHotReloading();
     })
     .catch((err) => {
-      console.error('Failed to load PenPot:', err);
+      console.error('Failed to load Kizu:', err);
       showConnectionError();
     });
 }
 
 // Helper function to handle development mode loading
 function handleDevelopmentLoading(window) {
-  console.log('Checking PenPot server...');
+  console.log('Checking Kizu server...');
   checkPenpotServer().then((isRunning) => {
     console.log('Server running:', isRunning);
     if (isRunning) {
@@ -473,7 +441,7 @@ function handleProductionLoading(window) {
       }
     })
     .catch((err) => {
-      console.error('Failed to load PenPot:', err);
+      console.error('Failed to load Kizu:', err);
       showConnectionError();
     });
 }
@@ -501,11 +469,23 @@ function setupWindowDisplay(window) {
   });
 }
 
-function createWindow() {
+async function createWindow() {
   mainWindow = createBrowserWindow();
+  cssManager.setMainWindow(mainWindow);
 
   console.log('isDev:', isDev, 'URL:', PENPOT_CONFIG.frontend.dev);
 
+  // Check authentication state first
+  const authState = await authOrchestrator.checkAuthenticationState();
+  console.log('Auth state:', authState);
+
+  // Route to appropriate screen based on auth state
+  if (!authState.authenticated) {
+    await loadAuthScreen(mainWindow, authState.nextScreen);
+    return;
+  }
+
+  // User is authenticated, load main app (Kizu)
   if (isDev) {
     handleDevelopmentLoading(mainWindow);
   } else {
@@ -516,17 +496,40 @@ function createWindow() {
   setupWindowEventHandlers(mainWindow);
 }
 
+async function loadAuthScreen(window, screenName) {
+  const authScreens = {
+    'license-selection': 'license-selection.html',
+    'license-entry': 'license-entry.html',
+    'account-creation': 'account-creation.html',
+    login: 'login.html',
+  };
+
+  const screenFile = authScreens[screenName] || 'license-selection.html';
+  const authUrl = `file://${path.join(__dirname, 'ui', screenFile)}`;
+
+  console.log(`Loading auth screen: ${screenName} (${authUrl})`);
+
+  try {
+    await window.loadURL(authUrl);
+    setupWindowDisplay(window);
+    setupWindowEventHandlers(window);
+  } catch (error) {
+    console.error('Failed to load auth screen:', error);
+    dialog.showErrorBox('Kizu Error', `Failed to load authentication screen: ${error.message}`);
+  }
+}
+
 function showConnectionError() {
   dialog.showErrorBox(
     'Kizu Connection Error',
     isDev
-      ? 'PenPot development server not ready:\n\n' +
-          '• Check if PenPot is fully started at localhost:3449\n' +
+      ? 'Kizu development server not ready:\n\n' +
+          '• Check if Kizu is fully started at localhost:3449\n' +
           '• Backend services may still be starting\n\n' +
-          'Please ensure FULL PenPot environment is running:\n' +
+          'Please ensure FULL Kizu environment is running:\n' +
           'cd ../penpot && ./manage.sh run-devenv\n\n' +
           'Wait for ALL services to start before launching desktop app.'
-      : 'Could not load the PenPot application. Please check the installation.'
+      : 'Could not load the Kizu application. Please check the installation.'
   );
 }
 
@@ -555,8 +558,15 @@ async function initializeBackendServices() {
   }
 }
 
-// App event handlers
+// Register protocol before app is ready
 app.whenReady().then(async () => {
+  // Register custom protocol to serve logo files
+  protocol.handle('kizu', (request) => {
+    const url = request.url.replace('kizu://logos/', '');
+    const logoPath = path.join(__dirname, 'Logos', url);
+    return net.fetch(`file://${logoPath}`);
+  });
+
   // Initialize backend services first
   await initializeBackendServices();
 

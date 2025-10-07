@@ -1,13 +1,13 @@
 /**
- * PenPot server connection utilities
+ * Kizu server connection utilities
  */
 
 const path = require('path');
 const { createLogger } = require('./utils/logger');
 
-const logger = createLogger('PenPotServer');
+const logger = createLogger('KizuServer');
 
-// PenPot server configuration
+// Kizu server configuration
 const PENPOT_CONFIG = {
   frontend: {
     dev: 'http://localhost:3449',
@@ -22,7 +22,7 @@ const PENPOT_CONFIG = {
 const SERVER_TIMEOUT = 3000;
 
 /**
- * Check if PenPot development server is running
+ * Check if Kizu development server is running
  * @returns {Promise<boolean>} True if server is accessible
  */
 async function checkPenpotServer() {
@@ -38,7 +38,7 @@ async function checkPenpotServer() {
 }
 
 /**
- * Get PenPot frontend URL for current mode
+ * Get Kizu frontend URL for current mode
  * @param {boolean} isDev - Whether in development mode
  * @returns {string} URL to load
  */
@@ -47,7 +47,7 @@ function getPenpotUrl(isDev) {
 }
 
 /**
- * Load PenPot in window with connection checking
+ * Load Kizu in window with connection checking
  * @param {object} window - BrowserWindow instance
  * @param {boolean} isDev - Whether in development mode
  * @param {Function} onError - Error callback function
@@ -66,7 +66,7 @@ async function loadPenpotInWindow(window, isDev, onError) {
   try {
     await window.loadURL(url);
   } catch (error) {
-    logger.error('Failed to load PenPot', error);
+    logger.error('Failed to load Kizu', error);
     onError();
   }
 }

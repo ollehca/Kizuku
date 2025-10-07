@@ -1,7 +1,7 @@
 /**
  * Workspace Launcher
- * Launches PenPot workspace with a .kizu project file
- * Bypasses PenPot's default dashboard and authentication flow
+ * Launches Kizu workspace with a .kizu project file
+ * Bypasses Kizu's default dashboard and authentication flow
  */
 
 const { createLogger } = require('./logger');
@@ -10,7 +10,7 @@ const { getBackendServiceManager } = require('../services/backend-service-manage
 const logger = createLogger('WorkspaceLauncher');
 
 /**
- * Get PenPot workspace URL configuration
+ * Get Kizu workspace URL configuration
  */
 function getPenpotConfig() {
   return {
@@ -26,7 +26,7 @@ function buildWorkspaceUrl(projectMetadata) {
   const config = getPenpotConfig();
   const baseUrl = process.env.NODE_ENV === 'production' ? config.prod : config.dev;
 
-  // PenPot workspace URL format: /workspace/:project-id/:file-id
+  // Kizu workspace URL format: /workspace/:project-id/:file-id
   // For local .kizu files, we use the project ID for both
   const projectId = projectMetadata.id;
   const fileId = projectMetadata.id; // Same as project for local files
@@ -116,7 +116,7 @@ function createSuccessResult(project, url) {
 }
 
 /**
- * Launch PenPot workspace with a .kizu project
+ * Launch Kizu workspace with a .kizu project
  * @param {string} filePath - Path to .kizu file
  * @param {BrowserWindow} mainWindow - Main application window
  */

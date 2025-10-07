@@ -308,7 +308,7 @@ class ShortcutManager {
     return list.sort((a, b) => a.shortcut.localeCompare(b.shortcut));
   }
 
-  // Helper function for PenPot to register custom shortcuts
+  // Helper function for Kizu to register custom shortcuts
   registerCustomShortcut(shortcut, action, description = '', context = 'global') {
     this.register(shortcut, action, context, description);
   }
@@ -325,7 +325,7 @@ if (typeof module !== 'undefined' && module.exports) {
 if (typeof window !== 'undefined') {
   window.shortcutManager = new ShortcutManager();
 
-  // Helper function for PenPot to register shortcut handlers
+  // Helper function for Kizu to register shortcut handlers
   window.registerShortcutHandler = function (action, handler) {
     if (!window.kizu) {
       window.kizu = {};

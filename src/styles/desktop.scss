@@ -37,7 +37,7 @@ $desktop-colors: (
     visibility: visible !important;
 
     // Add some visual depth
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 20%) !important;
   }
 
   // Left area - space for macOS traffic lights (like Figma)
@@ -174,11 +174,12 @@ $desktop-colors: (
 body.has-desktop-tabs {
   // Account for integrated title bar (40px total - like Figma)
   $total-header-height: 40px;
+  $main-content-padding: 10px;
 
   // Target PenPot's main containers specifically
   .main_ui_dashboard__dashboard,
   .main_ui_workspace__workspace {
-    padding-top: $total-header-height;
+    padding-top: $main-content-padding;
   }
 
   // Adjust PenPot sidebars

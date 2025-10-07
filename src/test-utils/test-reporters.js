@@ -116,7 +116,7 @@ class TestReporters {
   static printFinalVerdict(passedTests, totalTests) {
     if (passedTests === totalTests) {
       console.log('🎉 ALL TESTS PASSED! Issue #58 requirements fully satisfied!');
-      console.log('✨ Basic PenPot functionality is working perfectly in desktop app!');
+      console.log('✨ Basic Kizu functionality is working perfectly in desktop app!');
     } else {
       console.log('⚠️  Some tests failed. Review details above and address issues.');
     }

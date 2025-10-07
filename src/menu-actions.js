@@ -31,7 +31,7 @@ function sendMenuAction(window, action, data) {
 function getProjectFileFilters() {
   return [
     { name: 'Kizu Files', extensions: ['kizu'] },
-    { name: 'PenPot Files (Legacy)', extensions: ['penpot'] },
+    { name: 'Kizu Files (Legacy)', extensions: ['penpot'] },
     { name: 'Figma Files', extensions: ['fig'] },
     { name: 'JSON Files', extensions: ['json'] },
     { name: 'All Files', extensions: ['*'] },

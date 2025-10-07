@@ -42,6 +42,8 @@ module.exports = [
         URLSearchParams: 'readonly',
         btoa: 'readonly',
         atob: 'readonly',
+        Node: 'readonly',
+        MutationObserver: 'readonly',
       },
     },
     rules: {

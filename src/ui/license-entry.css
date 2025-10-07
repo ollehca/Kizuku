@@ -3,8 +3,8 @@
 :root {
   --color-bg: #1a1a1a;
   --color-surface: #2a2a2a;
-  --color-surface-elevated: #333333;
-  --color-text-primary: #ffffff;
+  --color-surface-elevated: #333;
+  --color-text-primary: #fff;
   --color-text-secondary: #b0b0b0;
   --color-text-muted: #808080;
   --color-primary: #4a90e2;
@@ -13,9 +13,9 @@
   --color-error: #f44336;
   --color-warning: #ff9800;
   --color-success: #4caf50;
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-sm: 0 2px 4px rgb(0 0 0 / 30%);
+  --shadow-md: 0 4px 12px rgb(0 0 0 / 40%);
+  --shadow-lg: 0 8px 24px rgb(0 0 0 / 50%);
 }
 
 * {
@@ -26,8 +26,8 @@
 
 body {
   font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell',
-    'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans',
+    'Droid Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background: var(--color-bg);
@@ -169,7 +169,7 @@ label {
 .license-input:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+  box-shadow: 0 0 0 3px rgb(74 144 226 / 10%);
 }
 
 .license-input.error {
@@ -301,7 +301,7 @@ label {
 
 /* Security Notice */
 .security-notice {
-  background: rgba(255, 152, 0, 0.1);
+  background: rgb(255 152 0 / 10%);
   border: 1px solid var(--color-warning);
   border-radius: 8px;
   padding: 1.5rem;
@@ -395,7 +395,7 @@ label {
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .container {
     padding: 1rem;
   }
@@ -433,6 +433,7 @@ label {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

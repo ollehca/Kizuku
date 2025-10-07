@@ -6,7 +6,7 @@
   "scripts": {
     "start": "electron .",
     "dev": "concurrently \"npm run dev:penpot\" \"npm run dev:electron\"",
-    "dev:penpot": "cd ../penpot && ./manage.sh run-devenv", 
+    "dev:penpot": "cd ../penpot && ./manage.sh run-devenv",
     "dev:electron": "concurrently \"npm run scss:watch\" \"nodemon --watch src --exec 'electron .'\"",
     "dev:full": "concurrently \"npm run dev:penpot\" \"npm run scss:watch\" \"nodemon --watch src --exec 'electron .'\"",
     "build": "npm run build:penpot && npm run build:electron",
@@ -22,9 +22,11 @@
     "test:unit": "jest",
     "lint": "eslint src/ --fix",
     "lint:check": "eslint src/",
+    "lint:css": "stylelint \"src/**/*.css\" \"src/**/*.scss\" --fix",
+    "lint:css:check": "stylelint \"src/**/*.css\" \"src/**/*.scss\"",
     "format": "prettier --write src/ *.js",
     "format:check": "prettier --check src/ *.js",
-    "code-quality": "npm run lint:check && npm run format:check",
+    "code-quality": "npm run lint:check && npm run lint:css:check && npm run format:check",
     "scss": "sass src/styles/desktop.scss src/styles/desktop.css",
     "scss:watch": "sass --watch src/styles/desktop.scss src/styles/desktop.css",
     "prepare": "husky"
@@ -108,7 +110,11 @@
     "lint-staged": "^16.1.5",
     "nodemon": "^3.1.9",
     "prettier": "^3.6.2",
-    "sass": "^1.90.0"
+    "sass": "^1.90.0",
+    "stylelint": "^16.25.0",
+    "stylelint-config-sass-guidelines": "^12.1.0",
+    "stylelint-config-standard": "^39.0.1",
+    "stylelint-order": "^7.0.0"
   },
   "dependencies": {
     "electron-store": "^10.0.0",

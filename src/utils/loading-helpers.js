@@ -114,11 +114,11 @@ function createLoadingScreenJS() {
 function createHideLoadingJS() {
   return `
     console.log('🎬 Hiding loading overlay');
-    const loadingScreen = document.getElementById('app-loading-screen');
-    if (loadingScreen) {
-      loadingScreen.classList.add('loading-screen--hidden');
+    const kizuLoadingOverlay = document.getElementById('app-loading-screen');
+    if (kizuLoadingOverlay) {
+      kizuLoadingOverlay.classList.add('loading-screen--hidden');
       setTimeout(() => {
-        loadingScreen.remove();
+        kizuLoadingOverlay.remove();
         console.log('✅ Loading overlay removed');
       }, 500);
     }
