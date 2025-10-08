@@ -1,9 +1,10 @@
 /**
  * Kizu Branding Integration
  * Replaces Penpot branding with Kizu branding throughout the interface
+ * Note: KIZU_LOGO_SVG is injected by main.js before this script executes
  */
 
-const { KIZU_LOGO_SVG } = require('./kizu-svg-logo');
+/* global KIZU_LOGO_SVG */
 
 console.log('🎨 Kizu branding integration loaded');
 
@@ -173,18 +174,41 @@ function retryInjection(fn, name, attempts = 10, delay = 500) {
   tryInject();
 }
 
-// Start observing after a short delay
-setTimeout(() => {
-  retryInjection(injectKizuLogo, 'Logo injection');
-  // Don't inject user account - PenPot already has one at the bottom
-  // retryInjection(injectUserAccount, 'User account injection');
-  applyBranding();
-  setupBrandingObserver();
-}, 1000);
+// Guard to prevent multiple initializations
+if (!window._kizuBrandingInitialized) {
+  window._kizuBrandingInitialized = true;
 
-// Also apply on page visibility change (when tab becomes active)
-document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) {
-    setTimeout(applyBranding, 100);
+  // Main initialization function
+  const initializeBranding = () => {
+    if (!document.body) {
+      console.warn('⚠️  document.body not ready, retrying in 100ms');
+      setTimeout(initializeBranding, 100);
+      return;
+    }
+
+    // Start observing after a short delay
+    setTimeout(() => {
+      retryInjection(injectKizuLogo, 'Logo injection');
+      // Don't inject user account - PenPot already has one at the bottom
+      // retryInjection(injectUserAccount, 'User account injection');
+      applyBranding();
+      setupBrandingObserver();
+    }, 1000);
+
+    // Also apply on page visibility change (when tab becomes active)
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        setTimeout(applyBranding, 100);
+      }
+    });
+  };
+
+  // Start initialization (with DOM ready check)
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeBranding);
+  } else {
+    initializeBranding();
   }
-});
+} else {
+  console.log('⏭️  Kizu branding already initialized, skipping');
+}

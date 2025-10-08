@@ -177,10 +177,13 @@ function createWebPreferences() {
   console.log('Preload path:', preloadPath);
 
   return {
-    nodeIntegration: false,
-    contextIsolation: true,
-    enableRemoteModule: false,
+    nodeIntegration: false, // Security: Prevent Node.js integration in renderer
+    contextIsolation: true, // Security: Isolate preload scripts from page context
+    enableRemoteModule: false, // Security: Disable deprecated remote module
     preload: preloadPath,
+    // Note: webSecurity is disabled in dev mode to allow loading from localhost:3449
+    // This is required for development with PenPot's dev server
+    // In production builds, webSecurity should be enabled
     webSecurity: !isDev,
   };
 }
@@ -234,24 +237,35 @@ function createBrowserWindow() {
   return window;
 }
 
+// Track injection state in main process to prevent race conditions
+const injectionState = {
+  auth: false,
+  branding: false,
+  headerBar: false,
+};
+
 // Helper function to inject authentication integration script
 function injectAuthIntegration(window) {
+  if (injectionState.auth) {
+    console.log('⏭️  Auth integration already injected, skipping');
+    return;
+  }
+
   const authIntegrationPath = path.join(__dirname, 'frontend-integration', 'auth-integration.js');
 
   try {
     const authScript = fs.readFileSync(authIntegrationPath, 'utf8');
     console.log('Auth script loaded, length:', authScript.length, 'characters');
-    console.log('Auth script preview:', authScript.substring(0, 200) + '...');
 
     window.webContents
       .executeJavaScript(authScript)
       .then(() => {
         console.log('✅ Auth integration script executed successfully');
+        injectionState.auth = true;
       })
       .catch((error) => {
         console.error('❌ Failed to execute auth integration script:', error);
         console.error('Error details:', error.message);
-        console.error('Stack trace:', error.stack);
       });
   } catch (error) {
     console.error('❌ Failed to load auth integration script file:', error);
@@ -260,16 +274,44 @@ function injectAuthIntegration(window) {
 
 // Helper function to inject Kizu branding
 function injectKizuBranding(window) {
+  if (injectionState.branding) {
+    console.log('⏭️  Kizu branding already injected, skipping');
+    return;
+  }
+
   const brandingPath = path.join(__dirname, 'frontend-integration', 'kizu-branding.js');
+  const logoModulePath = path.join(__dirname, 'frontend-integration', 'kizu-svg-logo.js');
 
   try {
+    // Read the logo module as plain text (don't require() it to avoid Node.js processing)
+    let logoModuleScript = fs.readFileSync(logoModulePath, 'utf8');
+
+    // Remove the module.exports line since we're in browser context
+    logoModuleScript = logoModuleScript.replace(/module\.exports\s*=\s*\{[^}]+\};?\s*$/, '');
+
+    // Load the branding script
     const brandingScript = fs.readFileSync(brandingPath, 'utf8');
     console.log('Kizu branding script loaded');
 
+    // Inject the logo script first (which defines KIZU_LOGO_SVG), then the branding script
+    const wrappedScript = `
+      try {
+        // Execute the logo building script (defines KIZU_LOGO_SVG)
+        ${logoModuleScript}
+
+        // Now execute the branding script (which uses KIZU_LOGO_SVG)
+        ${brandingScript}
+      } catch (error) {
+        console.error('❌ Branding script error:', error);
+        console.error('Stack:', error.stack);
+      }
+    `;
+
     window.webContents
-      .executeJavaScript(brandingScript)
+      .executeJavaScript(wrappedScript)
       .then(() => {
         console.log('✅ Kizu branding applied successfully');
+        injectionState.branding = true;
       })
       .catch((error) => {
         console.error('Failed to execute branding script:', error);
@@ -370,7 +412,7 @@ function handleServerSuccess(window) {
     // showLoadingScreen(window); // Disabled - causes conflicts
   });
 
-  // Helper function to inject all customizations
+  // Helper function to inject all customizations (runs only once)
   const injectCustomizations = () => {
     console.log('Kizu finished loading, waiting before injecting customizations...');
 
@@ -378,7 +420,12 @@ function handleServerSuccess(window) {
     setTimeout(() => {
       console.log('Injecting Kizu customizations...');
 
-      createHeaderBar(window);
+      // Check and inject header bar
+      if (!injectionState.headerBar) {
+        createHeaderBar(window);
+        injectionState.headerBar = true;
+      }
+
       attemptAutoLogin(window);
       injectAuthIntegration(window);
       injectKizuBranding(window);
@@ -388,13 +435,9 @@ function handleServerSuccess(window) {
     }, 2000); // Wait 2 seconds for Kizu to settle
   };
 
-  // Set up event listeners BEFORE loading the URL
-  // Use .on() instead of .once() to handle page reloads
-  window.webContents.on('did-finish-load', injectCustomizations);
-
-  // Also handle navigation events (when user reloads or navigates)
-  window.webContents.on('did-navigate', injectCustomizations);
-  window.webContents.on('did-navigate-in-page', injectCustomizations);
+  // Set up event listener BEFORE loading the URL
+  // Use .once() to ensure customizations are only injected on initial load
+  window.webContents.once('did-finish-load', injectCustomizations);
 
   window
     .loadURL(PENPOT_CONFIG.frontend.dev)
