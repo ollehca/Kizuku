@@ -4,11 +4,16 @@
 
 const { ipcMain, dialog, app, clipboard, nativeImage } = require('electron');
 const fs = require('fs').promises;
+const path = require('path');
 const { createLogger } = require('./utils/logger');
 const authStorage = require('./services/auth-storage');
 const { registerBackendIpcHandlers } = require('./services/backend-ipc-handlers');
 const { launchWorkspace } = require('./utils/workspace-launcher');
 const { getFigmaImporter } = require('./services/figma/figma-importer');
+const mockBackend = require('./services/penpot-mock-backend');
+const transit = require('transit-js');
+// QUARANTINED: Backend injection not needed for v1.0 file-based workflow
+// const { createPenpotFrontendInjector } = require('./services/figma/penpot-backend-uploader');
 
 const logger = createLogger('IPC');
 
@@ -393,6 +398,38 @@ function cancelFigmaImport() {
 }
 
 /**
+ * Handle file open request (for drag-and-drop and double-click)
+ * @param {object} event - IPC event
+ * @param {string} filePath - Path to file
+ * @returns {Promise<object>} Import result
+ */
+async function handleFileOpen(event, filePath, window) {
+  console.log('🔵 IPC handleFileOpen called with:', filePath);
+  logger.info('File open requested', { filePath });
+
+  // Delegate to the main.js handleFileOpen function
+  // which shows the progress dialog and navigates to dashboard
+  const mainHandleFileOpen = require('./main').handleFileOpen;
+
+  if (mainHandleFileOpen) {
+    console.log('✅ Delegating to main.js handleFileOpen with progress dialog');
+    const result = await mainHandleFileOpen(filePath);
+    return result;
+  } else {
+    // Fallback if for some reason the export isn't available
+    console.warn('⚠️ Could not find main.handleFileOpen, using fallback');
+    try {
+      const importer = getFigmaImporter();
+      const result = await importer.importFromFile(filePath);
+      return result;
+    } catch (error) {
+      logger.error('File open failed', { filePath, error });
+      return { success: false, error: error.message };
+    }
+  }
+}
+
+/**
  * Register core IPC handlers
  * @param {object} window - BrowserWindow instance
  */
@@ -410,12 +447,14 @@ function registerCoreHandlers(window) {
 
 /**
  * Register Figma import IPC handlers
+ * @param {object} window - BrowserWindow instance
  */
-function registerFigmaHandlers() {
+function registerFigmaHandlers(window) {
   ipcMain.handle('figma:import-file', handleFigmaImport);
   ipcMain.handle('figma:validate-file', handleFigmaValidation);
   ipcMain.handle('figma:get-import-status', getFigmaImportStatus);
   ipcMain.handle('figma:cancel-import', cancelFigmaImport);
+  ipcMain.handle('handle-file-open', (event, filePath) => handleFileOpen(event, filePath, window));
 }
 
 /**
@@ -436,6 +475,53 @@ function registerAuthHandlers() {
   ipcMain.handle('auth:clear-credentials', clearAuthCredentials);
   ipcMain.handle('auth:has-valid-credentials', hasValidAuthCredentials);
   ipcMain.handle('auth:get-session-info', getAuthSessionInfo);
+}
+
+/**
+ * Handle mock backend API command
+ * @param {object} event - IPC event
+ * @param {string} commandName - API command name
+ * @param {object} params - Command parameters
+ * @returns {Promise<object>} Command result with transit-encoded response
+ */
+async function handleMockBackendCommand(event, commandName, params = {}) {
+  logger.info('Mock backend command', { commandName, params });
+  const result = await mockBackend.handleCommand(commandName, params);
+
+  // Encode the result as transit format (what PenPot expects)
+  const writer = transit.writer('json-verbose');
+  const transitEncoded = writer.write(result);  // Call write() on the writer object
+
+  // Return an object with both the raw result and transit-encoded version
+  return {
+    raw: result,
+    transit: transitEncoded
+  };
+}
+
+/**
+ * Get mock profile
+ * @returns {Promise<object>} Mock profile
+ */
+async function getMockBackendProfile() {
+  return await mockBackend.getMockProfile();
+}
+
+/**
+ * Check if user is authenticated (has valid license)
+ * @returns {Promise<boolean>} Authentication status
+ */
+async function checkMockBackendAuth() {
+  return await mockBackend.isAuthenticated();
+}
+
+/**
+ * Register mock backend IPC handlers (for private license users)
+ */
+function registerMockBackendHandlers() {
+  ipcMain.handle('mock-backend:command', handleMockBackendCommand);
+  ipcMain.handle('mock-backend:get-profile', getMockBackendProfile);
+  ipcMain.handle('mock-backend:is-authenticated', checkMockBackendAuth);
 }
 
 /**
@@ -461,11 +547,12 @@ function registerIpcHandlers(window) {
   registerCoreHandlers(window);
   registerWebviewHandlers();
   registerAuthHandlers();
+  registerMockBackendHandlers();
   registerClipboardHandlers();
   registerBackendIpcHandlers();
-  registerFigmaHandlers();
+  registerFigmaHandlers(window);
   logger.info(
-    'IPC handlers registered for webview, authentication, clipboard, backend services, and Figma import'
+    'IPC handlers registered for webview, authentication, mock backend, clipboard, backend services, and Figma import'
   );
 }
 

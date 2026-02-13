@@ -98,14 +98,14 @@ async function handleFileSelect(files) {
   const fileArray = Array.from(files);
 
   // Filter valid file types
-  const validExtensions = ['.fig', '.penpot', '.zip'];
+  const validExtensions = ['.kizu', '.json', '.fig'];
   const validFiles = fileArray.filter((file) => {
     const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
     return validExtensions.includes(ext);
   });
 
   if (validFiles.length === 0) {
-    showStatus('Please select .fig, .penpot, or .zip files', 'error');
+    showStatus('Please select .kizu, .json, or .fig files', 'error');
     return;
   }
 
@@ -205,11 +205,11 @@ function getFileIcon(fileName) {
   if (ext === '.fig') {
     return '🎨';
   }
-  if (ext === '.penpot') {
-    return '📦';
+  if (ext === '.json') {
+    return '📄';
   }
-  if (ext === '.zip') {
-    return '🗜️';
+  if (ext === '.kizu') {
+    return '📦';
   }
   return '📄';
 }
@@ -260,6 +260,10 @@ async function startImport() {
   importing = true;
   updateImportButton();
 
+  // Enable minimalist mode
+  const container = document.querySelector('.import-container');
+  container.classList.add('importing');
+
   // Show progress view
   const progressView = document.getElementById('progressView');
   progressView.classList.add('visible');
@@ -277,6 +281,8 @@ async function startImport() {
 
   try {
     // Import files one by one
+    let lastImportedFilePath = null;
+
     for (let i = 0; i < validFiles.length; i++) {
       const file = validFiles[i];
 
@@ -288,6 +294,11 @@ async function startImport() {
         throw new Error(result.error || 'Import failed');
       }
 
+      // Store the last imported file path for auto-open
+      if (result.filePath) {
+        lastImportedFilePath = result.filePath;
+      }
+
       // Update progress
       const progress = ((i + 1) / validFiles.length) * 100;
       updateProgressBar(progress);
@@ -296,10 +307,38 @@ async function startImport() {
     // Success
     showStatus(`Successfully imported ${validFiles.length} file(s)!`, 'success');
 
-    // Close modal after 2 seconds
+    // Auto-open the imported file (use the last one if multiple)
+    if (lastImportedFilePath) {
+      console.log('🚀 Auto-opening imported file:', lastImportedFilePath);
+      showStatus('Loading project into workspace...', 'info');
+
+      try {
+        // First, load the project into backend service manager
+        console.log('📂 Loading project into backend...', lastImportedFilePath);
+        const loadResult = await window.electronAPI.backend.project.load(lastImportedFilePath);
+        console.log('✅ Project loaded into backend:', loadResult);
+
+        // Now launch the workspace
+        console.log('🚀 Launching workspace...');
+        const launchResult = await window.electronAPI.launchWorkspace(lastImportedFilePath);
+        console.log('✅ Workspace launched successfully', launchResult);
+
+        if (!launchResult || !launchResult.success) {
+          console.error('❌ Launch workspace returned error:', launchResult);
+          showStatus(`File imported but failed to open: ${launchResult?.error || 'Unknown error'}`, 'error');
+          return; // Don't close modal if auto-open failed
+        }
+      } catch (error) {
+        console.error('❌ Failed to auto-open file:', error);
+        showStatus(`File imported but failed to open: ${error.message}`, 'error');
+        return; // Don't close modal if there was an error
+      }
+    }
+
+    // Close modal after a brief delay to show success message
     setTimeout(() => {
       window.close();
-    }, 2000);
+    }, 1000);
   } catch (error) {
     console.error('Import error:', error);
     showStatus(`Import failed: ${error.message}`, 'error');

@@ -288,7 +288,9 @@ async function importFromFigma() {
     const result = await window.electronAPI.showOpenDialog({
       title: 'Import Figma File',
       filters: [
-        { name: 'Figma Files', extensions: ['fig', 'penpot', 'zip'] },
+        { name: 'Figma Files', extensions: ['json', 'kizu', 'fig'] },
+        { name: 'JSON Files', extensions: ['json'] },
+        { name: 'Kizu Projects', extensions: ['kizu'] },
         { name: 'All Files', extensions: ['*'] },
       ],
       properties: ['openFile', 'multiSelections'],

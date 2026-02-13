@@ -1,7 +1,52 @@
-const { contextBridge, ipcRenderer } = require('electron');
+const { contextBridge, ipcRenderer, webUtils, webFrame } = require('electron');
 
-// ShortcutManager is loaded directly in the renderer context
-// No need to load it in preload script
+// ============================================================================
+// CRITICAL: Inject fetch interceptor IMMEDIATELY into main world
+// This MUST run before any page scripts to intercept PenPot's API calls
+// ============================================================================
+const FETCH_INTERCEPTOR = `
+(function() {
+  if (window.__kizuFetchInterceptorInstalled) return;
+  window.__kizuFetchInterceptorInstalled = true;
+
+  const originalFetch = window.fetch;
+  const MOCK_SERVER = 'http://localhost:9999';
+
+  window.fetch = async function(input, init = {}) {
+    const url = typeof input === 'string' ? input : input.url;
+    if (url && url.includes('/api/rpc/command/')) {
+      const apiPath = url.substring(url.indexOf('/api/rpc/command/'));
+      const mockUrl = MOCK_SERVER + apiPath;
+      console.log('🔄 [Kizu Fetch] Redirecting:', url.split('/api/rpc/command/')[1]);
+      return originalFetch(mockUrl, {
+        ...init,
+        method: init.method || 'GET',
+        headers: { ...init.headers },
+        body: init.body,
+      });
+    }
+    return originalFetch(input, init);
+  };
+
+  const originalXHROpen = XMLHttpRequest.prototype.open;
+  XMLHttpRequest.prototype.open = function(method, url, ...args) {
+    if (url && url.includes('/api/rpc/command/')) {
+      const apiPath = url.substring(url.indexOf('/api/rpc/command/'));
+      const mockUrl = MOCK_SERVER + apiPath;
+      console.log('🔄 [Kizu XHR] Redirecting:', url.split('/api/rpc/command/')[1]);
+      return originalXHROpen.call(this, method, mockUrl, ...args);
+    }
+    return originalXHROpen.call(this, method, url, ...args);
+  };
+
+  console.log('✅ [Kizu Preload] Fetch interceptor installed in main world');
+})();
+`;
+
+// Execute in main world IMMEDIATELY (before page scripts run)
+webFrame.executeJavaScript(FETCH_INTERCEPTOR).catch(err => {
+  console.error('❌ [Preload] Failed to inject fetch interceptor:', err);
+});
 
 console.log('🚀 Kizu preload script starting...');
 console.log('🔧 contextBridge available:', !!contextBridge);
@@ -65,6 +110,35 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Workspace launcher
   launchWorkspace: (filePath) => ipcRenderer.invoke('launch-workspace', filePath),
 
+  // File open (for drag-and-drop and OS file associations)
+  handleFileOpen: (filePath) => ipcRenderer.invoke('handle-file-open', filePath),
+
+  // Get file path from File object (for drag-and-drop) - PRIMARY METHOD
+  getFilePathForDrop: (file) => {
+    try {
+      const filePath = webUtils.getPathForFile(file);
+      console.log('✅ [webUtils] Got file path:', filePath);
+      return filePath;
+    } catch (error) {
+      console.error('❌ [webUtils] Failed to get file path:', error);
+      return null;
+    }
+  },
+
+  // Drag-drop health check - verify main process handlers are alive
+  dragDropHealthCheck: () => ipcRenderer.invoke('drag-drop:health-check'),
+
+  // Drag-drop file handler - FALLBACK METHOD (if webUtils fails)
+  dragDropFileHandler: (filePath) => ipcRenderer.invoke('drag-drop:file-dropped', filePath),
+
+  // Import progress updates
+  onImportProgress: (callback) => {
+    ipcRenderer.on('import-progress', (event, data) => callback(data));
+  },
+
+  // Open imported file in workspace
+  openImportedFile: (filePath) => ipcRenderer.invoke('open-imported-file', filePath),
+
   // Figma import
   figmaAPI: {
     importFile: (filePath, options) => ipcRenderer.invoke('figma:import-file', filePath, options),
@@ -86,6 +160,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
     clearCredentials: () => ipcRenderer.invoke('auth:clear-credentials'),
     hasValidCredentials: () => ipcRenderer.invoke('auth:has-valid-credentials'),
     getSessionInfo: () => ipcRenderer.invoke('auth:get-session-info'),
+  },
+
+  // Mock Backend API (for private license users - replaces PenPot backend)
+  mockBackend: {
+    command: (commandName, params) => ipcRenderer.invoke('mock-backend:command', commandName, params),
+    getProfile: () => ipcRenderer.invoke('mock-backend:get-profile'),
+    isAuthenticated: () => ipcRenderer.invoke('mock-backend:is-authenticated'),
   },
 
   // Backend Services API
@@ -183,6 +264,11 @@ function extractFileId(url) {
 
 // Simple automatic file detection
 function detectAndAddTabs() {
+  // Only run in main window, not in iframes
+  if (window.self !== window.top) {
+    return;
+  }
+
   console.log('🔍 Checking for file to create tab');
   const url = window.location.href;
   console.log('🔍 Current URL:', url);

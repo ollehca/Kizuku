@@ -31,6 +31,9 @@ class BackendServiceManager {
       await this._initStorage();
       this._initProjects();
 
+      // Auto-create PenPot demo account for private licenses
+      await this._ensurePenpotDemoAccount();
+
       this.initialized = true;
       logger.info('Backend services initialized successfully');
     } catch (error) {
@@ -46,6 +49,7 @@ class BackendServiceManager {
 
     const licenseType = this.configManager.get('licenseType');
     logger.info('Configuration loaded', { licenseType });
+    console.log('💳 License type detected:', licenseType);
   }
 
   async _initAuth() {
@@ -76,6 +80,65 @@ class BackendServiceManager {
     logger.info('Initializing project manager');
     this.projectManager = new ProjectManager(this.configManager);
     logger.info('Project manager initialized');
+  }
+
+  async _ensurePenpotDemoAccount() {
+    const licenseType = this.configManager.get('licenseType');
+    console.log('🔍 Checking PenPot demo account for license type:', licenseType);
+
+    // Only auto-create for private licenses (demo/development)
+    if (licenseType !== 'private') {
+      console.log('⏭️  Skipping demo account creation (not a private license)');
+      return;
+    }
+
+    logger.info('Ensuring PenPot demo account exists...');
+    console.log('🔐 Ensuring PenPot demo account exists...');
+
+    try {
+      // Check if demo account already exists (with timeout)
+      console.log('📡 Checking if demo account exists...');
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
+
+      const checkResponse = await fetch('http://localhost:6060/api/rpc/command/login-with-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: 'demo@penpot.local',
+          password: 'demo123',
+        }),
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+
+      if (checkResponse.ok) {
+        console.log('✅ PenPot demo account already exists');
+        logger.info('✅ PenPot demo account already exists');
+        return;
+      }
+
+      console.log('❌ Demo account does not exist, creating it...');
+
+      // Account doesn't exist, create it
+      logger.info('Creating PenPot demo account...');
+      const { exec } = require('child_process');
+      const util = require('util');
+      const execPromise = util.promisify(exec);
+
+      const result = await execPromise('./scripts/manage-demo-accounts.sh create', {
+        cwd: require('path').join(__dirname, '../..'),
+      });
+
+      console.log('✅ PenPot demo account created:', result.stdout);
+      logger.info('✅ PenPot demo account created successfully');
+    } catch (error) {
+      console.error('⚠️ Could not ensure PenPot demo account:', error.message);
+      logger.warn('Could not ensure PenPot demo account:', error.message);
+      // Don't fail initialization if demo account creation fails
+    }
   }
 
   getConfig() {

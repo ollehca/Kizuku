@@ -15,6 +15,9 @@
     "dist": "npm run build && electron-builder --publish=never",
     "pack": "electron-builder --dir",
     "test": "node test-suite.js",
+    "test:auth": "playwright test test/auth-integration.test.js",
+    "test:auth:headed": "playwright test test/auth-integration.test.js --headed",
+    "test:auth:debug": "playwright test test/auth-integration.test.js --headed --debug",
     "test:integration": "node integration-test.js",
     "test:functionality": "node kizu-functionality-test.js",
     "test:design-tools": "node kizu-design-tools-test.js",
@@ -100,6 +103,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
+    "@playwright/test": "^1.56.1",
     "concurrently": "^9.1.0",
     "electron": "^33.2.1",
     "electron-builder": "^25.1.8",
@@ -109,6 +113,7 @@
     "jest": "^29.7.0",
     "lint-staged": "^16.1.5",
     "nodemon": "^3.1.9",
+    "playwright": "^1.56.1",
     "prettier": "^3.6.2",
     "sass": "^1.90.0",
     "stylelint": "^16.25.0",
@@ -117,8 +122,16 @@
     "stylelint-order": "^7.0.0"
   },
   "dependencies": {
+    "@mongodb-js/zstd": "^2.0.1",
+    "@penpot/library": "^1.0.11",
+    "adm-zip": "^0.5.16",
+    "base64-js": "^1.5.1",
     "electron-store": "^10.0.0",
     "electron-updater": "^6.3.9",
-    "node-fetch": "^2.6.7"
+    "fig-kiwi": "^0.0.1",
+    "kiwi-schema": "^0.5.0",
+    "node-fetch": "^2.6.7",
+    "pako": "^2.1.0",
+    "transit-js": "^0.8.874"
   }
 }
