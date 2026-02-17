@@ -44,7 +44,7 @@ const FETCH_INTERCEPTOR = `
 `;
 
 // Execute in main world IMMEDIATELY (before page scripts run)
-webFrame.executeJavaScript(FETCH_INTERCEPTOR).catch(err => {
+webFrame.executeJavaScript(FETCH_INTERCEPTOR).catch((err) => {
   console.error('❌ [Preload] Failed to inject fetch interceptor:', err);
 });
 
@@ -153,6 +153,20 @@ contextBridge.exposeInMainWorld('electronAPI', {
     },
   },
 
+  // Theme editor
+  theme: {
+    load: () => ipcRenderer.invoke('theme:load'),
+    save: (themeConfig) => ipcRenderer.invoke('theme:save', themeConfig),
+    apply: () => ipcRenderer.invoke('theme:apply'),
+    reset: () => ipcRenderer.invoke('theme:reset'),
+    exportFile: () => ipcRenderer.invoke('theme:export'),
+    importFile: () => ipcRenderer.invoke('theme:import'),
+    openEditor: () => ipcRenderer.invoke('theme:open-editor'),
+    onUpdated: (callback) => {
+      ipcRenderer.on('theme:updated', (_event, theme) => callback(theme));
+    },
+  },
+
   // Authentication storage (legacy)
   auth: {
     storeCredentials: (credentials) => ipcRenderer.invoke('auth:store-credentials', credentials),
@@ -164,7 +178,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Mock Backend API (for private license users - replaces PenPot backend)
   mockBackend: {
-    command: (commandName, params) => ipcRenderer.invoke('mock-backend:command', commandName, params),
+    command: (commandName, params) =>
+      ipcRenderer.invoke('mock-backend:command', commandName, params),
     getProfile: () => ipcRenderer.invoke('mock-backend:get-profile'),
     isAuthenticated: () => ipcRenderer.invoke('mock-backend:is-authenticated'),
   },

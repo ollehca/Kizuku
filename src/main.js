@@ -11,6 +11,8 @@ const authStorage = require('./services/auth-storage');
 const authOrchestrator = require('./services/auth-orchestrator');
 const { getBackendServiceManager } = require('./services/backend-service-manager');
 const { setupDragAndDrop } = require('./utils/drag-drop-handler');
+const themeStorage = require('./services/brand-theme-storage');
+const themeApplicator = require('./services/brand-theme-applicator');
 const { injectAuthIntegration, injectKizuBranding } = require('./utils/frontend-injection');
 const { injectFetchInterceptor } = require('./utils/fetch-interceptor');
 const rendererScripts = require('./utils/renderer-scripts');
@@ -66,6 +68,9 @@ try {
     set: (_key, _value) => {},
   };
 }
+
+// Initialize theme storage with the electron-store instance
+themeStorage.initThemeStorage(store);
 
 // Keep a global reference of the window object
 let mainWindow;
@@ -471,6 +476,10 @@ function setupWindowDisplay(window) {
 async function createWindow() {
   mainWindow = createBrowserWindow();
   cssManager.setMainWindow(mainWindow);
+  themeApplicator.initApplicator(cssManager, mainWindow);
+
+  // Generate palette CSS from stored/default theme before any screen loads
+  await themeApplicator.applyTheme();
 
   console.log('isDev:', isDev, 'URL:', PENPOT_CONFIG.frontend.dev);
 

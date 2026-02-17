@@ -1,20 +1,21 @@
 // PenPot Desktop - SCSS with BEM methodology
+
+@import 'kizu-variables';
+
 // Variables
 $desktop-titlebar-height: 40px;
 $desktop-tab-height: 32px;
 $desktop-colors: (
-  tab-bar-bg: #1e1e1e,
-  // Match PenPot's dark background
-  tab-bar-border: #2d2d2d,
+  tab-bar-bg: $kizu-bg-dark,
+  tab-bar-border: $kizu-bg-medium,
   tab-bg: transparent,
-  tab-bg-hover: #2a2a2a,
-  tab-bg-active: #313131,
-  tab-text: #999999,
-  tab-text-hover: #cccccc,
-  tab-text-active: #ffffff,
-  tab-accent: #31efb8,
-  // PenPot's teal accent color
-  tab-close-hover: #4a4a4a,
+  tab-bg-hover: $kizu-surface,
+  tab-bg-active: $kizu-surface-hover,
+  tab-text: $kizu-text-dim,
+  tab-text-hover: $kizu-text-muted,
+  tab-text-active: $kizu-text,
+  tab-accent: $kizu-primary,
+  tab-close-hover: $kizu-surface-active,
 );
 
 // BEM Block: Desktop Tab System

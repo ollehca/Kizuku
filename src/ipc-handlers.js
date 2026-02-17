@@ -11,6 +11,7 @@ const { launchWorkspace } = require('./utils/workspace-launcher');
 const { getFigmaImporter } = require('./services/figma/figma-importer');
 const mockBackend = require('./services/penpot-mock-backend');
 const transit = require('transit-js');
+const { registerThemeHandlers } = require('./services/theme-ipc-handlers');
 // QUARANTINED: Backend injection not needed for v1.0 file-based workflow
 // const { createPenpotFrontendInjector } = require('./services/figma/penpot-backend-uploader');
 
@@ -550,8 +551,9 @@ function registerIpcHandlers(window) {
   registerClipboardHandlers();
   registerBackendIpcHandlers();
   registerFigmaHandlers(window);
+  registerThemeHandlers();
   logger.info(
-    'IPC handlers registered for webview, authentication, mock backend, clipboard, backend services, and Figma import'
+    'IPC handlers registered for webview, authentication, mock backend, clipboard, backend services, Figma import, and theme'
   );
 }
 

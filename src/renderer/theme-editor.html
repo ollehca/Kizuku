@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kizu Theme Editor</title>
+    <link rel="stylesheet" href="theme-editor.css" />
+  </head>
+  <body>
+    <div class="editor-layout">
+      <!-- Header -->
+      <div class="editor-header">
+        <h1>Theme Editor</h1>
+        <div class="header-actions">
+          <button class="btn btn-danger" id="resetBtn">Reset Defaults</button>
+        </div>
+      </div>
+
+      <!-- Controls Panel (Left) -->
+      <div class="controls-panel">
+        <div class="section-title">Brand Colors</div>
+
+        <div class="color-row">
+          <span class="color-label">Primary</span>
+          <div class="color-picker-wrapper">
+            <span class="color-hex" id="hex-primary"></span>
+            <input type="color" id="color-primary" data-key="primary" />
+          </div>
+        </div>
+
+        <div class="color-row">
+          <span class="color-label">Primary Dark</span>
+          <div class="color-picker-wrapper">
+            <span class="color-hex" id="hex-primaryDark"></span>
+            <input type="color" id="color-primaryDark" data-key="primaryDark" />
+          </div>
+        </div>
+
+        <div class="color-row">
+          <span class="color-label">Primary Light</span>
+          <div class="color-picker-wrapper">
+            <span class="color-hex" id="hex-primaryLight"></span>
+            <input type="color" id="color-primaryLight" data-key="primaryLight" />
+          </div>
+        </div>
+
+        <div class="section-title">Backgrounds</div>
+
+        <div class="color-row">
+          <span class="color-label">Background</span>
+          <div class="color-picker-wrapper">
+            <span class="color-hex" id="hex-bgDark"></span>
+            <input type="color" id="color-bgDark" data-key="bgDark" />
+          </div>
+        </div>
+
+        <div class="color-row">
+          <span class="color-label">Surface</span>
+          <div class="color-picker-wrapper">
+            <span class="color-hex" id="hex-surface"></span>
+            <input type="color" id="color-surface" data-key="surface" />
+          </div>
+        </div>
+
+        <div class="color-row">
+          <span class="color-label">Surface Hover</span>
+          <div class="color-picker-wrapper">
+            <span class="color-hex" id="hex-surfaceHover"></span>
+            <input type="color" id="color-surfaceHover" data-key="surfaceHover" />
+          </div>
+        </div>
+
+        <div class="section-title">Text</div>
+
+        <div class="color-row">
+          <span class="color-label">Text</span>
+          <div class="color-picker-wrapper">
+            <span class="color-hex" id="hex-text"></span>
+            <input type="color" id="color-text" data-key="text" />
+          </div>
+        </div>
+
+        <div class="section-title">Status Colors</div>
+
+        <div class="color-row">
+          <span class="color-label">Success</span>
+          <div class="color-picker-wrapper">
+            <span class="color-hex" id="hex-success"></span>
+            <input type="color" id="color-success" data-key="success" />
+          </div>
+        </div>
+
+        <div class="color-row">
+          <span class="color-label">Warning</span>
+          <div class="color-picker-wrapper">
+            <span class="color-hex" id="hex-warning"></span>
+            <input type="color" id="color-warning" data-key="warning" />
+          </div>
+        </div>
+
+        <div class="color-row">
+          <span class="color-label">Error</span>
+          <div class="color-picker-wrapper">
+            <span class="color-hex" id="hex-error"></span>
+            <input type="color" id="color-error" data-key="error" />
+          </div>
+        </div>
+
+        <div class="section-title">Typography</div>
+
+        <div class="font-row">
+          <span class="color-label">Heading Font</span>
+          <select class="font-select" id="font-heading">
+            <option value="'Josefin Sans', sans-serif">Josefin Sans</option>
+            <option value="-apple-system, sans-serif">System Default</option>
+            <option value="'Inter', sans-serif">Inter</option>
+            <option value="'Roboto', sans-serif">Roboto</option>
+          </select>
+        </div>
+
+        <div class="font-row">
+          <span class="color-label">Body Font</span>
+          <select class="font-select" id="font-body">
+            <option value="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif">
+              System Default
+            </option>
+            <option value="'Inter', sans-serif">Inter</option>
+            <option value="'Roboto', sans-serif">Roboto</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Preview Panel (Right) -->
+      <div class="preview-panel">
+        <div class="preview-container" id="previewContainer">
+          <div class="preview-header" id="previewHeader">
+            <h2 id="previewTitle">Kizu Projects</h2>
+            <button class="preview-btn" id="previewBtnPrimary">New Project</button>
+          </div>
+          <div class="preview-body">
+            <div class="preview-card" id="previewCard">
+              <div class="preview-card-title" id="previewCardTitle">My Design</div>
+              <div class="preview-card-text" id="previewCardText">Last edited 2 hours ago</div>
+            </div>
+            <div class="preview-actions">
+              <button class="preview-btn" id="previewBtnAccent">Import Figma</button>
+              <button class="preview-btn" id="previewBtnSurface">Open File</button>
+            </div>
+            <div class="preview-badges">
+              <span class="preview-badge" id="badgeSuccess">Ready</span>
+              <span class="preview-badge" id="badgeWarning">Pending</span>
+              <span class="preview-badge" id="badgeError">Error</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="editor-footer">
+        <div class="footer-left">
+          <button class="btn btn-secondary" id="exportBtn">Export Theme</button>
+          <button class="btn btn-secondary" id="importBtn">Import Theme</button>
+        </div>
+        <div class="footer-right">
+          <button class="btn btn-primary" id="saveBtn">Save &amp; Apply</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="theme-editor.js"></script>
+  </body>
+</html>

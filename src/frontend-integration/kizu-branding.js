@@ -4,7 +4,7 @@
  * Note: KIZU_LOGO_SVG is injected by main.js before this script executes
  */
 
-/* global KIZU_LOGO_SVG */
+/* global KIZU_LOGO_SVG, getComputedStyle */
 
 console.log('🎨 Kizu branding integration loaded');
 
@@ -135,23 +135,38 @@ function replaceFavicon() {
 }
 
 /**
- * Inject CSS to override PenPot accent colors with Kizu teal
+ * Build accent color CSS from theme or defaults
+ * @returns {string} CSS text for accent overrides
+ */
+function buildAccentCSS() {
+  const primary =
+    getComputedStyle(document.documentElement).getPropertyValue('--kizu-primary').trim() ||
+    '#35f6e6';
+  const primaryDark =
+    getComputedStyle(document.documentElement).getPropertyValue('--kizu-primary-dark').trim() ||
+    '#27bdb1';
+  return [
+    ':root {',
+    `  --color-primary: ${primary} !important;`,
+    `  --color-primary-dark: ${primaryDark} !important;`,
+    `  --color-accent: ${primary} !important;`,
+    '}',
+    '.main-logo, [class*="penpot-logo"] { display: none !important; }',
+  ].join('\n');
+}
+
+/**
+ * Inject CSS to override PenPot accent colors with Kizu theme
  */
 function injectAccentColors() {
   const existingStyle = document.getElementById('kizu-accent-css');
   if (existingStyle) {
+    existingStyle.textContent = buildAccentCSS();
     return;
   }
   const style = document.createElement('style');
   style.id = 'kizu-accent-css';
-  style.textContent = [
-    ':root {',
-    '  --color-primary: #35f6e6 !important;',
-    '  --color-primary-dark: #27bdb1 !important;',
-    '  --color-accent: #35f6e6 !important;',
-    '}',
-    '.main-logo, [class*="penpot-logo"] { display: none !important; }',
-  ].join('\n');
+  style.textContent = buildAccentCSS();
   document.head.appendChild(style);
 }
 

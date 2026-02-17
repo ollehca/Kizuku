@@ -326,9 +326,13 @@ async function importFromFigma() {
   }
 }
 
-function openSettings() {
-  showStatus('Settings coming soon!', 'error');
-  // TODO: Implement settings panel
+async function openSettings() {
+  try {
+    await window.electronAPI.theme.openEditor();
+  } catch (error) {
+    showStatus('Failed to open theme editor', 'error');
+    console.error('Theme editor error:', error);
+  }
 }
 
 // Utility Functions

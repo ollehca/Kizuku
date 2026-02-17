@@ -1,16 +1,18 @@
 /* Success Modal Styles */
 
+@import url('../../styles/kizu-palette.css');
+
 :root {
-  --color-bg: #1a1a1a;
-  --color-surface: #2a2a2a;
-  --color-surface-elevated: #333;
-  --color-text-primary: #fff;
-  --color-text-secondary: #b0b0b0;
-  --color-primary: #4a90e2;
-  --color-primary-hover: #5ba3f5;
-  --color-border: #404040;
-  --color-success: #4caf50;
-  --shadow-lg: 0 8px 24px rgb(0 0 0 / 50%);
+  --color-bg: var(--kizu-bg-dark);
+  --color-surface: var(--kizu-surface);
+  --color-surface-elevated: var(--kizu-surface-hover);
+  --color-text-primary: var(--kizu-text);
+  --color-text-secondary: var(--kizu-text-muted);
+  --color-primary: var(--kizu-primary);
+  --color-primary-hover: var(--kizu-primary-dark);
+  --color-border: var(--kizu-border);
+  --color-success: var(--kizu-success);
+  --shadow-lg: var(--kizu-shadow-lg);
 }
 
 * {
