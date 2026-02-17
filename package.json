@@ -23,6 +23,8 @@
     "test:design-tools": "node kizu-design-tools-test.js",
     "test:basic-functionality": "node test-basic-penpot-functionality.js",
     "test:unit": "jest",
+    "test:figma": "jest --testPathPattern=tests/unit/figma",
+    "test:all": "jest",
     "lint": "eslint src/ --fix",
     "lint:check": "eslint src/",
     "lint:css": "stylelint \"src/**/*.css\" \"src/**/*.scss\" --fix",
@@ -69,6 +71,7 @@
       }
     ],
     "mac": {
+      "icon": "build/icons/icon.icns",
       "category": "public.app-category.graphics-design",
       "target": [
         {
@@ -81,6 +84,7 @@
       ]
     },
     "win": {
+      "icon": "build/icons/icon.ico",
       "target": [
         {
           "target": "nsis",
@@ -91,6 +95,7 @@
       ]
     },
     "linux": {
+      "icon": "build/icons/512x512.png",
       "target": [
         {
           "target": "AppImage",

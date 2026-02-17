@@ -53,6 +53,7 @@ class FigmaJSONConverter extends EventEmitter {
       unsupportedFeatures: new Set(),
     };
     this.figmaIdToUuid = new Map();
+    this.parentStack = [];
     this.dispatch = nodes.buildDispatch(this);
   }
 
@@ -212,7 +213,7 @@ class FigmaJSONConverter extends EventEmitter {
       id: this.getOrCreateUuid(figmaCanvas.id),
       name: figmaCanvas.name || 'Untitled Page',
       type: 'page',
-      children: await this.transformChildren(figmaCanvas.children),
+      children: await this.transformChildren(figmaCanvas.children, { x: 0, y: 0 }),
     };
   }
 
@@ -239,13 +240,17 @@ class FigmaJSONConverter extends EventEmitter {
   }
 
   /**
-   * Transform child nodes array
+   * Transform child nodes array with parent context for relative coords
    * @param {array} children - Figma child nodes
+   * @param {object} parentBbox - Parent's absoluteBoundingBox
    * @returns {Promise<array>} Converted children
    */
-  async transformChildren(children) {
+  async transformChildren(children, parentBbox) {
     if (!children) {
       return [];
+    }
+    if (parentBbox) {
+      this.parentStack.push(parentBbox);
     }
     const results = [];
     for (const child of children) {
@@ -253,6 +258,9 @@ class FigmaJSONConverter extends EventEmitter {
       if (converted) {
         results.push(converted);
       }
+    }
+    if (parentBbox) {
+      this.parentStack.pop();
     }
     return results;
   }
@@ -277,17 +285,29 @@ class FigmaJSONConverter extends EventEmitter {
   }
 
   /**
-   * Extract geometry and display properties
+   * Get the current parent position from the stack
+   * @returns {object} Parent position { x, y }
+   */
+  getParentPosition() {
+    if (this.parentStack.length === 0) {
+      return { x: 0, y: 0 };
+    }
+    return this.parentStack[this.parentStack.length - 1];
+  }
+
+  /**
+   * Extract geometry with coordinates relative to parent
    * @param {object} figmaNode - Figma node
-   * @returns {object} Geometry properties
+   * @returns {object} Geometry properties with relative coordinates
    */
   transformGeometry(figmaNode) {
-    const bbox = figmaNode.absoluteBoundingBox || {};
+    const absBbox = figmaNode.absoluteBoundingBox || {};
+    const parent = this.getParentPosition();
     return {
-      x: bbox.x || 0,
-      y: bbox.y || 0,
-      width: bbox.width || 0,
-      height: bbox.height || 0,
+      x: (absBbox.x || 0) - (parent.x || 0),
+      y: (absBbox.y || 0) - (parent.y || 0),
+      width: absBbox.width || 0,
+      height: absBbox.height || 0,
       visible: figmaNode.visible !== false,
       opacity: figmaNode.opacity ?? 1,
       rotation: figmaNode.rotation || 0,
@@ -349,6 +369,7 @@ class FigmaJSONConverter extends EventEmitter {
       unsupportedFeatures: new Set(),
     };
     this.figmaIdToUuid.clear();
+    this.parentStack = [];
     this.dispatch = nodes.buildDispatch(this);
   }
 

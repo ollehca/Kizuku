@@ -285,6 +285,24 @@ const mockHandlers = {
 
   /** DEMO: Create demo profile */
   'create-demo-profile': async () => await getMockProfile(),
+
+  /** CHANGES: Update file (stub — accepts without persistence) */
+  'update-file': async (params) => {
+    console.log('📝 Kizu Mock Backend: update-file (stub)');
+    return { id: params?.id, revn: (params?.revn || 0) + 1 };
+  },
+
+  /** CHANGES: Persist temp file (stub) */
+  'persist-temp-file': async () => ({ success: true }),
+
+  /** CHANGES: Update file data (stub) */
+  'update-file-data': async () => ({ success: true }),
+
+  /** CHANGES: Create file change (stub) */
+  'create-file-change': async () => ({ success: true }),
+
+  /** CHANGES: Get file changes (stub) */
+  'get-file-changes': async () => [],
 };
 
 /**

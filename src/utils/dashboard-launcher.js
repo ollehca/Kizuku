@@ -27,7 +27,7 @@ function createDashboardConfig() {
     },
     title: 'Kizu - Project Dashboard',
     show: false,
-    backgroundColor: '#667eea',
+    backgroundColor: '#0f1923',
   };
 }
 

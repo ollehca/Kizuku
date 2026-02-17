@@ -63,6 +63,29 @@ global.testUtils = {
   }),
 };
 
+// Mock penpot-mock-backend for Figma import tests
+jest.mock('../src/services/penpot-mock-backend', () => ({
+  getMockProfile: jest.fn().mockResolvedValue({
+    id: 'test-profile-id',
+    'default-team-id': '00000000-0000-0000-0000-000000000001',
+    'default-project-id': '00000000-0000-0000-0000-000000000002',
+    fullname: 'Test User',
+    email: 'test@kizu.local',
+  }),
+  handleCommand: jest.fn().mockResolvedValue(null),
+  getKizuTeamId: jest.fn(() => '00000000-0000-0000-0000-000000000001'),
+  mockHandlers: {},
+}));
+
+// Mock backend-service-manager
+jest.mock('../src/services/backend-service-manager', () => ({
+  getBackendServiceManager: jest.fn(() => ({
+    isInitialized: () => false,
+    getCurrentProject: () => null,
+    getProjectsDirectory: () => './test-data/output',
+  })),
+}));
+
 // Suppress console output during tests (optional)
 if (process.env.SILENT_TESTS === 'true') {
   global.console = {

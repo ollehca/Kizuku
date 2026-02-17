@@ -4,6 +4,9 @@
  * Used by FigmaJSONConverter to keep the main converter under 500 lines.
  */
 
+const { buildParagraphSet } = require('./kizu-text-formatter');
+const pathGen = require('./kizu-path-generator');
+
 /**
  * Transform auto layout properties
  * @param {object} figmaNode - Figma node with auto layout
@@ -134,7 +137,7 @@ function transformText(converter, figmaNode) {
     name: figmaNode.name,
     type: 'text',
     ...converter.transformCommonProperties(figmaNode),
-    content: figmaNode.characters || '',
+    content: buildParagraphSet(figmaNode),
     fontSize: nodeStyle.fontSize || 16,
     fontFamily: nodeStyle.fontFamily || 'Arial',
     fontWeight: nodeStyle.fontWeight || 'normal',
@@ -155,20 +158,54 @@ function transformVector(converter, figmaNode) {
     name: figmaNode.name,
     type: 'path',
     ...converter.transformCommonProperties(figmaNode),
-    commands: [],
+    commands: generateVectorCommands(figmaNode, converter),
   };
-
-  if (figmaNode.type === 'LINE') {
-    vector.commands = transformLineToPath(figmaNode);
-  }
-
-  if (!vector.commands.length) {
-    converter.addWarning('Vector path conversion incomplete', figmaNode);
-    converter.stats.unsupportedFeatures.add('complex-vectors');
-  }
 
   converter.stats.convertedNodes++;
   return vector;
+}
+
+/** Dispatch map for vector type to path generator */
+const VECTOR_GENERATORS = {
+  LINE: (node) => transformLineToPath(node),
+  STAR: (node) => {
+    const bbox = node.absoluteBoundingBox || {};
+    return pathGen.generateStarPath(
+      bbox.width || 100,
+      bbox.height || 100,
+      node.starPointCount || 5
+    );
+  },
+  REGULAR_POLYGON: (node) => {
+    const bbox = node.absoluteBoundingBox || {};
+    return pathGen.generatePolygonPath(
+      bbox.width || 100,
+      bbox.height || 100,
+      node.polygonSides || 3
+    );
+  },
+};
+
+/**
+ * Generate path commands based on vector node type
+ * @param {object} figmaNode - Figma vector node
+ * @param {object} converter - Converter for warnings
+ * @returns {array} Path command objects
+ */
+function generateVectorCommands(figmaNode, converter) {
+  const generator = VECTOR_GENERATORS[figmaNode.type];
+  if (generator) {
+    return generator(figmaNode);
+  }
+
+  const parsed = pathGen.parseVectorGeometry(figmaNode);
+  if (parsed.length > 0) {
+    return parsed;
+  }
+
+  converter.addWarning('Vector path conversion incomplete', figmaNode);
+  converter.stats.unsupportedFeatures.add('complex-vectors');
+  return [];
 }
 
 /**
@@ -185,7 +222,7 @@ async function transformBoolean(converter, figmaNode) {
     type: 'bool',
     ...converter.transformCommonProperties(figmaNode),
     boolType: transformBooleanType(figmaNode.booleanOperation),
-    children: await converter.transformChildren(figmaNode.children),
+    children: await converter.transformChildren(figmaNode.children, figmaNode.absoluteBoundingBox),
   };
 }
 
@@ -202,7 +239,7 @@ async function transformComponent(converter, figmaNode) {
     name: figmaNode.name,
     type: 'component',
     ...converter.transformCommonProperties(figmaNode),
-    children: await converter.transformChildren(figmaNode.children),
+    children: await converter.transformChildren(figmaNode.children, figmaNode.absoluteBoundingBox),
   };
 }
 
@@ -236,7 +273,7 @@ async function transformComponentSet(converter, figmaNode) {
     name: figmaNode.name,
     type: 'component-set',
     ...converter.transformCommonProperties(figmaNode),
-    children: await converter.transformChildren(figmaNode.children),
+    children: await converter.transformChildren(figmaNode.children, figmaNode.absoluteBoundingBox),
   };
 }
 
@@ -252,7 +289,7 @@ async function transformFrame(converter, figmaNode) {
     name: figmaNode.name,
     type: figmaNode.type === 'GROUP' ? 'group' : 'frame',
     ...converter.transformCommonProperties(figmaNode),
-    children: await converter.transformChildren(figmaNode.children),
+    children: await converter.transformChildren(figmaNode.children, figmaNode.absoluteBoundingBox),
   };
 
   if (figmaNode.layoutMode && figmaNode.layoutMode !== 'NONE') {
@@ -283,6 +320,7 @@ function buildDispatch(converter) {
     COMPONENT: (n) => transformComponent(converter, n),
     INSTANCE: (n) => transformInstance(converter, n),
     COMPONENT_SET: (n) => transformComponentSet(converter, n),
+    SLICE: (n) => transformFrame(converter, n),
   };
 }
 

@@ -118,9 +118,48 @@ function replaceYourPenpot() {
   });
 }
 
+/**
+ * Replace the favicon with the Kizu icon
+ */
+function replaceFavicon() {
+  const existing = document.querySelector('link[rel*="icon"]');
+  if (existing) {
+    existing.remove();
+  }
+  const link = document.createElement('link');
+  link.rel = 'icon';
+  link.type = 'image/png';
+  link.href = 'data:image/svg+xml,' + encodeURIComponent(KIZU_LOGO_SVG);
+  document.head.appendChild(link);
+  document.title = document.title.replace(/penpot/gi, 'Kizu');
+}
+
+/**
+ * Inject CSS to override PenPot accent colors with Kizu teal
+ */
+function injectAccentColors() {
+  const existingStyle = document.getElementById('kizu-accent-css');
+  if (existingStyle) {
+    return;
+  }
+  const style = document.createElement('style');
+  style.id = 'kizu-accent-css';
+  style.textContent = [
+    ':root {',
+    '  --color-primary: #35f6e6 !important;',
+    '  --color-primary-dark: #27bdb1 !important;',
+    '  --color-accent: #35f6e6 !important;',
+    '}',
+    '.main-logo, [class*="penpot-logo"] { display: none !important; }',
+  ].join('\n');
+  document.head.appendChild(style);
+}
+
 // Initial replacement
 function applyBranding() {
   console.log('🎨 Applying Kizu branding...');
+  replaceFavicon();
+  injectAccentColors();
   replacePenpotWithKizu(document.body);
   replaceYourPenpot();
 }
