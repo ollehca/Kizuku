@@ -69,10 +69,31 @@ function decrypt(encryptedData) {
 
 /**
  * Get the license storage file path
+ * In development mode, check test-data/ directory first as a fallback
  */
 function getLicenseFilePath() {
   const userDataPath = app.getPath('userData');
-  return path.join(userDataPath, 'license.dat');
+  const prodPath = path.join(userDataPath, 'license.dat');
+
+  // Check if we're in development mode (Electron app running from source)
+  const isDev = !app.isPackaged;
+
+  if (isDev) {
+    // Try test-data directory first (used by demo setup script)
+    const testDataPath = path.join(__dirname, '../../test-data/license.dat');
+    try {
+      // Synchronously check if test-data file exists
+      const fs = require('fs');
+      if (fs.existsSync(testDataPath)) {
+        console.log('📁 Using test-data license file:', testDataPath);
+        return testDataPath;
+      }
+    } catch {
+      // Fall through to production path
+    }
+  }
+
+  return prodPath;
 }
 
 /**

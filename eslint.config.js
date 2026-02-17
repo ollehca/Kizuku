@@ -5,7 +5,13 @@ module.exports = [
   js.configs.recommended,
   prettier,
   {
-    ignores: ['**/__tests__/**', '**/*.test.js', '**/*.spec.js', 'node_modules/**'],
+    ignores: [
+      '**/__tests__/**',
+      '**/*.test.js',
+      '**/*.spec.js',
+      'node_modules/**',
+      'src/_quarantine/**',
+    ],
   },
   {
     files: ['src/**/*.js', '*.js', 'tools/**/*.js', 'scripts/**/*.js'],

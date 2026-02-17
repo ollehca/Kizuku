@@ -43,7 +43,7 @@ async function testConversion() {
 
     for (const page of kizuProject.data.pages) {
       console.log(`   📄 Page "${page.name}": ${page.children?.length || 0} children`);
-      for (const child of (page.children || [])) {
+      for (const child of page.children || []) {
         console.log(`      - ${child.type}: ${child.name}`);
       }
     }
@@ -84,7 +84,7 @@ async function testConversion() {
         ];
 
         // Convert fills to PenPot format
-        const fills = (child.fills || []).map(fill => ({
+        const fills = (child.fills || []).map((fill) => ({
           'fill-color': fill.color || '#000000',
           'fill-opacity': fill.opacity ?? 1,
         }));
@@ -157,9 +157,17 @@ async function testConversion() {
         name: 'Root Frame',
         'frame-id': ROOT_UUID,
         'parent-id': ROOT_UUID,
-        x: 0, y: 0, width: 1, height: 1,
+        x: 0,
+        y: 0,
+        width: 1,
+        height: 1,
         selrect: { x: 0, y: 0, width: 1, height: 1, x1: 0, y1: 0, x2: 1, y2: 1 },
-        points: [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 1, y: 1 }, { x: 0, y: 1 }],
+        points: [
+          { x: 0, y: 0 },
+          { x: 1, y: 0 },
+          { x: 1, y: 1 },
+          { x: 0, y: 1 },
+        ],
         transform: [1, 0, 0, 1, 0, 0],
         'transform-inverse': [1, 0, 0, 1, 0, 0],
         visible: true,
@@ -228,7 +236,7 @@ async function testConversion() {
 
     if (errors.length > 0) {
       console.log('   ❌ Validation errors:');
-      errors.forEach(e => console.log(`      - ${e}`));
+      errors.forEach((e) => console.log(`      - ${e}`));
     } else {
       console.log('   ✅ All validations passed!');
     }
@@ -244,7 +252,6 @@ async function testConversion() {
     console.log('='.repeat(60));
 
     return true;
-
   } catch (error) {
     console.error('\n❌ Test failed:', error.message);
     console.error(error.stack);
@@ -252,6 +259,6 @@ async function testConversion() {
   }
 }
 
-testConversion().then(success => {
+testConversion().then((success) => {
   process.exit(success ? 0 : 1);
 });

@@ -20,35 +20,45 @@ console.log('🚩 [KIZU] Feature flag: SINGLE_USER_MODE =', window.KIZU_SINGLE_U
 // CRITICAL: IMMEDIATE DASHBOARD REDIRECT (before PenPot renders login)
 // For private license users, NEVER show login - go straight to dashboard
 // ============================================================================
+/**
+ * Check if hash is a login/auth route that should redirect
+ * @param {string} hash - URL hash
+ * @returns {boolean} True if login route
+ */
+const isLoginRoute = (hash) =>
+  !hash ||
+  hash === '' ||
+  hash === '#/' ||
+  hash.includes('auth') ||
+  hash.includes('login') ||
+  hash.includes('register');
+
+/**
+ * Check if hash is an invalid view route (missing required params)
+ * @param {string} hash - URL hash
+ * @returns {boolean} True if invalid view route
+ */
+const isInvalidViewRoute = (hash) =>
+  hash === '#/view' ||
+  hash.startsWith('#/view?') ||
+  (hash.includes('/view') && !hash.includes('file-id'));
+
 (function immediateRedirect() {
   const hash = window.location.hash;
   const teamId = '00000000-0000-0000-0000-000000000001';
-  const dashboardUrl = window.location.origin + window.location.pathname +
-    '#/dashboard/recent?team-id=' + teamId;
+  const dashboardUrl =
+    window.location.origin + window.location.pathname + '#/dashboard/recent?team-id=' + teamId;
 
-  // Routes that should redirect to dashboard
-  const isLoginRoute = !hash || hash === '' || hash === '#/' ||
-                       hash.includes('auth') || hash.includes('login') ||
-                       hash.includes('register');
-
-  // CRITICAL: #/view without proper params causes "expected valid params" error
-  // PenPot's viewer requires file-id, page-id, etc.
-  const isInvalidViewRoute = hash === '#/view' || hash.startsWith('#/view?') ||
-                             (hash.includes('/view') && !hash.includes('file-id'));
-
-  if (isLoginRoute || isInvalidViewRoute) {
+  if (isLoginRoute(hash) || isInvalidViewRoute(hash)) {
     console.log('🚀 [KIZU] Redirecting to dashboard (was:', hash, ')');
     window.location.replace(dashboardUrl);
     return;
   }
 
-  // Also watch for hashchange to catch PenPot's router trying to go to invalid routes
-  window.addEventListener('hashchange', function onHashChange() {
+  // Watch for hashchange to catch PenPot's router going to invalid routes
+  window.addEventListener('hashchange', () => {
     const newHash = window.location.hash;
-    const isBadRoute = newHash === '#/view' ||
-                       (newHash.includes('/view') && !newHash.includes('file-id')) ||
-                       newHash === '#/' || newHash === '';
-    if (isBadRoute) {
+    if (isLoginRoute(newHash) || isInvalidViewRoute(newHash)) {
       console.log('🚀 [KIZU] Intercepted bad route change:', newHash);
       window.location.replace(dashboardUrl);
     }
@@ -80,7 +90,7 @@ try {
     // Wait for electronAPI to be available
     let retries = 0;
     while (!window.electronAPI?.mockBackend && retries < 10) {
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await new Promise((resolve) => setTimeout(resolve, 50));
       retries++;
     }
 
@@ -146,12 +156,10 @@ if (!window._kizuAuthIntegrationInitialized) {
         console.log('   2. refs.cljs - profile ref reads from localStorage');
         console.log('   3. ui.cljs team-container* - checks localStorage for auth-token');
         console.log('   4. Mock backend - returns profile on RPC calls');
-        console.log('✅ No race condition - auth-token available immediately')
-
+        console.log('✅ No race condition - auth-token available immediately');
       } catch (error) {
         console.error('❌ Failed to inject profile:', error);
       }
-
     } catch (error) {
       console.error('❌ Auth integration error:', error);
     }
@@ -159,7 +167,8 @@ if (!window._kizuAuthIntegrationInitialized) {
 
   // Retry logic for PenPot app initialization
   const waitForPenpotAndInitAuth = (retries = 0) => {
-    if (retries > 30) { // Max 15 seconds
+    if (retries > 30) {
+      // Max 15 seconds
       console.error('❌ Timeout waiting for PenPot app to initialize');
       return;
     }
@@ -196,7 +205,9 @@ console.log('🚨 Setting up login screen bypass for Kizu files...');
 
 // AGGRESSIVE: Hide login modal with ultra-specific CSS (last resort)
 const injectHideCSS = () => {
-  if (document.getElementById('kizu-login-hide')) return;
+  if (document.getElementById('kizu-login-hide')) {
+    return;
+  }
 
   const style = document.createElement('style');
   style.id = 'kizu-login-hide';
@@ -225,7 +236,9 @@ const injectHideCSS = () => {
 // Monitor and destroy login modal if it appears in DOM
 const destroyLoginModal = () => {
   const authToken = localStorage.getItem('auth-token');
-  if (!authToken) return;
+  if (!authToken) {
+    return;
+  }
 
   // Find and remove ANY element that looks like a login/auth page
   const selectors = [
@@ -234,13 +247,13 @@ const destroyLoginModal = () => {
     'div[class*="login-form"]',
     'div[class*="auth-form"]',
     'section[class*="login"]',
-    'section[class*="auth"]'
+    'section[class*="auth"]',
   ];
 
   let removed = 0;
-  selectors.forEach(selector => {
+  selectors.forEach((selector) => {
     const elements = document.querySelectorAll(selector);
-    elements.forEach(el => {
+    elements.forEach((el) => {
       console.log(`🗑️ [KIZU] Removing ${selector}:`, el.className);
       el.remove();
       removed++;
@@ -265,7 +278,7 @@ injectHideCSS();
 if (!window._kizuBypassListenerAdded) {
   window._kizuBypassListenerAdded = true;
 
-  const observer = new MutationObserver((mutations) => {
+  const observer = new MutationObserver((_mutations) => {
     injectHideCSS(); // Re-inject CSS if needed
     destroyLoginModal(); // Remove login modal if it appears
   });

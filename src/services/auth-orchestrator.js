@@ -203,8 +203,24 @@ function createSessionForBusinessLicense(userData, requiresPassword) {
 }
 
 /**
+ * Try creating a PenPot backend user for private licenses
+ * @param {object} userData - User data
+ * @param {object} license - License object
+ */
+async function tryCreatePenpotUser(userData, license) {
+  if (license?.type !== 'private') {
+    return;
+  }
+  console.log('🔐 Creating PenPot backend user for private license...');
+  const result = await createPenpotUserForLicense(userData, license);
+  if (!result.success) {
+    console.warn('⚠️ Failed to create PenPot user, but Kizu account created:', result.error);
+  }
+}
+
+/**
  * Create user account with optional password hashing
- * - Private license: Password optional (not required for local-only use)
+ * - Private license: Password optional (not required for local-only use) + auto-creates PenPot user
  * - Business license: Password required + session token created
  */
 async function createUserAccount(userData) {
@@ -236,6 +252,7 @@ async function createUserAccount(userData) {
       await updateLicenseActivation(userData.email);
     }
 
+    await tryCreatePenpotUser(userData, license);
     createSessionForBusinessLicense(userData, passwordCheck.requiresPassword);
 
     return {
@@ -250,6 +267,58 @@ async function createUserAccount(userData) {
   } catch (error) {
     console.error('Error creating user account:', error);
     return { success: false, error: 'Failed to create account. Please try again.' };
+  }
+}
+
+/**
+ * Create PenPot backend user for private license
+ * Uses PenPot's registration API to create the user account
+ */
+async function createPenpotUserForLicense(userData, _license) {
+  try {
+    // Generate a secure password for the PenPot account
+    const penpotPassword = generateSessionToken();
+
+    // Email is required for PenPot, use username@kizu.local if not provided
+    const email = userData.email || `${userData.username}@kizu.local`;
+
+    console.log(`🔐 Registering PenPot user: ${email}`);
+
+    // Register via PenPot API (no token required for initial registration in dev mode)
+    const response = await fetch('http://localhost:6060/api/rpc/command/register-profile', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: email,
+        password: penpotPassword,
+        fullname: userData.fullName,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      console.error('❌ PenPot registration failed:', error);
+      return { success: false, error: `PenPot registration failed: ${response.status}` };
+    }
+
+    const result = await response.json();
+    console.log('✅ PenPot user created successfully');
+
+    // Store the PenPot credentials so we can auto-login
+    const authStorage = require('./auth-storage');
+    authStorage.storeCredentials({
+      email: email,
+      token: penpotPassword, // Store password as token for auto-login
+      profile: result,
+      rememberMe: true,
+    });
+
+    return { success: true, penpotUser: result };
+  } catch (error) {
+    console.error('❌ Error creating PenPot user:', error);
+    return { success: false, error: error.message };
   }
 }
 

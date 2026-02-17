@@ -64,10 +64,31 @@ function decrypt(encryptedData) {
 
 /**
  * Get the user storage file path
+ * In development mode, check test-data/ directory first as a fallback
  */
 function getUserFilePath() {
   const userDataPath = app.getPath('userData');
-  return path.join(userDataPath, 'user.dat');
+  const prodPath = path.join(userDataPath, 'user.dat');
+
+  // Check if we're in development mode (Electron app running from source)
+  const isDev = !app.isPackaged;
+
+  if (isDev) {
+    // Try test-data directory first (used by demo setup script)
+    const testDataPath = path.join(__dirname, '../../test-data/user.dat');
+    try {
+      // Synchronously check if test-data file exists
+      const fsSync = require('fs');
+      if (fsSync.existsSync(testDataPath)) {
+        console.log('📁 Using test-data user file:', testDataPath);
+        return testDataPath;
+      }
+    } catch {
+      // Fall through to production path
+    }
+  }
+
+  return prodPath;
 }
 
 /**

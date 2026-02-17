@@ -242,16 +242,82 @@ function updateImportButton() {
 }
 
 /**
- * Start import
+ * Show importing UI state (progress view, hide drop zone)
  */
-// eslint-disable-next-line max-statements
+function showImportingUI() {
+  document.querySelector('.import-container').classList.add('importing');
+  document.getElementById('progressView').classList.add('visible');
+  document.getElementById('dropZone').style.display = 'none';
+  document.getElementById('fileList').style.display = 'none';
+}
+
+/**
+ * Reset import UI after failure
+ */
+function resetImportUI() {
+  importing = false;
+  updateImportButton();
+  document.getElementById('progressView').classList.remove('visible');
+  document.getElementById('dropZone').style.display = 'block';
+  document.getElementById('fileList').style.display = 'block';
+}
+
+/**
+ * Import files sequentially with progress updates
+ * @param {array} files - Valid files to import
+ * @param {object} options - Import options
+ * @returns {Promise<string|null>} Last imported file path
+ */
+async function importFiles(files, options) {
+  let lastPath = null;
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    updateProgressDetails(`Importing ${file.name} (${i + 1}/${files.length})...`);
+
+    const result = await window.electronAPI.figmaAPI.importFile(file.path, options);
+    if (!result.success) {
+      throw new Error(result.error || 'Import failed');
+    }
+    if (result.filePath) {
+      lastPath = result.filePath;
+    }
+    updateProgressBar(((i + 1) / files.length) * 100);
+  }
+
+  return lastPath;
+}
+
+/**
+ * Auto-open imported file in workspace
+ * @param {string} filePath - Path to imported file
+ * @returns {Promise<boolean>} True if opened successfully
+ */
+async function autoOpenImportedFile(filePath) {
+  console.log('🚀 Auto-opening imported file:', filePath);
+  showStatus('Loading project into workspace...', 'info');
+
+  const loadResult = await window.electronAPI.backend.project.load(filePath);
+  console.log('✅ Project loaded into backend:', loadResult);
+
+  const launchResult = await window.electronAPI.launchWorkspace(filePath);
+  if (!launchResult?.success) {
+    const msg = launchResult?.error || 'Unknown error';
+    showStatus(`File imported but failed to open: ${msg}`, 'error');
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Start import process
+ */
 async function startImport() {
   if (importing) {
     return;
   }
 
   const validFiles = selectedFiles.filter((f) => f.status === 'valid');
-
   if (validFiles.length === 0) {
     showStatus('No valid files to import', 'error');
     return;
@@ -259,20 +325,8 @@ async function startImport() {
 
   importing = true;
   updateImportButton();
+  showImportingUI();
 
-  // Enable minimalist mode
-  const container = document.querySelector('.import-container');
-  container.classList.add('importing');
-
-  // Show progress view
-  const progressView = document.getElementById('progressView');
-  progressView.classList.add('visible');
-
-  // Hide drop zone and file list
-  document.getElementById('dropZone').style.display = 'none';
-  document.getElementById('fileList').style.display = 'none';
-
-  // Get import options
   const options = {
     importAsLibrary: document.getElementById('optionComponents').checked,
     preserveNames: document.getElementById('optionPreserveNames').checked,
@@ -280,75 +334,20 @@ async function startImport() {
   };
 
   try {
-    // Import files one by one
-    let lastImportedFilePath = null;
-
-    for (let i = 0; i < validFiles.length; i++) {
-      const file = validFiles[i];
-
-      updateProgressDetails(`Importing ${file.name} (${i + 1}/${validFiles.length})...`);
-
-      const result = await window.electronAPI.figmaAPI.importFile(file.path, options);
-
-      if (!result.success) {
-        throw new Error(result.error || 'Import failed');
-      }
-
-      // Store the last imported file path for auto-open
-      if (result.filePath) {
-        lastImportedFilePath = result.filePath;
-      }
-
-      // Update progress
-      const progress = ((i + 1) / validFiles.length) * 100;
-      updateProgressBar(progress);
-    }
-
-    // Success
+    const lastPath = await importFiles(validFiles, options);
     showStatus(`Successfully imported ${validFiles.length} file(s)!`, 'success');
 
-    // Auto-open the imported file (use the last one if multiple)
-    if (lastImportedFilePath) {
-      console.log('🚀 Auto-opening imported file:', lastImportedFilePath);
-      showStatus('Loading project into workspace...', 'info');
-
-      try {
-        // First, load the project into backend service manager
-        console.log('📂 Loading project into backend...', lastImportedFilePath);
-        const loadResult = await window.electronAPI.backend.project.load(lastImportedFilePath);
-        console.log('✅ Project loaded into backend:', loadResult);
-
-        // Now launch the workspace
-        console.log('🚀 Launching workspace...');
-        const launchResult = await window.electronAPI.launchWorkspace(lastImportedFilePath);
-        console.log('✅ Workspace launched successfully', launchResult);
-
-        if (!launchResult || !launchResult.success) {
-          console.error('❌ Launch workspace returned error:', launchResult);
-          showStatus(`File imported but failed to open: ${launchResult?.error || 'Unknown error'}`, 'error');
-          return; // Don't close modal if auto-open failed
-        }
-      } catch (error) {
-        console.error('❌ Failed to auto-open file:', error);
-        showStatus(`File imported but failed to open: ${error.message}`, 'error');
-        return; // Don't close modal if there was an error
+    if (lastPath) {
+      const opened = await autoOpenImportedFile(lastPath);
+      if (!opened) {
+        return;
       }
     }
-
-    // Close modal after a brief delay to show success message
-    setTimeout(() => {
-      window.close();
-    }, 1000);
+    setTimeout(() => window.close(), 1000);
   } catch (error) {
     console.error('Import error:', error);
     showStatus(`Import failed: ${error.message}`, 'error');
-
-    // Reset UI
-    importing = false;
-    updateImportButton();
-    progressView.classList.remove('visible');
-    document.getElementById('dropZone').style.display = 'block';
-    document.getElementById('fileList').style.display = 'block';
+    resetImportUI();
   }
 }
 

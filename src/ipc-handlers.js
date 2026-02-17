@@ -4,7 +4,6 @@
 
 const { ipcMain, dialog, app, clipboard, nativeImage } = require('electron');
 const fs = require('fs').promises;
-const path = require('path');
 const { createLogger } = require('./utils/logger');
 const authStorage = require('./services/auth-storage');
 const { registerBackendIpcHandlers } = require('./services/backend-ipc-handlers');
@@ -403,7 +402,7 @@ function cancelFigmaImport() {
  * @param {string} filePath - Path to file
  * @returns {Promise<object>} Import result
  */
-async function handleFileOpen(event, filePath, window) {
+async function handleFileOpen(event, filePath, _window) {
   console.log('🔵 IPC handleFileOpen called with:', filePath);
   logger.info('File open requested', { filePath });
 
@@ -490,12 +489,12 @@ async function handleMockBackendCommand(event, commandName, params = {}) {
 
   // Encode the result as transit format (what PenPot expects)
   const writer = transit.writer('json-verbose');
-  const transitEncoded = writer.write(result);  // Call write() on the writer object
+  const transitEncoded = writer.write(result); // Call write() on the writer object
 
   // Return an object with both the raw result and transit-encoded version
   return {
     raw: result,
-    transit: transitEncoded
+    transit: transitEncoded,
   };
 }
 
