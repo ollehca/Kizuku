@@ -1,10 +1,12 @@
 /**
  * Kizu to PenPot Format Converter
  * Converts Kizu's nested project format to PenPot's flat file structure.
- * Also contains the hardcoded test file for backend integration testing.
+ * Delegates property conversion to shape-builder and geometry modules.
  */
 
 const crypto = require('crypto');
+const geometry = require('./kizu-penpot-geometry');
+const shapes = require('./kizu-penpot-shape-builder');
 
 const KIZU_TEAM_ID = '00000000-0000-0000-0000-000000000001';
 const TEST_FILE_ID = '11111111-1111-1111-1111-111111111111';
@@ -12,126 +14,28 @@ const TEST_PAGE_ID = '22222222-2222-2222-2222-222222222222';
 const TEST_FRAME_ID = '33333333-3333-3333-3333-333333333333';
 const ROOT_FRAME_ID = '00000000-0000-0000-0000-000000000000';
 
-/**
- * Convert Kizu fills to PenPot format
- * @param {array} fills - Kizu fills array
- * @returns {array} PenPot fills
- */
-function convertFillsToPenpot(fills) {
-  if (!fills || !Array.isArray(fills)) {
-    return [];
-  }
-  return fills
-    .map((fill) => {
-      if (fill.color && typeof fill.color === 'string') {
-        return {
-          'fill-color': fill.color,
-          'fill-opacity': fill.opacity ?? 1,
-        };
-      }
-      if (fill['fill-color']) {
-        return fill;
-      }
-      return { 'fill-color': '#000000', 'fill-opacity': 1 };
-    })
-    .filter((f) => f && f['fill-color']);
-}
+/** Container types that have children in PenPot */
+const CONTAINER_TYPES = new Set([
+  'frame',
+  'group',
+  'component',
+  'component-set',
+  'bool',
+  'instance',
+]);
 
 /**
- * Convert Kizu strokes to PenPot format
- * @param {array} strokes - Kizu strokes array
- * @returns {array} PenPot strokes
+ * Map Kizu type to PenPot type
+ * @param {string} kizuType - Kizu node type
+ * @returns {string} PenPot shape type
  */
-function convertStrokesToPenpot(strokes) {
-  if (!strokes || !Array.isArray(strokes)) {
-    return [];
-  }
-  return strokes
-    .map((stroke) => {
-      if (stroke.color && typeof stroke.color === 'string') {
-        return {
-          'stroke-color': stroke.color,
-          'stroke-opacity': stroke.opacity ?? 1,
-          'stroke-width': stroke.width || 1,
-          'stroke-style': 'solid',
-          'stroke-alignment': 'center',
-        };
-      }
-      if (stroke['stroke-color']) {
-        return stroke;
-      }
-      return null;
-    })
-    .filter(Boolean);
-}
-
-/**
- * Convert Kizu path commands to SVG path string
- * @param {array} commands - Path command objects
- * @returns {string} SVG path string
- */
-function convertPathCommands(commands) {
-  return commands
-    .map((cmd) => {
-      if (cmd.command === 'M') {
-        return `M ${cmd.x} ${cmd.y}`;
-      } else if (cmd.command === 'L') {
-        return `L ${cmd.x} ${cmd.y}`;
-      } else if (cmd.command === 'C') {
-        return `C ${cmd.x1} ${cmd.y1} ${cmd.x2} ${cmd.y2} ${cmd.x} ${cmd.y}`;
-      } else if (cmd.command === 'Z') {
-        return 'Z';
-      }
-      return '';
-    })
-    .join(' ');
-}
-
-/**
- * Build computed geometry fields for a PenPot shape
- * @param {number} posX - X position
- * @param {number} posY - Y position
- * @param {number} width - Shape width
- * @param {number} height - Shape height
- * @returns {object} selrect, points, transform, transform-inverse
- */
-function buildGeometry(posX, posY, width, height) {
-  return {
-    selrect: {
-      x: posX,
-      y: posY,
-      width,
-      height,
-      x1: posX,
-      y1: posY,
-      x2: posX + width,
-      y2: posY + height,
-    },
-    points: [
-      { x: posX, y: posY },
-      { x: posX + width, y: posY },
-      { x: posX + width, y: posY + height },
-      { x: posX, y: posY + height },
-    ],
-    transform: { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
-    'transform-inverse': { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 },
+function mapShapeType(kizuType) {
+  const typeMap = {
+    component: 'frame',
+    'component-set': 'frame',
+    instance: 'frame',
   };
-}
-
-/**
- * Extract display properties from a Kizu child node
- * @param {object} child - Kizu child node
- * @returns {object} Display properties with defaults
- */
-function extractDisplayProps(child) {
-  return {
-    visible: child.visible !== false,
-    opacity: child.opacity ?? 1,
-    rotation: child.rotation || 0,
-    'blend-mode': child.blendMode || 'normal',
-    fills: convertFillsToPenpot(child.fills),
-    strokes: convertStrokesToPenpot(child.strokes),
-  };
+  return typeMap[kizuType] || kizuType;
 }
 
 /**
@@ -147,10 +51,11 @@ function buildShape(child, childId, shapeFrameId, shapeParentId) {
   const posY = child.y || 0;
   const width = child.width || 100;
   const height = child.height || 100;
+  const rotation = child.rotation || 0;
 
   const shape = {
     id: childId,
-    type: child.type || 'rect',
+    type: mapShapeType(child.type || 'rect'),
     name: child.name || 'Unnamed',
     'frame-id': shapeFrameId,
     'parent-id': shapeParentId,
@@ -158,19 +63,136 @@ function buildShape(child, childId, shapeFrameId, shapeParentId) {
     y: posY,
     width,
     height,
-    ...buildGeometry(posX, posY, width, height),
-    ...extractDisplayProps(child),
+    ...geometry.buildGeometry(posX, posY, width, height, rotation),
+    ...shapes.extractDisplayProps(child),
+    fills: shapes.convertFillsToPenpot(child.fills),
+    strokes: shapes.convertStrokesToPenpot(child.strokes, child.strokeWeight),
     shapes: [],
   };
 
-  if (child.strokeWeight) {
-    shape['stroke-weight'] = child.strokeWeight;
-  }
-  if (child.effects) {
-    shape.effects = child.effects;
-  }
+  attachTypeSpecificProps(child, shape);
+  attachEffectProps(child, shape);
+  attachLayoutProps(child, shape);
 
   return shape;
+}
+
+/**
+ * Attach type-specific properties to shape
+ * @param {object} child - Kizu node
+ * @param {object} shape - PenPot shape to extend
+ */
+function attachTypeSpecificProps(child, shape) {
+  attachPathProps(child, shape);
+  attachTextProps(child, shape);
+  attachComponentProps(child, shape);
+  attachRectProps(child, shape);
+  attachClipProps(child, shape);
+  attachConstraintProps(child, shape);
+}
+
+/**
+ * Attach path-specific properties
+ * @param {object} child - Kizu node
+ * @param {object} shape - PenPot shape to extend
+ */
+function attachPathProps(child, shape) {
+  if (child.type === 'path' && child.commands) {
+    shape.content = shapes.convertPathContent(child);
+  }
+}
+
+/**
+ * Attach text-specific properties
+ * @param {object} child - Kizu node
+ * @param {object} shape - PenPot shape to extend
+ */
+function attachTextProps(child, shape) {
+  if (child.type === 'text' && child.content) {
+    shape.content = child.content;
+    shape['grow-type'] = child.content?.['grow-type'] || 'fixed';
+  }
+}
+
+/**
+ * Attach component-specific properties
+ * @param {object} child - Kizu node
+ * @param {object} shape - PenPot shape to extend
+ */
+function attachComponentProps(child, shape) {
+  if (child.type === 'bool' && child.boolType) {
+    shape['bool-type'] = child.boolType;
+  }
+  if (child.type === 'instance' && child.componentId) {
+    shape['component-id'] = child.componentId;
+  }
+}
+
+/**
+ * Attach rectangle-specific properties
+ * @param {object} child - Kizu node
+ * @param {object} shape - PenPot shape to extend
+ */
+function attachRectProps(child, shape) {
+  if (child.type === 'rect') {
+    Object.assign(shape, shapes.convertCornerRadius(child));
+  }
+}
+
+/**
+ * Attach clip content properties
+ * @param {object} child - Kizu node
+ * @param {object} shape - PenPot shape to extend
+ */
+function attachClipProps(child, shape) {
+  if (child.clipContent !== null && child.clipContent !== undefined) {
+    shape['show-content'] = !child.clipContent;
+  }
+}
+
+/**
+ * Attach constraint properties
+ * @param {object} child - Kizu node
+ * @param {object} shape - PenPot shape to extend
+ */
+function attachConstraintProps(child, shape) {
+  if (child.constraints) {
+    Object.assign(shape, shapes.convertConstraints(child.constraints));
+  }
+}
+
+/**
+ * Attach effect properties (shadows, blur) to shape
+ * @param {object} child - Kizu node
+ * @param {object} shape - PenPot shape to extend
+ */
+function attachEffectProps(child, shape) {
+  if (!child.effects || child.effects.length === 0) {
+    return;
+  }
+  const { shadow, blur } = shapes.convertEffectsToPenpot(child.effects);
+  if (shadow.length > 0) {
+    shape.shadow = shadow;
+  }
+  if (blur) {
+    shape.blur = blur;
+  }
+}
+
+/**
+ * Attach layout properties to shape
+ * @param {object} child - Kizu node
+ * @param {object} shape - PenPot shape to extend
+ */
+function attachLayoutProps(child, shape) {
+  if (child.layout) {
+    const layoutProps = shapes.convertLayoutToPenpot(child.layout);
+    Object.assign(shape, layoutProps);
+  }
+  if (child.layoutChild) {
+    const childProps = shapes.convertLayoutChildToPenpot(child.layoutChild);
+    Object.assign(shape, childProps);
+  }
 }
 
 /**
@@ -188,19 +210,14 @@ function flattenChildren(children, objects, frameId, parentId) {
     const childId = child.id || crypto.randomUUID();
     childIds.push(childId);
 
-    const isFrame = child.type === 'frame' || child.type === 'component';
-    const shapeFrameId = isFrame ? childId : frameId;
-    const shapeParentId = parentId;
+    const isContainer = CONTAINER_TYPES.has(child.type);
+    const shapeFrameId = isContainer ? childId : frameId;
 
-    objects[childId] = buildShape(child, childId, shapeFrameId, shapeParentId);
+    objects[childId] = buildShape(child, childId, shapeFrameId, parentId);
 
     if (child.children && child.children.length > 0) {
       const nested = flattenChildren(child.children, objects, shapeFrameId, childId);
       objects[childId].shapes = nested;
-    }
-
-    if (child.type === 'path' && child.commands) {
-      objects[childId].content = convertPathCommands(child.commands);
     }
   });
 
@@ -222,25 +239,7 @@ function buildPenpotPage(page) {
     childIds = flattenChildren(page.children, pageObjects, rootUuid, rootUuid);
   }
 
-  pageObjects[rootUuid] = {
-    id: rootUuid,
-    type: 'frame',
-    name: 'Root Frame',
-    'frame-id': rootUuid,
-    'parent-id': rootUuid,
-    x: 0,
-    y: 0,
-    width: 1,
-    height: 1,
-    ...buildGeometry(0, 0, 1, 1),
-    visible: true,
-    opacity: 1,
-    rotation: 0,
-    'blend-mode': 'normal',
-    fills: [],
-    strokes: [],
-    shapes: childIds,
-  };
+  pageObjects[rootUuid] = buildRootFrame(rootUuid, childIds);
 
   return {
     pageId,
@@ -249,6 +248,34 @@ function buildPenpotPage(page) {
       name: page.name || 'Untitled Page',
       objects: pageObjects,
     },
+  };
+}
+
+/**
+ * Build the root frame object for a page
+ * @param {string} rootId - Root frame ID
+ * @param {array} childIds - Direct child IDs
+ * @returns {object} PenPot root frame
+ */
+function buildRootFrame(rootId, childIds) {
+  return {
+    id: rootId,
+    type: 'frame',
+    name: 'Root Frame',
+    'frame-id': rootId,
+    'parent-id': rootId,
+    x: 0,
+    y: 0,
+    width: 1,
+    height: 1,
+    ...geometry.buildGeometry(0, 0, 1, 1, 0),
+    visible: true,
+    opacity: 1,
+    rotation: 0,
+    'blend-mode': 'normal',
+    fills: [],
+    strokes: [],
+    shapes: childIds,
   };
 }
 
@@ -304,7 +331,7 @@ function buildTestPageObjects() {
       y: 0,
       width: 1,
       height: 1,
-      ...buildGeometry(0, 0, 1, 1),
+      ...geometry.buildGeometry(0, 0, 1, 1, 0),
       shapes: [TEST_FRAME_ID],
     },
     [TEST_FRAME_ID]: {
@@ -317,7 +344,7 @@ function buildTestPageObjects() {
       y: 100,
       width: 400,
       height: 300,
-      ...buildGeometry(100, 100, 400, 300),
+      ...geometry.buildGeometry(100, 100, 400, 300, 0),
       fills: [{ 'fill-color': '#3388ff', 'fill-opacity': 1 }],
       shapes: [],
     },
@@ -361,8 +388,8 @@ module.exports = {
   convertKizuToPenpotFile,
   createHardcodedTestFile,
   flattenChildren,
-  convertFillsToPenpot,
-  convertStrokesToPenpot,
-  convertPathCommands,
+  convertFillsToPenpot: shapes.convertFillsToPenpot,
+  convertStrokesToPenpot: shapes.convertStrokesToPenpot,
+  convertPathCommands: (cmds) => shapes.convertPathSegments(cmds),
   TEST_FILE_ID,
 };

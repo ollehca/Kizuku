@@ -1,23 +1,27 @@
 /**
  * Kizu Path Generator
- * Generates SVG path commands for Figma vector shapes.
- * Handles stars, regular polygons, and parsed vector geometry.
+ * Generates path commands for Figma vector shapes.
+ * Handles stars, regular polygons, and full SVG path parsing
+ * including H, V, S, T, A commands and relative coordinates.
  */
+
+const { arcToBezier } = require('./kizu-arc-to-bezier');
 
 /**
  * Generate star path commands from bounding box
  * @param {number} width - Bounding box width
  * @param {number} height - Bounding box height
  * @param {number} pointCount - Number of star points
+ * @param {number} innerRadius - Inner radius ratio (0-1)
  * @returns {array} Path command objects
  */
-function generateStarPath(width, height, pointCount = 5) {
+function generateStarPath(width, height, pointCount = 5, innerRadius = 0.38) {
   const centerX = width / 2;
   const centerY = height / 2;
   const outerRx = width / 2;
   const outerRy = height / 2;
-  const innerRx = outerRx * 0.38;
-  const innerRy = outerRy * 0.38;
+  const innerRx = outerRx * innerRadius;
+  const innerRy = outerRy * innerRadius;
   const totalPoints = pointCount * 2;
   const commands = [];
 
@@ -71,6 +75,14 @@ function generatePolygonPath(width, height, sideCount = 3) {
 }
 
 /**
+ * Create a fresh parsing context for SVG path parsing
+ * @returns {object} Parsing context with position tracking
+ */
+function createParseContext() {
+  return { lastX: 0, lastY: 0, lastCx2: 0, lastCy2: 0, lastQx: 0, lastQy: 0 };
+}
+
+/**
  * Parse an SVG path d-attribute string into command objects
  * @param {string} pathStr - SVG path string (e.g. "M 0 0 L 100 0")
  * @returns {array} Path command objects
@@ -80,35 +92,179 @@ function parseSvgPathString(pathStr) {
     return [];
   }
   const commands = [];
-  const tokens = pathStr.match(/[MLCQZmlcqz][^MLCQZmlcqz]*/g) || [];
+  const ctx = createParseContext();
+  const tokens = pathStr.match(/[MmLlHhVvCcSsTtQqAaZz][^MmLlHhVvCcSsTtQqAaZz]*/g) || [];
 
   for (const token of tokens) {
-    const cmd = token[0].toUpperCase();
+    const cmdChar = token[0];
     const nums = extractNumbers(token.slice(1));
-    commands.push(buildCommand(cmd, nums));
+    const isRelative = cmdChar === cmdChar.toLowerCase() && cmdChar !== 'z';
+    const result = processCommand(cmdChar.toUpperCase(), nums, ctx, isRelative);
+    if (result) {
+      commands.push(...(Array.isArray(result) ? result : [result]));
+    }
   }
 
   return commands.filter(Boolean);
 }
 
 /**
- * Extract numbers from a path segment string
- * @param {string} str - Numeric portion of path segment
- * @returns {array} Array of numbers
+ * Process a single SVG command with context tracking
+ * @param {string} cmd - Uppercase command letter
+ * @param {array} nums - Numeric parameters
+ * @param {object} ctx - Parsing context
+ * @param {boolean} isRelative - Whether command was lowercase
+ * @returns {object|array|null} Command(s) or null
  */
-function extractNumbers(str) {
-  const matches = str.match(/-?[\d.]+/g);
-  return matches ? matches.map(Number) : [];
+function processCommand(cmd, nums, ctx, isRelative) {
+  const absNums = isRelative ? toAbsolute(cmd, nums, ctx) : nums;
+  const result = buildCommandWithContext(cmd, absNums, ctx);
+  updateContext(cmd, absNums, ctx);
+  return result;
 }
 
 /**
- * Build a move or line command
- * @param {string} cmd - M or L
- * @param {array} nums - [x, y]
- * @returns {object} Command object
+ * Convert relative coordinates to absolute
+ * @param {string} cmd - Command letter
+ * @param {array} nums - Relative coordinates
+ * @param {object} ctx - Current position context
+ * @returns {array} Absolute coordinates
  */
-function buildMoveOrLine(cmd, nums) {
-  return { command: cmd, x: nums[0] || 0, y: nums[1] || 0 };
+function toAbsolute(cmd, nums, ctx) {
+  const abs = [...nums];
+  if (cmd === 'H') {
+    abs[0] += ctx.lastX;
+  } else if (cmd === 'V') {
+    abs[0] += ctx.lastY;
+  } else if (cmd === 'A') {
+    abs[5] += ctx.lastX;
+    abs[6] += ctx.lastY;
+  } else {
+    for (let idx = 0; idx < abs.length; idx++) {
+      abs[idx] += idx % 2 === 0 ? ctx.lastX : ctx.lastY;
+    }
+  }
+  return abs;
+}
+
+/**
+ * Build command object from absolute coordinates
+ * @param {string} cmd - Command letter
+ * @param {array} nums - Absolute coordinates
+ * @param {object} ctx - Parsing context
+ * @returns {object|array|null} Command object(s)
+ */
+function buildCommandWithContext(cmd, nums, ctx) {
+  const builders = {
+    M: () => ({ command: 'M', x: nums[0] || 0, y: nums[1] || 0 }),
+    L: () => ({ command: 'L', x: nums[0] || 0, y: nums[1] || 0 }),
+    H: () => ({ command: 'L', x: nums[0] || 0, y: ctx.lastY }),
+    V: () => ({ command: 'L', x: ctx.lastX, y: nums[0] || 0 }),
+    C: () => buildCubic(nums),
+    S: () => buildSmoothCubic(nums, ctx),
+    Q: () => buildQuadratic(nums),
+    T: () => buildSmoothQuad(nums, ctx),
+    A: () => buildArc(nums, ctx),
+    Z: () => ({ command: 'Z' }),
+  };
+  const builder = builders[cmd];
+  return builder ? builder() : null;
+}
+
+/**
+ * Update parsing context after a command
+ * @param {string} cmd - Command letter
+ * @param {array} nums - Absolute coordinates used
+ * @param {object} ctx - Context to update
+ */
+function updateContext(cmd, nums, ctx) {
+  const updaters = {
+    C: () => updateCubicContext(nums, ctx),
+    S: () => updateSmoothCubicContext(nums, ctx),
+    Q: () => updateQuadContext(nums, ctx),
+    T: () => updateSmoothQuadContext(nums, ctx),
+    A: () => updateArcContext(nums, ctx),
+    H: () => {
+      ctx.lastX = nums[0];
+    },
+    V: () => {
+      ctx.lastY = nums[0];
+    },
+    M: () => updateMoveLineContext(nums, ctx),
+    L: () => updateMoveLineContext(nums, ctx),
+  };
+  const updater = updaters[cmd];
+  if (updater) {
+    updater();
+  }
+}
+
+/**
+ * Update context for cubic bezier command
+ * @param {array} nums - Coordinate array
+ * @param {object} ctx - Context to update
+ */
+function updateCubicContext(nums, ctx) {
+  ctx.lastCx2 = nums[2];
+  ctx.lastCy2 = nums[3];
+  ctx.lastX = nums[4];
+  ctx.lastY = nums[5];
+}
+
+/**
+ * Update context for smooth cubic command
+ * @param {array} nums - Coordinate array
+ * @param {object} ctx - Context to update
+ */
+function updateSmoothCubicContext(nums, ctx) {
+  ctx.lastCx2 = nums[0];
+  ctx.lastCy2 = nums[1];
+  ctx.lastX = nums[2];
+  ctx.lastY = nums[3];
+}
+
+/**
+ * Update context for quadratic bezier command
+ * @param {array} nums - Coordinate array
+ * @param {object} ctx - Context to update
+ */
+function updateQuadContext(nums, ctx) {
+  ctx.lastQx = nums[0];
+  ctx.lastQy = nums[1];
+  ctx.lastX = nums[2];
+  ctx.lastY = nums[3];
+}
+
+/**
+ * Update context for smooth quadratic command
+ * @param {array} nums - Coordinate array
+ * @param {object} ctx - Context to update
+ */
+function updateSmoothQuadContext(nums, ctx) {
+  ctx.lastQx = 2 * ctx.lastX - (ctx.lastQx || ctx.lastX);
+  ctx.lastQy = 2 * ctx.lastY - (ctx.lastQy || ctx.lastY);
+  ctx.lastX = nums[0];
+  ctx.lastY = nums[1];
+}
+
+/**
+ * Update context for arc command
+ * @param {array} nums - Coordinate array
+ * @param {object} ctx - Context to update
+ */
+function updateArcContext(nums, ctx) {
+  ctx.lastX = nums[5];
+  ctx.lastY = nums[6];
+}
+
+/**
+ * Update context for move/line command
+ * @param {array} nums - Coordinate array
+ * @param {object} ctx - Context to update
+ */
+function updateMoveLineContext(nums, ctx) {
+  ctx.lastX = nums[0] || 0;
+  ctx.lastY = nums[1] || 0;
 }
 
 /**
@@ -128,37 +284,87 @@ function buildCubic(nums) {
   };
 }
 
-/** Command builders by letter */
-const CMD_BUILDERS = {
-  M: (nums) => buildMoveOrLine('M', nums),
-  L: (nums) => buildMoveOrLine('L', nums),
-  C: (nums) => buildCubic(nums),
-  Q: (nums) => buildCubic([nums[0], nums[1], nums[0], nums[1], nums[2], nums[3]]),
-  Z: () => ({ command: 'Z' }),
-};
-
 /**
- * Build a path command object from type and numbers
- * @param {string} cmd - Command letter (M, L, C, Q, Z)
- * @param {array} nums - Numeric parameters
- * @returns {object|null} Command object or null
+ * Build smooth cubic (S) by reflecting previous control point
+ * @param {array} nums - [x2, y2, x, y]
+ * @param {object} ctx - Parsing context
+ * @returns {object} Cubic bezier command
  */
-function buildCommand(cmd, nums) {
-  const builder = CMD_BUILDERS[cmd];
-  return builder ? builder(nums) : null;
+function buildSmoothCubic(nums, ctx) {
+  const cx1 = 2 * ctx.lastX - (ctx.lastCx2 || ctx.lastX);
+  const cy1 = 2 * ctx.lastY - (ctx.lastCy2 || ctx.lastY);
+  return buildCubic([cx1, cy1, nums[0], nums[1], nums[2], nums[3]]);
 }
 
 /**
- * Parse vector geometry from Figma node
+ * Build quadratic bezier as cubic approximation
+ * @param {array} nums - [cx, cy, x, y]
+ * @returns {object} Cubic bezier command
+ */
+function buildQuadratic(nums) {
+  return buildCubic([nums[0], nums[1], nums[0], nums[1], nums[2], nums[3]]);
+}
+
+/**
+ * Build smooth quadratic (T) by reflecting previous control point
+ * @param {array} nums - [x, y]
+ * @param {object} ctx - Parsing context
+ * @returns {object} Cubic bezier command
+ */
+function buildSmoothQuad(nums, ctx) {
+  const qx = 2 * ctx.lastX - (ctx.lastQx || ctx.lastX);
+  const qy = 2 * ctx.lastY - (ctx.lastQy || ctx.lastY);
+  return buildCubic([qx, qy, qx, qy, nums[0], nums[1]]);
+}
+
+/**
+ * Build arc command as cubic bezier approximation
+ * @param {array} nums - [rx, ry, xRot, largeArc, sweep, x, y]
+ * @param {object} ctx - Parsing context
+ * @returns {array} Array of cubic bezier commands
+ */
+function buildArc(nums, ctx) {
+  return arcToBezier({
+    lastX: ctx.lastX,
+    lastY: ctx.lastY,
+    arcRx: nums[0] || 0,
+    arcRy: nums[1] || 0,
+    xRot: nums[2] || 0,
+    largeArc: nums[3] || 0,
+    sweep: nums[4] || 0,
+    endX: nums[5] || 0,
+    endY: nums[6] || 0,
+  });
+}
+
+/**
+ * Extract numbers from a path segment string
+ * @param {string} str - Numeric portion of path segment
+ * @returns {array} Array of numbers
+ */
+function extractNumbers(str) {
+  const matches = str.match(/-?[\d.]+(?:e[+-]?\d+)?/gi);
+  return matches ? matches.map(Number) : [];
+}
+
+/**
+ * Parse vector geometry from Figma node (all paths)
  * @param {object} figmaNode - Figma VECTOR node
- * @returns {array} Path command objects
+ * @returns {object} { commands, fillRule }
  */
 function parseVectorGeometry(figmaNode) {
   const geometry = figmaNode.fillGeometry || figmaNode.strokeGeometry;
-  if (geometry && geometry.length > 0 && geometry[0].path) {
-    return parseSvgPathString(geometry[0].path);
+  if (!geometry || geometry.length === 0) {
+    return { commands: [], fillRule: 'nonzero' };
   }
-  return [];
+  const allCommands = [];
+  for (const geo of geometry) {
+    if (geo.path) {
+      allCommands.push(...parseSvgPathString(geo.path));
+    }
+  }
+  const fillRule = geometry[0]?.windingRule === 'EVENODD' ? 'evenodd' : 'nonzero';
+  return { commands: allCommands, fillRule };
 }
 
 /**

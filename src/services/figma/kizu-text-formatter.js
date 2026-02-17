@@ -7,19 +7,109 @@
 const { transformColor } = require('./kizu-style-transformer');
 
 /**
+ * Map Figma text decoration to PenPot format
+ * @param {string} decoration - Figma textDecoration
+ * @returns {string} PenPot text-decoration value
+ */
+function mapTextDecoration(decoration) {
+  const map = { UNDERLINE: 'underline', STRIKETHROUGH: 'line-through' };
+  return map[decoration] || 'none';
+}
+
+/**
+ * Map Figma text case to PenPot text-transform
+ * @param {string} textCase - Figma textCase
+ * @returns {string} PenPot text-transform value
+ */
+function mapTextCase(textCase) {
+  const map = {
+    UPPER: 'uppercase',
+    LOWER: 'lowercase',
+    TITLE: 'capitalize',
+    SMALL_CAPS: 'uppercase',
+    SMALL_CAPS_FORCED: 'uppercase',
+  };
+  return map[textCase] || 'none';
+}
+
+/**
+ * Map Figma horizontal text alignment to PenPot
+ * @param {string} align - Figma textAlignHorizontal
+ * @returns {string} PenPot text-align value
+ */
+function mapTextAlign(align) {
+  const map = { LEFT: 'left', CENTER: 'center', RIGHT: 'right', JUSTIFIED: 'justify' };
+  return map[align] || 'left';
+}
+
+/**
+ * Map Figma vertical text alignment to PenPot
+ * @param {string} align - Figma textAlignVertical
+ * @returns {string} PenPot vertical-align value
+ */
+function mapVerticalAlign(align) {
+  const map = { TOP: 'top', CENTER: 'center', BOTTOM: 'bottom' };
+  return map[align] || 'top';
+}
+
+/**
+ * Map Figma textAutoResize to PenPot grow-type
+ * @param {string} autoResize - Figma textAutoResize
+ * @returns {string} PenPot grow-type value
+ */
+function mapGrowType(autoResize) {
+  const map = {
+    WIDTH_AND_HEIGHT: 'auto-width',
+    HEIGHT: 'auto-height',
+    NONE: 'fixed',
+    TRUNCATE: 'fixed',
+  };
+  return map[autoResize] || 'fixed';
+}
+
+/**
  * Extract default text style from a Figma text node
  * @param {object} figmaNode - Figma text node
  * @returns {object} Default style properties
  */
 function extractDefaultStyle(figmaNode) {
   const style = figmaNode.style || {};
+  const baseStyle = extractBaseStyleProps(style);
+  const layoutStyle = extractLayoutStyleProps(style);
+  return {
+    ...baseStyle,
+    ...layoutStyle,
+    textAutoResize: figmaNode.textAutoResize || 'NONE',
+  };
+}
+
+/**
+ * Extract base font and decoration style properties
+ * @param {object} style - Figma style object
+ * @returns {object} Base style properties
+ */
+function extractBaseStyleProps(style) {
   return {
     fontFamily: style.fontFamily || 'Arial',
     fontSize: style.fontSize || 16,
     fontWeight: style.fontWeight || 400,
+    italic: style.italic || false,
     lineHeightPx: style.lineHeightPx || null,
     letterSpacing: style.letterSpacing || 0,
+  };
+}
+
+/**
+ * Extract text layout and alignment style properties
+ * @param {object} style - Figma style object
+ * @returns {object} Layout style properties
+ */
+function extractLayoutStyleProps(style) {
+  return {
     textAlignHorizontal: style.textAlignHorizontal || 'LEFT',
+    textAlignVertical: style.textAlignVertical || 'TOP',
+    textDecoration: style.textDecoration || 'NONE',
+    textCase: style.textCase || 'ORIGINAL',
   };
 }
 
@@ -43,6 +133,53 @@ function extractFillColor(fills) {
 }
 
 /**
+ * Build text run styling properties
+ * @param {object} style - Figma style properties
+ * @returns {object} PenPot text run style fields
+ */
+function buildRunStyle(style) {
+  const run = buildBaseFontProps(style);
+  attachOptionalTextProps(style, run);
+  return run;
+}
+
+/**
+ * Build base font properties for a text run
+ * @param {object} style - Figma style properties
+ * @returns {object} Base font properties
+ */
+function buildBaseFontProps(style) {
+  return {
+    'font-family': style.fontFamily || 'Arial',
+    'font-size': String(style.fontSize || 16),
+    'font-weight': String(style.fontWeight || 400),
+  };
+}
+
+/**
+ * Attach optional text styling properties
+ * @param {object} style - Figma style properties
+ * @param {object} run - Text run object to extend
+ */
+function attachOptionalTextProps(style, run) {
+  if (style.italic) {
+    run['font-style'] = 'italic';
+  }
+  if (style.lineHeightPx) {
+    run['line-height'] = String(style.lineHeightPx);
+  }
+  if (style.letterSpacing) {
+    run['letter-spacing'] = String(style.letterSpacing);
+  }
+  if (style.textDecoration && style.textDecoration !== 'NONE') {
+    run['text-decoration'] = mapTextDecoration(style.textDecoration);
+  }
+  if (style.textCase && style.textCase !== 'ORIGINAL') {
+    run['text-transform'] = mapTextCase(style.textCase);
+  }
+}
+
+/**
  * Format a single text run for PenPot
  * @param {string} text - Text content
  * @param {object} style - Figma style properties
@@ -53,9 +190,7 @@ function formatTextRun(text, style, fills) {
   const { color, opacity } = extractFillColor(fills);
   return {
     text,
-    'font-family': style.fontFamily || 'Arial',
-    'font-size': String(style.fontSize || 16),
-    'font-weight': String(style.fontWeight || 400),
+    ...buildRunStyle(style),
     'fill-color': color,
     'fill-opacity': opacity,
   };
@@ -73,7 +208,17 @@ function buildTextRuns(characters, overrides, overrideTable, defaultStyle) {
   if (!overrides || overrides.length === 0) {
     return [{ text: characters, styleIndex: 0, style: defaultStyle }];
   }
+  const runs = groupCharsByStyle(characters, overrides);
+  return resolveRunStyles(runs, overrideTable, defaultStyle);
+}
 
+/**
+ * Group characters into runs by style index
+ * @param {string} characters - Full text string
+ * @param {array} overrides - Style override indices per character
+ * @returns {array} Array of { text, styleIndex }
+ */
+function groupCharsByStyle(characters, overrides) {
   const runs = [];
   let currentIdx = overrides[0] || 0;
   let currentText = characters[0] || '';
@@ -89,14 +234,25 @@ function buildTextRuns(characters, overrides, overrideTable, defaultStyle) {
     }
   }
   runs.push({ text: currentText, styleIndex: currentIdx });
+  return runs;
+}
 
-  return runs.map((run) => ({
-    ...run,
-    style:
-      run.styleIndex === 0
-        ? defaultStyle
-        : { ...defaultStyle, ...(overrideTable[run.styleIndex] || {}) },
-  }));
+/**
+ * Resolve style overrides for each text run
+ * @param {array} runs - Array of { text, styleIndex }
+ * @param {object} overrideTable - Style override table
+ * @param {object} defaultStyle - Default style
+ * @returns {array} Array of { text, styleIndex, style }
+ */
+function resolveRunStyles(runs, overrideTable, defaultStyle) {
+  return runs.map((run) => {
+    const override = overrideTable?.[run.styleIndex] || {};
+    return {
+      ...run,
+      style: run.styleIndex === 0 ? defaultStyle : { ...defaultStyle, ...override },
+      fills: override.fills || null,
+    };
+  });
 }
 
 /**
@@ -117,6 +273,7 @@ function splitIntoParagraphs(runs) {
         paragraphs[paragraphs.length - 1].push({
           text: parts[idx],
           style: run.style,
+          fills: run.fills,
         });
       }
     }
@@ -142,17 +299,21 @@ function buildParagraphSet(figmaNode) {
   );
 
   const paraGroups = splitIntoParagraphs(textRuns);
+  const textAlign = mapTextAlign(defaultStyle.textAlignHorizontal);
 
   const paragraphs = paraGroups.map((group) => ({
     type: 'paragraph',
+    'text-align': textAlign,
     children: group.map((run) => {
-      const fills = run.style.fills || defaultFills;
+      const fills = run.fills || defaultFills;
       return formatTextRun(run.text, run.style, fills);
     }),
   }));
 
   return {
     type: 'root',
+    'vertical-align': mapVerticalAlign(defaultStyle.textAlignVertical),
+    'grow-type': mapGrowType(defaultStyle.textAutoResize),
     children: [
       {
         type: 'paragraph-set',
@@ -168,4 +329,9 @@ module.exports = {
   formatTextRun,
   splitIntoParagraphs,
   extractDefaultStyle,
+  mapTextDecoration,
+  mapTextCase,
+  mapTextAlign,
+  mapVerticalAlign,
+  mapGrowType,
 };

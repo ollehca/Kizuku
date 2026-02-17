@@ -50,13 +50,26 @@ function transformSingleFill(fill, onWarning, unsupported) {
         opacity: fill.opacity ?? 1,
       };
     case 'IMAGE':
-      unsupported.add('image-fills');
-      onWarning('Image fills require special handling');
-      return null;
+      return transformImageFill(fill);
     default:
       onWarning(`Unsupported fill type: ${fill.type}`);
+      unsupported.add(`fill-${fill.type}`);
       return null;
   }
+}
+
+/**
+ * Transform an image fill from Figma
+ * @param {object} fill - Figma image fill
+ * @returns {object} Kizu image fill
+ */
+function transformImageFill(fill) {
+  return {
+    type: 'image',
+    imageRef: fill.imageRef || fill.imageHash || null,
+    scaleMode: fill.scaleMode || 'FILL',
+    opacity: fill.opacity ?? 1,
+  };
 }
 
 /**
@@ -77,21 +90,78 @@ function transformFills(figmaFills, onWarning, unsupported) {
 }
 
 /**
- * Transform strokes array
+ * Map Figma stroke alignment to Kizu/PenPot alignment
+ * @param {string} align - Figma stroke align (INSIDE/CENTER/OUTSIDE)
+ * @returns {string} PenPot alignment (inner/center/outer)
+ */
+function mapStrokeAlign(align) {
+  const map = { INSIDE: 'inner', CENTER: 'center', OUTSIDE: 'outer' };
+  return map[align] || 'center';
+}
+
+/**
+ * Map Figma dash pattern to stroke style
+ * @param {array} pattern - Figma dashPattern array
+ * @returns {string} Stroke style (solid/dashed/dotted)
+ */
+function mapDashPattern(pattern) {
+  if (!pattern || pattern.length === 0) {
+    return 'solid';
+  }
+  const maxDash = Math.max(...pattern);
+  return maxDash <= 3 ? 'dotted' : 'dashed';
+}
+
+/**
+ * Map Figma stroke cap to PenPot cap
+ * @param {string} cap - Figma stroke cap
+ * @returns {string} PenPot stroke cap
+ */
+function mapStrokeCap(cap) {
+  const map = {
+    NONE: null,
+    ROUND: 'round',
+    SQUARE: 'square',
+    ARROW_LINES: 'line-arrow',
+    ARROW_EQUILATERAL: 'triangle-arrow',
+    TRIANGLE_FILLED: 'triangle-arrow',
+    DIAMOND_FILLED: 'diamond-marker',
+    CIRCLE_FILLED: 'circle-marker',
+  };
+  return map[cap] || null;
+}
+
+/**
+ * Transform a single stroke with full properties
+ * @param {object} stroke - Figma stroke paint
+ * @param {object} figmaNode - Parent Figma node (for alignment, weight, etc.)
+ * @returns {object} Kizu stroke
+ */
+function transformSingleStroke(stroke, figmaNode) {
+  return {
+    type: 'color',
+    color: transformColor(stroke.color),
+    opacity: stroke.opacity ?? 1,
+    width: figmaNode.strokeWeight || 1,
+    alignment: mapStrokeAlign(figmaNode.strokeAlign),
+    style: mapDashPattern(figmaNode.dashPattern),
+    capStart: mapStrokeCap(figmaNode.strokeCap),
+    capEnd: mapStrokeCap(figmaNode.strokeCap),
+  };
+}
+
+/**
+ * Transform strokes array with full properties
  * @param {array} figmaStrokes - Figma strokes
+ * @param {object} figmaNode - Parent Figma node
  * @returns {array} Kizu strokes
  */
-function transformStrokes(figmaStrokes) {
+function transformStrokes(figmaStrokes, figmaNode) {
   if (!figmaStrokes?.length) {
     return [];
   }
-  return figmaStrokes
-    .filter((s) => s.visible !== false)
-    .map((s) => ({
-      type: 'color',
-      color: transformColor(s.color),
-      opacity: s.opacity ?? 1,
-    }));
+  const node = figmaNode || {};
+  return figmaStrokes.filter((s) => s.visible !== false).map((s) => transformSingleStroke(s, node));
 }
 
 /**
@@ -154,6 +224,42 @@ function transformEffects(figmaEffects, onWarning) {
 }
 
 /**
+ * Extract gradient endpoint positions from Figma's gradientTransform
+ * @param {array} matrix - 2x3 affine matrix [[a,b,tx],[c,d,ty]]
+ * @returns {object} Gradient position { startX, startY, endX, endY, width }
+ */
+function extractGradientPosition(matrix) {
+  if (!matrix || !Array.isArray(matrix) || matrix.length < 2) {
+    return buildDefaultGradientPosition();
+  }
+  return buildGradientPosition(matrix[0], matrix[1]);
+}
+
+/**
+ * Build default gradient position when matrix is invalid
+ * @returns {object} Default gradient position
+ */
+function buildDefaultGradientPosition() {
+  return { startX: 0, startY: 0.5, endX: 1, endY: 0.5, width: 1 };
+}
+
+/**
+ * Build gradient position from matrix rows
+ * @param {array} row0 - First row of transform matrix
+ * @param {array} row1 - Second row of transform matrix
+ * @returns {object} Gradient position
+ */
+function buildGradientPosition(row0, row1) {
+  return {
+    startX: row0[2] || 0,
+    startY: row1[2] || 0,
+    endX: (row0[0] || 0) + (row0[2] || 0),
+    endY: (row1[0] || 0) + (row1[2] || 0),
+    width: Math.sqrt((row0[1] || 0) ** 2 + (row1[1] || 0) ** 2) || 1,
+  };
+}
+
+/**
  * Transform gradient fill
  * @param {object} figmaGradient - Figma gradient fill
  * @returns {object} Kizu gradient
@@ -162,6 +268,7 @@ function transformGradient(figmaGradient) {
   const gradient = {
     type: figmaGradient.type.replace('GRADIENT_', '').toLowerCase(),
     stops: [],
+    ...extractGradientPosition(figmaGradient.gradientTransform),
   };
   if (figmaGradient.gradientStops) {
     gradient.stops = figmaGradient.gradientStops.map((stop) => ({
@@ -216,4 +323,8 @@ module.exports = {
   transformEffects,
   transformGradient,
   transformBlendMode,
+  extractGradientPosition,
+  mapStrokeAlign,
+  mapDashPattern,
+  mapStrokeCap,
 };

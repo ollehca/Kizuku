@@ -12,6 +12,7 @@ const mockBackend = require('../penpot-mock-backend');
 const styles = require('./kizu-style-transformer');
 const libExtractor = require('./kizu-library-extractor');
 const nodes = require('./kizu-node-transformer');
+const layoutTransformer = require('./kizu-layout-transformer');
 
 const logger = createLogger('FigmaJSONConverter');
 
@@ -276,11 +277,15 @@ class FigmaJSONConverter extends EventEmitter {
     return {
       ...this.transformGeometry(figmaNode),
       fills: styles.transformFills(figmaNode.fills, warn, unsupported),
-      strokes: styles.transformStrokes(figmaNode.strokes),
+      strokes: styles.transformStrokes(figmaNode.strokes, figmaNode),
       strokeWeight: figmaNode.strokeWeight || 0,
       effects: styles.transformEffects(figmaNode.effects, warn),
       blendMode: styles.transformBlendMode(figmaNode.blendMode, warn, unsupported),
       constraints: nodes.transformConstraints(figmaNode.constraints),
+      clipContent: figmaNode.clipsContent ?? null,
+      locked: figmaNode.locked ?? false,
+      hidden: figmaNode.visible === false,
+      ...this.transformLayoutProps(figmaNode),
     };
   }
 
@@ -303,15 +308,70 @@ class FigmaJSONConverter extends EventEmitter {
   transformGeometry(figmaNode) {
     const absBbox = figmaNode.absoluteBoundingBox || {};
     const parent = this.getParentPosition();
+    const nodeSize = figmaNode.size;
+    const coords = this.calculateRelativeCoords(absBbox, parent);
+    const dimensions = this.extractDimensions(nodeSize, absBbox);
+    return this.buildGeometryResult(figmaNode, coords, dimensions);
+  }
+
+  /**
+   * Calculate relative coordinates from absolute bbox and parent
+   * @param {object} absBbox - Absolute bounding box
+   * @param {object} parent - Parent position
+   * @returns {object} Relative x, y coordinates
+   */
+  calculateRelativeCoords(absBbox, parent) {
     return {
       x: (absBbox.x || 0) - (parent.x || 0),
       y: (absBbox.y || 0) - (parent.y || 0),
-      width: absBbox.width || 0,
-      height: absBbox.height || 0,
+    };
+  }
+
+  /**
+   * Extract width and height dimensions from node size or bbox
+   * @param {object} nodeSize - Node size object
+   * @param {object} absBbox - Absolute bounding box fallback
+   * @returns {object} Width and height dimensions
+   */
+  extractDimensions(nodeSize, absBbox) {
+    return {
+      width: nodeSize?.x || absBbox.width || 0,
+      height: nodeSize?.y || absBbox.height || 0,
+    };
+  }
+
+  /**
+   * Build final geometry result with all properties
+   * @param {object} figmaNode - Figma node
+   * @param {object} coords - Relative coordinates
+   * @param {object} dimensions - Width and height
+   * @returns {object} Complete geometry result
+   */
+  buildGeometryResult(figmaNode, coords, dimensions) {
+    const result = {
+      ...coords,
+      ...dimensions,
       visible: figmaNode.visible !== false,
       opacity: figmaNode.opacity ?? 1,
       rotation: figmaNode.rotation || 0,
     };
+    if (figmaNode.relativeTransform) {
+      result.relativeTransform = figmaNode.relativeTransform;
+    }
+    return result;
+  }
+
+  /**
+   * Transform layout-related properties for a node
+   * @param {object} figmaNode - Figma node
+   * @returns {object} Layout and layout child properties
+   */
+  transformLayoutProps(figmaNode) {
+    const result = {};
+    if (layoutTransformer.hasLayoutChildSizing(figmaNode)) {
+      result.layoutChild = layoutTransformer.transformLayoutChild(figmaNode);
+    }
+    return result;
   }
 
   /**

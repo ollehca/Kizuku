@@ -6,6 +6,7 @@
 
 const { buildParagraphSet } = require('./kizu-text-formatter');
 const pathGen = require('./kizu-path-generator');
+const layoutTransformer = require('./kizu-layout-transformer');
 
 /**
  * Transform auto layout properties
@@ -89,6 +90,30 @@ function transformLineToPath(figmaLine) {
 }
 
 /**
+ * Extract per-corner radii from a Figma node
+ * @param {object} figmaNode - Figma rectangle node
+ * @returns {object} Corner radii for each corner
+ */
+function extractCornerRadii(figmaNode) {
+  const radii = figmaNode.rectangleCornerRadii;
+  if (radii && Array.isArray(radii) && radii.length === 4) {
+    return {
+      topLeft: radii[0] || 0,
+      topRight: radii[1] || 0,
+      bottomRight: radii[2] || 0,
+      bottomLeft: radii[3] || 0,
+    };
+  }
+  const uniform = figmaNode.cornerRadius || 0;
+  return {
+    topLeft: uniform,
+    topRight: uniform,
+    bottomRight: uniform,
+    bottomLeft: uniform,
+  };
+}
+
+/**
  * Transform rectangle node
  * @param {object} converter - FigmaJSONConverter instance
  * @param {object} figmaNode - Figma rectangle
@@ -102,8 +127,7 @@ function transformRectangle(converter, figmaNode) {
     type: 'rect',
     ...converter.transformCommonProperties(figmaNode),
     cornerRadius: figmaNode.cornerRadius || 0,
-    rx: figmaNode.topLeftRadius || figmaNode.cornerRadius || 0,
-    ry: figmaNode.topRightRadius || figmaNode.cornerRadius || 0,
+    cornerRadii: extractCornerRadii(figmaNode),
   };
 }
 
@@ -153,12 +177,14 @@ function transformText(converter, figmaNode) {
  * @returns {object} PenPot path
  */
 function transformVector(converter, figmaNode) {
+  const result = generateVectorCommands(figmaNode, converter);
   const vector = {
     id: converter.getOrCreateUuid(figmaNode.id),
     name: figmaNode.name,
     type: 'path',
     ...converter.transformCommonProperties(figmaNode),
-    commands: generateVectorCommands(figmaNode, converter),
+    commands: result.commands || result,
+    fillRule: result.fillRule || 'nonzero',
   };
 
   converter.stats.convertedNodes++;
@@ -167,22 +193,32 @@ function transformVector(converter, figmaNode) {
 
 /** Dispatch map for vector type to path generator */
 const VECTOR_GENERATORS = {
-  LINE: (node) => transformLineToPath(node),
+  LINE: (node) => ({
+    commands: transformLineToPath(node),
+    fillRule: 'nonzero',
+  }),
   STAR: (node) => {
     const bbox = node.absoluteBoundingBox || {};
-    return pathGen.generateStarPath(
-      bbox.width || 100,
-      bbox.height || 100,
-      node.starPointCount || 5
-    );
+    return {
+      commands: pathGen.generateStarPath(
+        bbox.width || 100,
+        bbox.height || 100,
+        node.starPointCount || 5,
+        node.starInnerRadius || 0.38
+      ),
+      fillRule: 'nonzero',
+    };
   },
   REGULAR_POLYGON: (node) => {
     const bbox = node.absoluteBoundingBox || {};
-    return pathGen.generatePolygonPath(
-      bbox.width || 100,
-      bbox.height || 100,
-      node.polygonSides || 3
-    );
+    return {
+      commands: pathGen.generatePolygonPath(
+        bbox.width || 100,
+        bbox.height || 100,
+        node.polygonSides || 3
+      ),
+      fillRule: 'nonzero',
+    };
   },
 };
 
@@ -190,7 +226,7 @@ const VECTOR_GENERATORS = {
  * Generate path commands based on vector node type
  * @param {object} figmaNode - Figma vector node
  * @param {object} converter - Converter for warnings
- * @returns {array} Path command objects
+ * @returns {object} Object with commands array and fillRule
  */
 function generateVectorCommands(figmaNode, converter) {
   const generator = VECTOR_GENERATORS[figmaNode.type];
@@ -199,13 +235,13 @@ function generateVectorCommands(figmaNode, converter) {
   }
 
   const parsed = pathGen.parseVectorGeometry(figmaNode);
-  if (parsed.length > 0) {
+  if (parsed.commands && parsed.commands.length > 0) {
     return parsed;
   }
 
   converter.addWarning('Vector path conversion incomplete', figmaNode);
   converter.stats.unsupportedFeatures.add('complex-vectors');
-  return [];
+  return { commands: [], fillRule: 'nonzero' };
 }
 
 /**
@@ -244,20 +280,27 @@ async function transformComponent(converter, figmaNode) {
 }
 
 /**
- * Transform component instance node
+ * Transform component instance node with children
  * @param {object} converter - FigmaJSONConverter instance
  * @param {object} figmaNode - Figma instance
- * @returns {object} PenPot instance
+ * @returns {Promise<object>} PenPot instance
  */
-function transformInstance(converter, figmaNode) {
+async function transformInstance(converter, figmaNode) {
   converter.stats.convertedNodes++;
-  return {
+  const instance = {
     id: converter.getOrCreateUuid(figmaNode.id),
     name: figmaNode.name,
     type: 'instance',
     ...converter.transformCommonProperties(figmaNode),
     componentId: converter.getOrCreateUuid(figmaNode.componentId),
   };
+  if (figmaNode.children && figmaNode.children.length > 0) {
+    instance.children = await converter.transformChildren(
+      figmaNode.children,
+      figmaNode.absoluteBoundingBox
+    );
+  }
+  return instance;
 }
 
 /**
@@ -292,8 +335,8 @@ async function transformFrame(converter, figmaNode) {
     children: await converter.transformChildren(figmaNode.children, figmaNode.absoluteBoundingBox),
   };
 
-  if (figmaNode.layoutMode && figmaNode.layoutMode !== 'NONE') {
-    frame.layout = transformAutoLayout(figmaNode);
+  if (layoutTransformer.hasLayout(figmaNode)) {
+    frame.layout = layoutTransformer.transformLayout(figmaNode);
   }
 
   converter.stats.convertedNodes++;
@@ -331,4 +374,5 @@ module.exports = {
   transformTextAlign,
   transformBooleanType,
   transformLineToPath,
+  extractCornerRadii,
 };
