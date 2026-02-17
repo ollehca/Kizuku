@@ -3,11 +3,19 @@
  * Handles all theme-related IPC communication between renderer and main process.
  */
 
-const { ipcMain, dialog } = require('electron');
+const { ipcMain, dialog, app } = require('electron');
 const { BrowserWindow } = require('electron');
 const path = require('path');
 const themeStorage = require('./brand-theme-storage');
 const themeApplicator = require('./brand-theme-applicator');
+
+/**
+ * Check if the app is running in development mode
+ * @returns {boolean} True if not packaged (dev mode)
+ */
+function isDevMode() {
+  return !app.isPackaged;
+}
 
 /**
  * Handle theme load request
@@ -85,6 +93,9 @@ async function handleThemeImport() {
  * @returns {Promise<object>} Result
  */
 async function handleOpenThemeEditor() {
+  if (!isDevMode()) {
+    return { success: false, error: 'Theme editor is only available in development mode' };
+  }
   const editorWindow = new BrowserWindow({
     width: 1100,
     height: 750,
@@ -110,6 +121,7 @@ function registerThemeHandlers() {
   ipcMain.handle('theme:export', handleThemeExport);
   ipcMain.handle('theme:import', handleThemeImport);
   ipcMain.handle('theme:open-editor', handleOpenThemeEditor);
+  ipcMain.handle('dev:is-dev-mode', () => isDevMode());
 }
 
 module.exports = { registerThemeHandlers };

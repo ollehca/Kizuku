@@ -1,40 +1,31 @@
 /**
- * Kizu Brand Color Palette
- * Central color system for all Kizu UI screens.
- * Teal accent + dark navy background = distinct from both Figma and PenPot.
+ * Kizu Brand Color Palette (Auto-Generated)
+ * Do not edit manually — use the Theme Editor.
  */
-
 :root {
-  /* Primary brand colors */
   --kizu-primary: #35f6e6;
   --kizu-primary-dark: #27bdb1;
   --kizu-primary-light: #6dfff3;
-
-  /* Background colors (dark navy, not gray) */
   --kizu-bg-dark: #0f1923;
   --kizu-bg-medium: #152231;
   --kizu-surface: #1a2a3a;
   --kizu-surface-hover: #243a4e;
   --kizu-surface-active: #2d4a62;
-
-  /* Text colors */
   --kizu-text: #f0f4f8;
   --kizu-text-muted: rgba(240, 244, 248, 0.6);
   --kizu-text-dim: rgba(240, 244, 248, 0.35);
-
-  /* Border and divider */
   --kizu-border: rgba(53, 246, 230, 0.15);
   --kizu-divider: rgba(255, 255, 255, 0.08);
-
-  /* Accent gradient */
-  --kizu-accent-gradient: linear-gradient(135deg, #35f6e6, #27bdb1);
-
-  /* Status colors */
   --kizu-success: #4caf50;
   --kizu-warning: #ff9800;
   --kizu-error: #f44336;
 
-  /* Shadows */
+  --kizu-font-heading: 'Josefin Sans', -apple-system, sans-serif;
+  --kizu-font-body:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  --kizu-font-mono: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+
+  --kizu-accent-gradient: linear-gradient(135deg, #35f6e6, #27bdb1);
   --kizu-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
   --kizu-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
   --kizu-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);

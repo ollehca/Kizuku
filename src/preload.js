@@ -57,6 +57,7 @@ console.log('🔧 ipcRenderer available:', !!ipcRenderer);
 contextBridge.exposeInMainWorld('electronAPI', {
   // App info
   getAppVersion: () => ipcRenderer.invoke('get-app-version'),
+  isDevMode: () => ipcRenderer.invoke('dev:is-dev-mode'),
 
   // File operations
   showSaveDialog: (options) => ipcRenderer.invoke('show-save-dialog', options),

@@ -33,8 +33,8 @@ function attachEventListeners() {
   document.getElementById('openExistingProject').addEventListener('click', openExistingProject);
   document.getElementById('importFromFigma').addEventListener('click', importFromFigma);
 
-  // Settings button
-  document.getElementById('settingsBtn').addEventListener('click', openSettings);
+  // Settings button (dev-only: theme editor)
+  setupSettingsButton();
 
   // Modal controls
   document.getElementById('cancelBtn').addEventListener('click', closeNewProjectModal);
@@ -326,6 +326,26 @@ async function importFromFigma() {
   }
 }
 
+/**
+ * Show Settings button only in dev mode
+ */
+async function setupSettingsButton() {
+  const btn = document.getElementById('settingsBtn');
+  try {
+    const devMode = await window.electronAPI.isDevMode();
+    if (devMode) {
+      btn.addEventListener('click', openSettings);
+    } else {
+      btn.style.display = 'none';
+    }
+  } catch {
+    btn.style.display = 'none';
+  }
+}
+
+/**
+ * Open theme editor (dev-only)
+ */
 async function openSettings() {
   try {
     await window.electronAPI.theme.openEditor();
