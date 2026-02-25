@@ -284,7 +284,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
 // Helper functions for tab detection
 function getFileNameFromTitle() {
   if (document.title && document.title !== 'Penpot') {
-    return document.title.replace(/\s+-\s+(Penpot|Kizu|Kizuku)$/i, '');
+    const idx = document.title.lastIndexOf(' - ');
+    if (idx > 0) {
+      return document.title.substring(0, idx).trim();
+    }
+    return document.title;
   }
   return null;
 }
