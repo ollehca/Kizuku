@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /* eslint-env node */
 /**
- * Kizu License Code Generator CLI Tool
+ * Kizuku License Code Generator CLI Tool
  *
  * Usage:
  *   node tools/generate-license.js --type private --email user@example.com
  *   node tools/generate-license.js --type private --count 100 --output codes.csv
- *   node tools/generate-license.js --validate KIZU-XXXX-XXXX-XXXX-XXXX
+ *   node tools/generate-license.js --validate KIZUKU-XXXX-XXXX-XXXX-XXXX
  *
  * @module generate-license-cli
  */
@@ -130,7 +130,7 @@ function parseArgs() {
  */
 function showHelp() {
   console.log(`
-${colors.bright}Kizu License Code Generator${colors.reset}
+${colors.bright}Kizuku License Code Generator${colors.reset}
 
 ${colors.cyan}USAGE:${colors.reset}
   node tools/generate-license.js [OPTIONS]
@@ -163,7 +163,7 @@ ${colors.cyan}EXAMPLES:${colors.reset}
   node tools/generate-license.js --type business --count 50 --output licenses.json
 
   ${colors.yellow}# Validate a license code${colors.reset}
-  node tools/generate-license.js --validate KIZU-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX
+  node tools/generate-license.js --validate KIZUKU-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX
 
 ${colors.cyan}LICENSE TYPES:${colors.reset}
   private     - For individual/solo users (local-only)
@@ -171,7 +171,7 @@ ${colors.cyan}LICENSE TYPES:${colors.reset}
   trial       - For trial/demo purposes
 
 ${colors.cyan}SECURITY NOTE:${colors.reset}
-  This tool requires the KIZU_LICENSE_SECRET environment variable.
+  This tool requires the KIZUKU_LICENSE_SECRET environment variable.
   Keep this secret secure and never commit it to version control.
   For production use, load the secret from a secure key store.
 `);

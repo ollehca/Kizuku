@@ -161,7 +161,7 @@ function registerAuthIPCHandlers(mainWindow) {
 }
 
 /**
- * Load main Kizu application
+ * Load main Kizuku application
  */
 function loadMainApp(mainWindow) {
   // Determine URL based on environment

@@ -5,7 +5,7 @@
 
 const menuActions = require('./src/menu-actions');
 
-console.log('🧪 Kizu Native File Dialogs - Manual Test');
+console.log('🧪 Kizuku Native File Dialogs - Manual Test');
 console.log('='.repeat(50));
 
 function testDialogFunctions() {
@@ -45,20 +45,20 @@ function testFileExtensions() {
 
     const checks = [
       {
-        name: 'Kizu Extensions in Open Dialog',
-        pattern: /name: 'Kizu Files', extensions: \['kizu'\]/,
+        name: 'Kizuku Extensions in Open Dialog',
+        pattern: /name: 'Kizuku Files', extensions: \['kizuku'\]/,
       },
       {
-        name: 'Kizu Extensions in Save Dialog',
-        pattern: /name: 'Kizu Files', extensions: \['kizu'\]/,
+        name: 'Kizuku Extensions in Save Dialog',
+        pattern: /name: 'Kizuku Files', extensions: \['kizuku'\]/,
       },
       {
         name: 'Legacy PenPot Support',
         pattern: /name: 'PenPot Files \(Legacy\)', extensions: \['penpot'\]/,
       },
-      { name: 'Open Dialog Title', pattern: /title: 'Open Kizu Project'/ },
-      { name: 'Save Dialog Title', pattern: /title: 'Save Kizu Project'/ },
-      { name: 'Default Save Name', pattern: /defaultPath: 'Untitled Project\.kizu'/ },
+      { name: 'Open Dialog Title', pattern: /title: 'Open Kizuku Project'/ },
+      { name: 'Save Dialog Title', pattern: /title: 'Save Kizuku Project'/ },
+      { name: 'Default Save Name', pattern: /defaultPath: 'Untitled Project\.kizuku'/ },
     ];
 
     let allChecksPass = true;

@@ -677,12 +677,12 @@ class ConfigManager {
     const documentsPath = app.getPath('documents');
 
     const baseConfig = {
-      appName: 'Kizu',
+      appName: 'Kizuku',
       version: app.getVersion(),
       licenseType: licenseType,
       paths: {
         userData: userDataPath,
-        documents: path.join(documentsPath, 'Kizu'),
+        documents: path.join(documentsPath, 'Kizuku'),
         database: path.join(userDataPath, 'database'),
         assets: path.join(userDataPath, 'assets'),
         cache: path.join(userDataPath, 'cache'),
@@ -699,8 +699,8 @@ class ConfigManager {
           type: 'embedded-postgres',
           host: 'localhost',
           port: this._findFreePort(),
-          name: 'kizu',
-          username: 'kizu',
+          name: 'kizuku',
+          username: 'kizuku',
           password: this._generatePassword(),
           dataDirectory: path.join(userDataPath, 'database', 'postgresql')
         },
@@ -741,12 +741,12 @@ class ConfigManager {
         storage: {
           type: 'cloud-s3',
           endpoint: process.env.CLOUD_STORAGE_ENDPOINT || 'https://s3.amazonaws.com',
-          bucket: process.env.CLOUD_STORAGE_BUCKET || 'kizu-assets',
+          bucket: process.env.CLOUD_STORAGE_BUCKET || 'kizuku-assets',
           region: process.env.CLOUD_STORAGE_REGION || 'us-east-1'
         },
         auth: {
           type: 'cloud',
-          apiEndpoint: process.env.CLOUD_API_ENDPOINT || 'https://api.kizu.app',
+          apiEndpoint: process.env.CLOUD_API_ENDPOINT || 'https://api.kizuku.app',
           sessionDuration: 7 * 24 * 60 * 60 * 1000  // 7 days
         },
         features: {
@@ -866,7 +866,7 @@ describe('Abstraction Layers Integration', () => {
 ```json
 // Update package.json
 {
-  "name": "kizu",
+  "name": "kizuku",
   "version": "0.1.0",
   "main": "src/main.js",
   "scripts": {
@@ -878,8 +878,8 @@ describe('Abstraction Layers Integration', () => {
     "build:all": "electron-builder --mac --win --linux"
   },
   "build": {
-    "appId": "com.kizu.app",
-    "productName": "Kizu",
+    "appId": "com.kizuku.app",
+    "productName": "Kizuku",
     "directories": {
       "output": "dist"
     },

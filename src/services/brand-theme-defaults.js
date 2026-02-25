@@ -1,7 +1,7 @@
 /**
- * Kizu Brand Theme Defaults
+ * Kizuku Brand Theme Defaults
  * Central default configuration for all brand values.
- * This is the single source of truth for the Kizu look and feel.
+ * This is the single source of truth for the Kizuku look and feel.
  */
 
 /**

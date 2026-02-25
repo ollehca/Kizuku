@@ -27,10 +27,10 @@
 2. **Distribution of Executable Form** (Section 3.2)
    - ✅ When distributing binaries, source code must be available
    - ✅ Recipients must be informed how to obtain source code
-   - ⚠️ TODO: Add notice in Kizu about/help menu pointing to source code
+   - ⚠️ TODO: Add notice in Kizuku about/help menu pointing to source code
 
 3. **Larger Work** (Section 3.3)
-   - ✅ Kizu Electron wrapper is a "Larger Work"
+   - ✅ Kizuku Electron wrapper is a "Larger Work"
    - ✅ Can distribute under different terms (proprietary license for Kizu-specific code)
    - ✅ Must comply with MPL 2.0 for PenPot portions
 
@@ -56,7 +56,7 @@
 - **Compliance**:
   - ✅ Original license notice preserved
   - ✅ Remains under MPL 2.0
-  - ⚠️ TODO: Add comment marking Kizu modifications
+  - ⚠️ TODO: Add comment marking Kizuku modifications
 - **Description**: Modified to support persistent authentication for desktop app
 
 #### 2. `penpot/frontend/src/app/main/data/dashboard.cljs`
@@ -66,7 +66,7 @@
 - **Compliance**:
   - ✅ Original license notice preserved
   - ✅ Remains under MPL 2.0
-  - ⚠️ TODO: Add comment marking Kizu modifications
+  - ⚠️ TODO: Add comment marking Kizuku modifications
 - **Description**: Enhanced dashboard data management
 
 #### 3. `penpot/frontend/src/app/main/data/fonts.cljs`
@@ -76,7 +76,7 @@
 - **Compliance**:
   - ✅ Original license notice preserved
   - ✅ Remains under MPL 2.0
-  - ⚠️ TODO: Add comment marking Kizu modifications
+  - ⚠️ TODO: Add comment marking Kizuku modifications
 - **Description**: Modified font loading and management for desktop
 
 #### 4. `penpot/frontend/src/app/main/ui.cljs`
@@ -86,7 +86,7 @@
 - **Compliance**:
   - ✅ Original license notice preserved
   - ✅ Remains under MPL 2.0
-  - ⚠️ TODO: Add comment marking Kizu modifications
+  - ⚠️ TODO: Add comment marking Kizuku modifications
 - **Description**: Streamlined UI components for desktop experience
 - **Backup Available**: `ui.cljs.backup`
 
@@ -97,7 +97,7 @@
 - **Compliance**:
   - ✅ Original license notice preserved
   - ✅ Remains under MPL 2.0
-  - ⚠️ TODO: Add comment marking Kizu modifications
+  - ⚠️ TODO: Add comment marking Kizuku modifications
 - **Description**: Font management UI adjustments
 - **Backup Available**: `fonts.cljs.backup`
 
@@ -108,7 +108,7 @@
 - **Compliance**:
   - ✅ Original license notice preserved (if present)
   - ✅ Remains under MPL 2.0
-  - ⚠️ TODO: Add comment marking Kizu modifications
+  - ⚠️ TODO: Add comment marking Kizuku modifications
 - **Description**: SCSS refactoring and styling improvements
 - **Backup Available**: `fonts.scss.backup`
 
@@ -119,7 +119,7 @@
 - **Compliance**:
   - ✅ Original license notice preserved
   - ✅ Remains under MPL 2.0
-  - ⚠️ TODO: Add comment marking Kizu modifications
+  - ⚠️ TODO: Add comment marking Kizuku modifications
 - **Description**: Modified routing logic for desktop environment
 
 #### 8. `penpot/frontend/src/app/main/ui/static.cljs`
@@ -129,7 +129,7 @@
 - **Compliance**:
   - ✅ Original license notice preserved
   - ✅ Remains under MPL 2.0
-  - ⚠️ TODO: Add comment marking Kizu modifications
+  - ⚠️ TODO: Add comment marking Kizuku modifications
 - **Description**: Static content adjustments
 
 #### 9. `penpot/yarn.lock`
@@ -177,8 +177,8 @@ These files are part of the "Larger Work" and can be under proprietary license:
 - `src/test-utils/` - All test helper files
 
 ### Project Files (NOT subject to MPL 2.0)
-- `package.json` - Kizu project configuration
-- `README.md` - Kizu documentation
+- `package.json` - Kizuku project configuration
+- `README.md` - Kizuku documentation
 - `CLAUDE.md` - Development guide
 - `.eslintrc.js` - ESLint configuration
 - All scripts in `/scripts/` directory
@@ -216,7 +216,7 @@ For all modified PenPot files, add this comment block:
 
 ```clojure
 ;; ============================================================================
-;; MODIFIED BY KIZU (https://github.com/ollehca/PenPotDesktop)
+;; MODIFIED BY KIZUKU (https://github.com/ollehca/PenPotDesktop)
 ;; Original file from PenPot (https://github.com/penpot/penpot)
 ;; Licensed under Mozilla Public License Version 2.0
 ;; Modifications: [Brief description]
@@ -227,7 +227,7 @@ For all modified PenPot files, add this comment block:
 For SCSS/CSS files:
 ```scss
 /* ============================================================================
- * MODIFIED BY KIZU (https://github.com/ollehca/PenPotDesktop)
+ * MODIFIED BY KIZUKU (https://github.com/ollehca/PenPotDesktop)
  * Original file from PenPot (https://github.com/penpot/penpot)
  * Licensed under Mozilla Public License Version 2.0
  * Modifications: [Brief description]
@@ -243,7 +243,7 @@ For SCSS/CSS files:
 ### Current Repository
 - **GitHub**: https://github.com/ollehca/PenPotDesktop
 - **Visibility**: Should remain public for MPL 2.0 compliance
-- **Branch Strategy**: Maintain clear separation between PenPot modifications and Kizu code
+- **Branch Strategy**: Maintain clear separation between PenPot modifications and Kizuku code
 
 ### Distribution Strategy
 1. **GitHub Releases**: Distribute binaries via GitHub Releases
@@ -253,11 +253,11 @@ For SCSS/CSS files:
 
 ### Binary Distribution Notice (to be added)
 ```
-Kizu Desktop Application
+Kizuku Desktop Application
 =========================
 This application contains:
 - PenPot design software (MPL 2.0 licensed)
-- Kizu Desktop wrapper (proprietary)
+- Kizuku Desktop wrapper (proprietary)
 
 Source code for PenPot components and modifications is available at:
 https://github.com/ollehca/PenPotDesktop
@@ -271,7 +271,7 @@ For PenPot license terms, see: https://github.com/penpot/penpot/blob/develop/LIC
 
 ### What We CAN Do (MPL 2.0 Allows)
 ✅ Create proprietary Electron wrapper around PenPot
-✅ Distribute binaries with proprietary license for Kizu code
+✅ Distribute binaries with proprietary license for Kizuku code
 ✅ Charge for the combined product (Kizu)
 ✅ Add proprietary authentication/licensing system
 ✅ Add proprietary features outside PenPot code
@@ -289,7 +289,7 @@ For PenPot license terms, see: https://github.com/penpot/penpot/blob/develop/LIC
 ❌ Claim PenPot code as proprietary
 ❌ Prevent users from accessing PenPot source
 ❌ Restrict rights to modified PenPot code
-❌ Use PenPot trademarks without permission (we use "Kizu" instead)
+❌ Use PenPot trademarks without permission (we use "Kizuku" instead)
 
 ---
 
@@ -314,18 +314,18 @@ For PenPot license terms, see: https://github.com/penpot/penpot/blob/develop/LIC
 ## Future Authentication System Compliance
 
 ### Planned License System Impact
-When implementing Kizu authentication/licensing:
+When implementing Kizuku authentication/licensing:
 
 ✅ **COMPLIANT**:
-- License validation in Electron wrapper (Kizu code)
-- Local account storage (Kizu code)
-- License code generation system (Kizu code)
-- Business/collaborative features (Kizu code)
+- License validation in Electron wrapper (Kizuku code)
+- Local account storage (Kizuku code)
+- License code generation system (Kizuku code)
+- Business/collaborative features (Kizuku code)
 
 ⚠️ **REQUIRES CARE**:
 - Any modifications to PenPot's authentication system
 - Changes to PenPot's user management
-- Integration points between Kizu licensing and PenPot
+- Integration points between Kizuku licensing and PenPot
 
 **Strategy**: Keep authentication as Electron-layer feature, minimize PenPot code changes
 
@@ -353,7 +353,7 @@ When implementing Kizu authentication/licensing:
 2. Do we need separate MPL 2.0 notices in binary distributions?
 3. Is GitHub source availability sufficient for MPL 2.0 compliance?
 4. Should we include PenPot's full LICENSE file in our distributions?
-5. Any additional trademark considerations for "Kizu" branding?
+5. Any additional trademark considerations for "Kizuku" branding?
 
 ---
 

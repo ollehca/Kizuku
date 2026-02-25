@@ -10,7 +10,7 @@
  * @module license-info
  */
 
-const { ipcRenderer } = require('electron');
+const api = window.electronAPI;
 
 // State
 let licenseData = null;
@@ -46,7 +46,7 @@ async function initialize() {
  */
 async function loadLicenseData() {
   try {
-    const result = await ipcRenderer.invoke('get-license-data');
+    const result = await api.license.getData();
 
     if (result.success && result.license) {
       licenseData = result.license;
@@ -156,14 +156,14 @@ function handleToggleVisibility() {
  * Handle change license
  */
 function handleChangeLicense() {
-  ipcRenderer.send('show-change-license-dialog');
+  api.license.showChangeDialog();
 }
 
 /**
  * Handle deactivate license
  */
 function handleDeactivate() {
-  ipcRenderer.send('show-deactivate-license-dialog');
+  api.license.showDeactivateDialog();
 }
 
 /**

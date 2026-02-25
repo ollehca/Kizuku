@@ -1,5 +1,5 @@
 /**
- * Kizu Team System Quarantine
+ * Kizuku Team System Quarantine
  *
  * Disables PenPot's team/auth checks for single-user mode (private license).
  * Preserves code for future business/collab mode (cloud-based).
@@ -7,7 +7,7 @@
  * CRITICAL: This runs BEFORE PenPot's app initializes
  */
 
-console.log('🔧 [KIZU] Loading team system quarantine...');
+console.log('🔧 [KIZUKU] Loading team system quarantine...');
 
 /** @type {object} Synthetic permissions for single-user mode */
 const SINGLE_USER_PERMS = {
@@ -35,7 +35,7 @@ function getRxCore() {
 function quarantineTeamInit(teamModule) {
   if (teamModule.team_initialized) {
     teamModule.team_initialized = (teamId) => {
-      console.log('🔐 [KIZU] Intercepting team-initialized:', teamId);
+      console.log('🔐 [KIZUKU] Intercepting team-initialized:', teamId);
       return {
         watch: (_evt, _state, _stream) => {
           const rx = getRxCore();
@@ -55,7 +55,7 @@ function quarantineTeamInit(teamModule) {
         },
       };
     };
-    console.log('✅ [KIZU] Quarantined team.team_initialized');
+    console.log('✅ [KIZUKU] Quarantined team.team_initialized');
   }
 
   if (teamModule.fetch_teams) {
@@ -65,7 +65,7 @@ function quarantineTeamInit(teamModule) {
         return rx ? rx.empty() : [];
       },
     });
-    console.log('✅ [KIZU] Quarantined team.fetch_teams');
+    console.log('✅ [KIZUKU] Quarantined team.fetch_teams');
   }
 }
 
@@ -85,7 +85,7 @@ function quarantineAuthModule(authModule) {
     }
     return originalLoggedIn.apply(this, arguments);
   };
-  console.log('✅ [KIZU] Quarantined auth.logged_in');
+  console.log('✅ [KIZUKU] Quarantined auth.logged_in');
 }
 
 /**
@@ -97,14 +97,14 @@ function interceptRpcCommand(cmdName) {
   const rx = getRxCore();
 
   if (cmdName === ':get-teams' || cmdName === 'get-teams') {
-    console.log('🔐 [KIZU] Intercepting RPC :get-teams');
+    console.log('🔐 [KIZUKU] Intercepting RPC :get-teams');
     return rx ? rx.of([]) : Promise.resolve([]);
   }
 
   if (cmdName === ':get-profile' || cmdName === 'get-profile') {
     const profile = localStorage.getItem('auth-profile');
     if (profile) {
-      console.log('🔐 [KIZU] Intercepting RPC :get-profile');
+      console.log('🔐 [KIZUKU] Intercepting RPC :get-profile');
       const data = JSON.parse(profile);
       return rx ? rx.of(data) : Promise.resolve(data);
     }
@@ -129,7 +129,7 @@ function quarantineRepoCommands(repoModule) {
     }
     return originalCmd.apply(this, arguments);
   };
-  console.log('✅ [KIZU] Quarantined repo.cmd (RPC interception)');
+  console.log('✅ [KIZUKU] Quarantined repo.cmd (RPC interception)');
 }
 
 // Wait for PenPot's app to be available
@@ -138,15 +138,15 @@ const waitForPenPot = setInterval(() => {
     return;
   }
 
-  const singleUserMode = window.KIZU_SINGLE_USER_MODE === true;
+  const singleUserMode = window.KIZUKU_SINGLE_USER_MODE === true;
   if (!singleUserMode) {
-    console.log('🚩 [KIZU] Not in single-user mode, skipping team quarantine');
+    console.log('🚩 [KIZUKU] Not in single-user mode, skipping team quarantine');
     clearInterval(waitForPenPot);
     return;
   }
 
   clearInterval(waitForPenPot);
-  console.log('✅ [KIZU] PenPot app detected, applying team quarantine...');
+  console.log('✅ [KIZUKU] PenPot app detected, applying team quarantine...');
 
   try {
     if (window.app.main.data.team) {
@@ -158,14 +158,14 @@ const waitForPenPot = setInterval(() => {
     if (window.app.main.repo) {
       quarantineRepoCommands(window.app.main.repo);
     }
-    console.log('✅ [KIZU] Team quarantine complete');
+    console.log('✅ [KIZUKU] Team quarantine complete');
   } catch (error) {
-    console.error('❌ [KIZU] Failed to apply team quarantine:', error);
+    console.error('❌ [KIZUKU] Failed to apply team quarantine:', error);
   }
 }, 100);
 
 // Timeout after 30 seconds
 setTimeout(() => {
   clearInterval(waitForPenPot);
-  console.log('⏱️ [KIZU] Stopped waiting for PenPot app');
+  console.log('⏱️ [KIZUKU] Stopped waiting for PenPot app');
 }, 30000);

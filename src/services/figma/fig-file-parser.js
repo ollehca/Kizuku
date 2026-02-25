@@ -12,8 +12,26 @@ const {
   addTypeSpecificProperties: applyTypeProps,
   convertPaints,
 } = require('./fig-node-properties');
+const { resolveFillGeometryBlobs } = require('./fig-blob-decoder');
 
 const logger = createLogger('FigFileParser');
+
+/** Detect MIME type from image buffer magic bytes */
+function detectMimeType(buf) {
+  if (!buf || buf.length < 4) {
+    return 'image/png';
+  }
+  if (buf[0] === 0xff && buf[1] === 0xd8) {
+    return 'image/jpeg';
+  }
+  if (buf[0] === 0x52 && buf[1] === 0x49) {
+    return 'image/webp';
+  }
+  if (buf[0] === 0x47 && buf[1] === 0x49) {
+    return 'image/gif';
+  }
+  return 'image/png';
+}
 
 /** Handles parsing of binary .fig files */
 class FigFileParser {
@@ -112,11 +130,7 @@ class FigFileParser {
     }
   }
 
-  /**
-   * Unwrap buffer from ZIP if needed
-   * @param {Buffer} buffer - Raw file buffer
-   * @returns {Promise<object>} { canvasBuffer, extractedData }
-   */
+  /** Unwrap buffer from ZIP if needed */
   async unwrapBuffer(buffer) {
     if (!this.isZipFile(buffer)) {
       return { canvasBuffer: buffer, extractedData: null };
@@ -126,11 +140,7 @@ class FigFileParser {
     return { canvasBuffer: extractedData.canvasBuffer, extractedData };
   }
 
-  /**
-   * Attach ZIP metadata to figmaJSON if available
-   * @param {object} figmaJSON - Target JSON
-   * @param {object} extractedData - Extracted ZIP data (or null)
-   */
+  /** Attach ZIP metadata to figmaJSON if available */
   attachZipMetadata(figmaJSON, extractedData) {
     if (!extractedData) {
       return;
@@ -143,43 +153,25 @@ class FigFileParser {
       extractedImages: extractedData.images.map((img) => ({
         hash: img.hash,
         data: img.data.toString('base64'),
+        mtype: detectMimeType(img.data),
       })),
     };
   }
 
-  /**
-   * Validate that the file is a valid .fig file
-   * @param {Buffer} buffer - File buffer
-   */
+  /** Validate that the buffer is a valid .fig file */
   validateFigFile(buffer) {
-    // Check minimum size
     if (buffer.length < 100) {
       throw new Error('File is too small to be a valid .fig file');
     }
-
-    // Check magic bytes (if known)
-    // Figma files typically start with specific byte sequences
-    // This is a simplified check
-    const header = buffer.slice(0, 4).toString('hex');
-    logger.debug('File header', { header });
-
-    // Note: Actual validation may require more sophisticated checks
+    logger.debug('File header', { header: buffer.slice(0, 4).toString('hex') });
   }
 
-  /**
-   * Parse binary data using kiwi-schema (delegated)
-   * @param {Buffer} buffer - File buffer
-   * @returns {Promise<object>} Parsed data
-   */
+  /** Parse binary data using kiwi-schema */
   async parseBinary(buffer) {
     return parseBinary(buffer);
   }
 
-  /**
-   * Convert parsed .fig data to Figma JSON structure
-   * @param {object} parsedData - Parsed fig data from parseBinary
-   * @returns {object} Figma JSON structure
-   */
+  /** Convert parsed .fig data to Figma JSON structure */
   convertToFigmaJSON(parsedData) {
     logger.info('Converting parsed .fig data to Figma JSON structure');
 
@@ -207,6 +199,7 @@ class FigFileParser {
       componentSets: componentSets,
       styles: {}, // Styles are extracted separately
       schemaVersion: version,
+      _coordsRelative: true, // .fig binary uses relative transforms
       _meta: {
         sourceFormat: header,
         parsedVersion: version,
@@ -224,30 +217,17 @@ class FigFileParser {
     return figmaJSON;
   }
 
-  /**
-   * Create empty Figma JSON structure
-   * @param {string} header - File header
-   * @param {number} version - File version
-   * @returns {object} Empty Figma JSON
-   */
+  /** Create empty Figma JSON structure */
   createEmptyFigmaJSON(header, version) {
     return {
       name: 'Untitled',
       version: version.toString(),
-      document: {
-        id: '0:0',
-        name: 'Document',
-        type: 'DOCUMENT',
-        children: [],
-      },
+      document: { id: '0:0', name: 'Document', type: 'DOCUMENT', children: [] },
       components: {},
       componentSets: {},
       styles: {},
       schemaVersion: version,
-      _meta: {
-        sourceFormat: header,
-        parsedVersion: version,
-      },
+      _meta: { sourceFormat: header, parsedVersion: version },
     };
   }
 
@@ -257,10 +237,10 @@ class FigFileParser {
    * @param {array} blobs - Array of blob data
    * @returns {object} { document, components, componentSets }
    */
-  buildTreeFromNodeChanges(nodeChanges, _blobs) {
+  buildTreeFromNodeChanges(nodeChanges, blobs) {
     logger.info('Building tree from nodeChanges');
 
-    const indexed = this.indexNodeChanges(nodeChanges);
+    const indexed = this.indexNodeChanges(nodeChanges, blobs);
     this.linkChildrenToParents(nodeChanges, indexed);
 
     logger.info('Tree built successfully', {
@@ -276,12 +256,8 @@ class FigFileParser {
     };
   }
 
-  /**
-   * Index all node changes by guid and collect components
-   * @param {array} nodeChanges - Node change array
-   * @returns {object} { nodesByGuid, nodesByIndex, components, componentSets }
-   */
-  indexNodeChanges(nodeChanges) {
+  /** Index all node changes by guid and collect components */
+  indexNodeChanges(nodeChanges, blobs) {
     const nodesByGuid = new Map();
     const nodesByIndex = [];
     const components = {};
@@ -289,7 +265,7 @@ class FigFileParser {
 
     for (let idx = 0; idx < nodeChanges.length; idx++) {
       const change = nodeChanges[idx];
-      const node = this.convertFigNode(change, idx);
+      const node = this.convertFigNode(change, idx, blobs);
 
       nodesByIndex[idx] = node;
       const guidKey = this.guidToString(change.guid);
@@ -306,17 +282,19 @@ class FigFileParser {
     return { nodesByGuid, nodesByIndex, components, componentSets };
   }
 
-  /**
-   * Link child nodes to their parents
-   * @param {array} nodeChanges - Node change array
-   * @param {object} indexed - Indexed data from indexNodeChanges
-   */
+  /** Link child nodes to their parents, orphans go to first canvas */
   linkChildrenToParents(nodeChanges, indexed) {
     const { nodesByGuid, nodesByIndex } = indexed;
+    const rootNode = nodesByIndex[0];
+    let linked = 0;
+    let orphaned = 0;
+    let noParentRef = 0;
 
     for (let idx = 1; idx < nodeChanges.length; idx++) {
       const change = nodeChanges[idx];
       if (!change.parentIndex?.guid) {
+        noParentRef++;
+        this.attachOrphan(rootNode, nodesByIndex[idx]);
         continue;
       }
 
@@ -328,20 +306,36 @@ class FigFileParser {
           parentInfo.node.children = [];
         }
         parentInfo.node.children.push(nodesByIndex[idx]);
+        linked++;
       } else {
-        logger.warn(`Parent not found for node ${idx}`);
+        orphaned++;
+        this.attachOrphan(rootNode, nodesByIndex[idx]);
       }
     }
+
+    logger.info('Tree linking stats', {
+      total: nodeChanges.length - 1,
+      linked,
+      orphaned,
+      noParentRef,
+    });
   }
 
-  /**
-   * Convert .fig node to Figma API format
-   * @param {object} figNode - .fig node from nodeChanges
-   * @param {number} index - Node index in array
-   * @returns {object} Figma-compatible node
-   */
-  convertFigNode(figNode, index) {
-    // Generate node ID from guid
+  /** Attach an orphaned node to the first canvas or root */
+  attachOrphan(rootNode, node) {
+    if (!node) {
+      return;
+    }
+    const canvas = rootNode.children?.find((child) => child.type === 'CANVAS');
+    const parent = canvas || rootNode;
+    if (!parent.children) {
+      parent.children = [];
+    }
+    parent.children.push(node);
+  }
+
+  /** Convert .fig node to Figma API format */
+  convertFigNode(figNode, index, blobs) {
     const nodeId = this.guidToNodeId(figNode.guid, index);
 
     // Base node properties
@@ -352,17 +346,24 @@ class FigFileParser {
       visible: figNode.visible !== false,
     };
 
+    this.resolveBlobRefs(figNode, blobs);
     this.addCommonFigNodeProps(node, figNode);
     this.addTypeSpecificProperties(node, figNode);
 
     return node;
   }
 
-  /**
-   * Add common properties (opacity, transform, paints, effects)
-   * @param {object} node - Target node
-   * @param {object} figNode - Source .fig node
-   */
+  /** Resolve blob references in fillGeometry/strokeGeometry */
+  resolveBlobRefs(figNode, blobs) {
+    if (figNode.fillGeometry) {
+      figNode.fillGeometry = resolveFillGeometryBlobs(figNode.fillGeometry, blobs);
+    }
+    if (figNode.strokeGeometry) {
+      figNode.strokeGeometry = resolveFillGeometryBlobs(figNode.strokeGeometry, blobs);
+    }
+  }
+
+  /** Add common properties (opacity, transform, paints, effects) */
   addCommonFigNodeProps(node, figNode) {
     if (figNode.opacity !== undefined && figNode.opacity !== 1) {
       node.opacity = figNode.opacity;
@@ -379,11 +380,7 @@ class FigFileParser {
     }
   }
 
-  /**
-   * Add stroke properties if present
-   * @param {object} node - Target node
-   * @param {object} figNode - Source .fig node
-   */
+  /** Add stroke properties if present */
   addStrokeProps(node, figNode) {
     if (!figNode.strokePaints?.length) {
       return;
@@ -395,11 +392,43 @@ class FigFileParser {
     if (figNode.strokeAlign) {
       node.strokeAlign = figNode.strokeAlign;
     }
+    this.addExtraStrokeProps(node, figNode);
   }
 
-  /** @returns {string} Figma API type (currently identity) */
+  /** Copy dash, cap, join, and per-side stroke weights */
+  addExtraStrokeProps(node, figNode) {
+    if (figNode.dashPattern) {
+      node.dashPattern = figNode.dashPattern;
+    }
+    if (figNode.strokeCap) {
+      node.strokeCap = figNode.strokeCap;
+    }
+    if (figNode.strokeJoin) {
+      node.strokeJoin = figNode.strokeJoin;
+    }
+    if (figNode.strokeMiterAngle !== undefined) {
+      node.strokeMiterAngle = figNode.strokeMiterAngle;
+    }
+    if (figNode.individualStrokeWeights) {
+      node.individualStrokeWeights = figNode.individualStrokeWeights;
+    }
+  }
+
+  /** Map .fig binary node type to Figma REST API type */
   mapFigTypeToFigmaType(figType) {
-    return figType;
+    const binaryTypeMap = {
+      ROUNDED_RECTANGLE: 'RECTANGLE',
+      SYMBOL: 'COMPONENT',
+      BRUSH: 'SLICE',
+      SECTION: 'FRAME',
+      STICKY: 'FRAME',
+      SHAPE_WITH_TEXT: 'FRAME',
+      CONNECTOR: 'LINE',
+      TABLE: 'FRAME',
+      TABLE_CELL: 'FRAME',
+      WIDGET: 'FRAME',
+    };
+    return binaryTypeMap[figType] || figType;
   }
 
   /** Convert guid to node ID string (e.g. "1:42") */
@@ -415,17 +444,13 @@ class FigFileParser {
     return `${guid.sessionID}:${guid.localID}`;
   }
 
-  /**
-   * Add transform and bounds to node
-   * @param {object} node - Target node
-   * @param {object} figNode - Source .fig node
-   */
+  /** Add transform and bounds to node */
   addTransformAndBounds(node, figNode) {
     if (figNode.size) {
-      const tfm = figNode.transform || [];
+      const pos = this.extractPosition(figNode.transform);
       node.absoluteBoundingBox = {
-        x: (tfm[0] && tfm[0][2]) || 0,
-        y: (tfm[1] && tfm[1][2]) || 0,
+        x: pos.x,
+        y: pos.y,
         width: figNode.size.x || 0,
         height: figNode.size.y || 0,
       };
@@ -435,29 +460,37 @@ class FigFileParser {
     }
   }
 
-  /**
-   * Convert .fig paints to Figma paints (delegated)
-   * @param {array} figPaints - .fig paint array
-   * @returns {array} Figma paints
-   */
+  /** Extract x,y position from .fig transform */
+  extractPosition(transform) {
+    if (!transform) {
+      return { x: 0, y: 0 };
+    }
+    if (Array.isArray(transform)) {
+      return {
+        x: transform[0]?.[2] || 0,
+        y: transform[1]?.[2] || 0,
+      };
+    }
+    if (transform.m02 !== undefined) {
+      return { x: transform.m02, y: transform.m12 };
+    }
+    if (transform.tx !== undefined) {
+      return { x: transform.tx, y: transform.ty };
+    }
+    return { x: 0, y: 0 };
+  }
+
+  /** Delegate paint conversion */
   convertPaints(figPaints) {
     return convertPaints(figPaints);
   }
 
-  /**
-   * Add type-specific properties to node
-   * @param {object} node - Target node
-   * @param {object} figNode - Source .fig node
-   */
+  /** Delegate type-specific property extraction */
   addTypeSpecificProperties(node, figNode) {
     applyTypeProps(node, figNode);
   }
 
-  /**
-   * Check if this parser can handle the file
-   * @param {Buffer} buffer - File buffer
-   * @returns {boolean} True if supported
-   */
+  /** @returns {boolean} True if file can be parsed */
   async canParse(buffer) {
     try {
       this.validateFigFile(buffer);
@@ -465,18 +498,6 @@ class FigFileParser {
     } catch {
       return false;
     }
-  }
-
-  /**
-   * Get parser version info
-   * @returns {object} Version information
-   */
-  getVersionInfo() {
-    return {
-      parser: 'fig-kiwi',
-      supportedVersions: this.supportedVersions,
-      experimental: true,
-    };
   }
 }
 

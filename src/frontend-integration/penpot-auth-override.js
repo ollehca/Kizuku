@@ -1,5 +1,5 @@
 /**
- * PenPot Auth System Override for Kizu
+ * PenPot Auth System Override for Kizuku
  *
  * This script monkey-patches PenPot's compiled JavaScript to bypass
  * the authentication system for private license users.
@@ -8,7 +8,7 @@
  * the auth checking logic at the source.
  */
 
-console.log('🔧 [KIZU] Loading PenPot auth system override...');
+console.log('🔧 [KIZUKU] Loading PenPot auth system override...');
 
 /**
  * Override auth module login and profile checks
@@ -24,7 +24,7 @@ function overrideAuthModule(authModule) {
       }
       return originalLogin.apply(this, arguments);
     };
-    console.log('✅ [KIZU] Overrode auth.logged_in');
+    console.log('✅ [KIZUKU] Overrode auth.logged_in');
   }
 
   const originalProfile = authModule.get_profile;
@@ -37,12 +37,12 @@ function overrideAuthModule(authModule) {
       }
       return originalProfile.apply(this, arguments);
     };
-    console.log('✅ [KIZU] Overrode auth.get_profile');
+    console.log('✅ [KIZUKU] Overrode auth.get_profile');
   }
 }
 
 /**
- * Override profile atom deref to inject Kizu profile
+ * Override profile atom deref to inject Kizuku profile
  * @param {object} profileAtom - ClojureScript atom
  */
 function overrideProfileAtom(profileAtom) {
@@ -61,7 +61,7 @@ function overrideProfileAtom(profileAtom) {
     }
     return originalDeref.call(this);
   };
-  console.log('✅ [KIZU] Overrode profile atom deref');
+  console.log('✅ [KIZUKU] Overrode profile atom deref');
 }
 
 // Wait for PenPot's app to be available
@@ -71,7 +71,7 @@ const waitForPenPot = setInterval(() => {
   }
 
   clearInterval(waitForPenPot);
-  console.log('✅ [KIZU] PenPot app detected, applying auth override...');
+  console.log('✅ [KIZUKU] PenPot app detected, applying auth override...');
 
   try {
     if (window.app.main.data && window.app.main.data.auth) {
@@ -80,9 +80,9 @@ const waitForPenPot = setInterval(() => {
     if (window.app.main.refs && window.app.main.refs.profile) {
       overrideProfileAtom(window.app.main.refs.profile);
     }
-    console.log('✅ [KIZU] Auth system override complete');
+    console.log('✅ [KIZUKU] Auth system override complete');
   } catch (error) {
-    console.error('❌ [KIZU] Failed to override auth system:', error);
+    console.error('❌ [KIZUKU] Failed to override auth system:', error);
   }
 }, 100);
 
@@ -92,5 +92,5 @@ setTimeout(() => {
     return;
   }
   clearInterval(waitForPenPot);
-  console.log('❌ [KIZU] Timeout waiting for PenPot app');
+  console.log('❌ [KIZUKU] Timeout waiting for PenPot app');
 }, 30000);

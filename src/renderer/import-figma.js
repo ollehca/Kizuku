@@ -1,6 +1,6 @@
 /**
  * Import Figma Modal Controller
- * Handles UI for importing Figma files into Kizu
+ * Handles UI for importing Figma files into Kizuku
  */
 
 const selectedFiles = [];
@@ -98,14 +98,14 @@ async function handleFileSelect(files) {
   const fileArray = Array.from(files);
 
   // Filter valid file types
-  const validExtensions = ['.kizu', '.json', '.fig'];
+  const validExtensions = ['.kizuku', '.json', '.fig'];
   const validFiles = fileArray.filter((file) => {
     const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
     return validExtensions.includes(ext);
   });
 
   if (validFiles.length === 0) {
-    showStatus('Please select .kizu, .json, or .fig files', 'error');
+    showStatus('Please select .kizuku, .json, or .fig files', 'error');
     return;
   }
 
@@ -208,7 +208,7 @@ function getFileIcon(fileName) {
   if (ext === '.json') {
     return '📄';
   }
-  if (ext === '.kizu') {
+  if (ext === '.kizuku') {
     return '📦';
   }
   return '📄';

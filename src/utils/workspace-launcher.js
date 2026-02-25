@@ -1,7 +1,7 @@
 /**
  * Workspace Launcher
- * Launches Kizu workspace with a .kizu project file
- * Bypasses Kizu's default dashboard and authentication flow
+ * Launches Kizuku workspace with a .kizuku project file
+ * Bypasses Kizuku's default dashboard and authentication flow
  */
 
 const { createLogger } = require('./logger');
@@ -10,7 +10,7 @@ const { getBackendServiceManager } = require('../services/backend-service-manage
 const logger = createLogger('WorkspaceLauncher');
 
 /**
- * Get Kizu workspace URL configuration
+ * Get Kizuku workspace URL configuration
  */
 function getPenpotConfig() {
   return {
@@ -169,8 +169,8 @@ function createSuccessResult(project, url) {
 }
 
 /**
- * Launch Kizu workspace with a .kizu project
- * @param {string} filePath - Path to .kizu file
+ * Launch Kizuku workspace with a .kizuku project
+ * @param {string} filePath - Path to .kizuku file
  * @param {BrowserWindow} mainWindow - Main application window
  */
 async function launchWorkspace(filePath, mainWindow) {

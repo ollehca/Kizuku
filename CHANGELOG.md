@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to Kizu will be documented in this file.
+All notable changes to Kizuku will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Project creation modal with form validation
   - Real-time status messages
   - File → Project Dashboard menu (Cmd+Shift+D)
-- **Workspace Launcher** - Direct .kizu file opening in PenPot workspace
+- **Workspace Launcher** - Direct .kizuku file opening in PenPot workspace
   - Bypasses PenPot dashboard/auth flow
   - Automatic project validation
   - Main window integration
@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - License-aware configuration system (private/business)
 - Authentication abstraction layer (local/cloud)
 - Storage abstraction layer (local/cloud)
-- Project management system with .kizu file format
+- Project management system with .kizuku file format
 - Backend service manager coordination layer
 - Secure IPC communication bridge
 - Promise-based renderer API client
@@ -37,14 +37,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SEMVER versioning strategy and changelog
 
 ### Changed
-- Rebranded from PenPot Desktop to Kizu 築
+- Rebranded from PenPot Desktop to Kizuku 築
 - Improved ESLint configuration (complexity ≤5, lines ≤20)
 - Enhanced code quality with Prettier formatting
 
 ### Developer
 - Complete architecture documentation
 - Backend API usage guide
-- .kizu file format specification
+- .kizuku file format specification
 - Development environment setup guide
 - Week-by-week implementation plans
 - Versioning documentation (VERSIONING.md)
@@ -73,5 +73,5 @@ Initial foundation release (not yet tagged).
 - **0.4.0** - User Onboarding & First Run Experience
 - **1.0.0** - Production Ready Release
 
-[Unreleased]: https://github.com/ollehca/Kizu/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/ollehca/Kizu/releases/tag/v0.1.0
+[Unreleased]: https://github.com/ollehca/Kizuku/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/ollehca/Kizuku/releases/tag/v0.1.0

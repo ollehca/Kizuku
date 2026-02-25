@@ -147,9 +147,9 @@ async function showSaveDialog(defaultName) {
   try {
     const result = await window.electronAPI.showSaveDialog({
       title: 'Save Project',
-      defaultPath: `${defaultName}.kizu`,
+      defaultPath: `${defaultName}.kizuku`,
       filters: [
-        { name: 'Kizu Projects', extensions: ['kizu'] },
+        { name: 'Kizuku Projects', extensions: ['kizuku'] },
         { name: 'All Files', extensions: ['*'] },
       ],
     });
@@ -166,7 +166,7 @@ async function openExistingProject() {
     const result = await window.electronAPI.showOpenDialog({
       title: 'Open Project',
       filters: [
-        { name: 'Kizu Projects', extensions: ['kizu'] },
+        { name: 'Kizuku Projects', extensions: ['kizuku'] },
         { name: 'All Files', extensions: ['*'] },
       ],
       properties: ['openFile'],
@@ -288,9 +288,9 @@ async function importFromFigma() {
     const result = await window.electronAPI.showOpenDialog({
       title: 'Import Figma File',
       filters: [
-        { name: 'Figma Files', extensions: ['json', 'kizu', 'fig'] },
+        { name: 'Figma Files', extensions: ['json', 'kizuku', 'fig'] },
         { name: 'JSON Files', extensions: ['json'] },
-        { name: 'Kizu Projects', extensions: ['kizu'] },
+        { name: 'Kizuku Projects', extensions: ['kizuku'] },
         { name: 'All Files', extensions: ['*'] },
       ],
       properties: ['openFile', 'multiSelections'],

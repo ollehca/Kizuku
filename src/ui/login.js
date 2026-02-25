@@ -6,7 +6,7 @@
  * @module login
  */
 
-const { ipcRenderer } = require('electron');
+const api = window.electronAPI;
 
 // DOM Elements
 let form;
@@ -84,7 +84,7 @@ async function handleSubmit(event) {
 
   try {
     // Authenticate via IPC
-    const result = await ipcRenderer.invoke('authenticate-user', credentials);
+    const result = await api.onboarding.authenticateUser(credentials);
 
     if (result.success) {
       // Authentication successful - proceed to main app
@@ -200,7 +200,7 @@ function handleKeyPress(event) {
 function handleHelpClick(event) {
   event.preventDefault();
   // Could open external help page or show in-app help
-  ipcRenderer.send('open-help-page', 'login-help');
+  api.onboarding.openHelpPage('login-help');
 }
 
 /**
@@ -266,7 +266,7 @@ function setLoadingState(loading) {
  */
 function proceedToMainApp() {
   setTimeout(() => {
-    ipcRenderer.send('authentication-successful');
+    api.onboarding.authenticationSuccessful();
   }, 300);
 }
 
@@ -290,7 +290,7 @@ function initialize() {
  */
 async function loadSavedUsername() {
   try {
-    const status = await ipcRenderer.invoke('get-auth-status');
+    const status = await api.onboarding.getAuthStatus();
     if (status.success && status.user && status.user.username) {
       usernameInput.value = status.user.username;
       passwordInput.focus();

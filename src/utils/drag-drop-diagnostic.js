@@ -91,10 +91,10 @@ function buildMonitorSetup() {
       console.log('✅ Diagnostic handlers attached');
 
       setTimeout(function() {
-        console.log('🔬 Checking for Kizu drag-drop handlers...');
-        console.log('  - window.__kizuDragDrop:', !!window.__kizuDragDrop);
-        if (window.__kizuDragDrop) {
-          console.log('  - attached:', window.__kizuDragDrop.isAttached);
+        console.log('🔬 Checking for Kizuku drag-drop handlers...');
+        console.log('  - window.__kizukuDragDrop:', !!window.__kizukuDragDrop);
+        if (window.__kizukuDragDrop) {
+          console.log('  - attached:', window.__kizukuDragDrop.isAttached);
         }
       }, 2000);`;
 }
@@ -106,13 +106,13 @@ function buildMonitorSetup() {
 function createDragDropDiagnostic() {
   return `(function() {
       'use strict';
-      console.log('🔬 Kizu Drag-Drop Diagnostic Tool Starting...');
+      console.log('🔬 Kizuku Drag-Drop Diagnostic Tool Starting...');
       if (window.self !== window.top) { return; }
       var diagnostics = {
         dragoverCount: 0, dropCount: 0,
         eventPhases: [], handlers: [], dataTransferTypes: []
       };
-      window.__kizuDragDropDiagnostics = diagnostics;
+      window.__kizukuDragDropDiagnostics = diagnostics;
 ${buildDragOverHandler()}
 ${buildDropHandler()}
 ${buildMonitorSetup()}

@@ -1,5 +1,5 @@
 /**
- * Kizu Brand Theme Applicator
+ * Kizuku Brand Theme Applicator
  * Orchestrates theme application across all screen types:
  * CSS palette files, SCSS variables, workspace injection.
  */
@@ -45,9 +45,9 @@ function getStylesDir() {
  */
 async function writePaletteCSS(theme) {
   const css = cssGenerator.generatePaletteCSS(theme);
-  const filePath = path.join(getStylesDir(), 'kizu-palette.css');
+  const filePath = path.join(getStylesDir(), 'kizuku-palette.css');
   await fs.promises.writeFile(filePath, css, 'utf8');
-  console.log('Theme: wrote kizu-palette.css');
+  console.log('Theme: wrote kizuku-palette.css');
 }
 
 /**
@@ -57,9 +57,9 @@ async function writePaletteCSS(theme) {
  */
 async function writeSCSSVariables(theme) {
   const scss = cssGenerator.generateSCSSVariables(theme);
-  const filePath = path.join(getStylesDir(), '_kizu-variables.scss');
+  const filePath = path.join(getStylesDir(), '_kizuku-variables.scss');
   await fs.promises.writeFile(filePath, scss, 'utf8');
-  console.log('Theme: wrote _kizu-variables.scss');
+  console.log('Theme: wrote _kizuku-variables.scss');
 }
 
 /**
@@ -84,7 +84,7 @@ function injectIntoWorkspace() {
   if (!cssManagerRef) {
     return;
   }
-  const palettePath = path.join(getStylesDir(), 'kizu-palette.css');
+  const palettePath = path.join(getStylesDir(), 'kizuku-palette.css');
   if (fs.existsSync(palettePath)) {
     cssManagerRef.reloadCSS(palettePath);
   }

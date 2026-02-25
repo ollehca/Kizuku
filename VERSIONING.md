@@ -1,6 +1,6 @@
 # Versioning Strategy
 
-Kizu follows [Semantic Versioning 2.0.0](https://semver.org/).
+Kizuku follows [Semantic Versioning 2.0.0](https://semver.org/).
 
 ## Format
 

@@ -1,7 +1,7 @@
 # Keyboard Shortcuts - Kizu
 
 ## Overview
-Kizu provides a comprehensive keyboard shortcut system combining Figma-standard shortcuts with cross-platform compatibility and extensibility for unique features.
+Kizuku provides a comprehensive keyboard shortcut system combining Figma-standard shortcuts with cross-platform compatibility and extensibility for unique features.
 
 ## Platform Differences
 - **macOS**: Uses `Cmd` key for primary shortcuts

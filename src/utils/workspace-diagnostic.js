@@ -93,7 +93,7 @@ function buildStateChecker() {
  */
 function buildDiagnosticAPI() {
   return `
-        window.__kizuWorkspaceDiag = {
+        window.__kizukuWorkspaceDiag = {
           getState: function() { return getState(); },
           getFiles: function() { var s = getState(); return s?.files; },
           getWorkspaceData: function() {
@@ -121,7 +121,7 @@ function buildDiagnosticAPI() {
           }
         };
         console.log('✅ Workspace diagnostics enabled');
-        console.log('📊 Use window.__kizuWorkspaceDiag.*');`;
+        console.log('📊 Use window.__kizukuWorkspaceDiag.*');`;
 }
 
 /**
@@ -131,7 +131,7 @@ function buildDiagnosticAPI() {
 function createWorkspaceDiagnostic() {
   return `(function() {
       'use strict';
-      console.log('🔬 Kizu Workspace Diagnostic Tool Starting...');
+      console.log('🔬 Kizuku Workspace Diagnostic Tool Starting...');
       if (window.self !== window.top) { return; }
       var waitForApp = setInterval(function() {
         if (!window.app || !window.app.main || !window.app.main.store) return;

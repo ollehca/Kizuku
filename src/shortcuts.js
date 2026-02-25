@@ -1,4 +1,4 @@
-// Keyboard Shortcuts System for Kizu
+// Keyboard Shortcuts System for Kizuku
 // Provides cross-platform shortcuts with Figma familiarity + extensibility
 
 class ShortcutManager {
@@ -68,7 +68,7 @@ class ShortcutManager {
   }
 
   setupEditOperationShortcuts() {
-    // EDIT OPERATIONS with Kizu clipboard integration
+    // EDIT OPERATIONS with Kizuku clipboard integration
     this.register(`${this.modifierKey}+z`, 'undo', 'canvas', 'Undo');
     this.register(
       this.platform === 'darwin' ? `${this.modifierKey}+shift+z` : `ctrl+y`,
@@ -77,7 +77,7 @@ class ShortcutManager {
       'Redo'
     );
 
-    // Clipboard operations with Kizu desktop integration
+    // Clipboard operations with Kizuku desktop integration
     this.register(`${this.modifierKey}+c`, 'copy', 'canvas', 'Copy selection');
     this.register(`${this.modifierKey}+v`, 'paste', 'canvas', 'Paste from clipboard');
     this.register(`${this.modifierKey}+x`, 'cut', 'canvas', 'Cut selection');
@@ -181,15 +181,15 @@ class ShortcutManager {
   }
 
   isBasicEditShortcut(shortcut) {
-    // These shortcuts need custom handling through Kizu clipboard API
+    // These shortcuts need custom handling through Kizuku clipboard API
     // Don't prevent default - let them be processed by our handlers
-    const kizuManagedShortcuts = [
+    const kizukuManagedShortcuts = [
       `${this.modifierKey}+v`, // paste
       `${this.modifierKey}+a`, // select all
       `${this.modifierKey}+c`, // copy
       `${this.modifierKey}+x`, // cut
     ];
-    return kizuManagedShortcuts.includes(shortcut);
+    return kizukuManagedShortcuts.includes(shortcut);
   }
 
   buildShortcutString(event) {
@@ -274,8 +274,8 @@ class ShortcutManager {
   }
 
   callDirectHandler(action, event) {
-    if (window.kizu?.shortcutActions?.[action]) {
-      window.kizu.shortcutActions[action](event);
+    if (window.kizuku?.shortcutActions?.[action]) {
+      window.kizuku.shortcutActions[action](event);
     }
   }
 
@@ -308,7 +308,7 @@ class ShortcutManager {
     return list.sort((a, b) => a.shortcut.localeCompare(b.shortcut));
   }
 
-  // Helper function for Kizu to register custom shortcuts
+  // Helper function for Kizuku to register custom shortcuts
   registerCustomShortcut(shortcut, action, description = '', context = 'global') {
     this.register(shortcut, action, context, description);
   }
@@ -325,15 +325,15 @@ if (typeof module !== 'undefined' && module.exports) {
 if (typeof window !== 'undefined') {
   window.shortcutManager = new ShortcutManager();
 
-  // Helper function for Kizu to register shortcut handlers
+  // Helper function for Kizuku to register shortcut handlers
   window.registerShortcutHandler = function (action, handler) {
-    if (!window.kizu) {
-      window.kizu = {};
+    if (!window.kizuku) {
+      window.kizuku = {};
     }
-    if (!window.kizu.shortcutActions) {
-      window.kizu.shortcutActions = {};
+    if (!window.kizuku.shortcutActions) {
+      window.kizuku.shortcutActions = {};
     }
-    window.kizu.shortcutActions[action] = handler;
+    window.kizuku.shortcutActions[action] = handler;
   };
 }
 */

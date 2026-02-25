@@ -9,7 +9,7 @@ const fs = require('fs').promises;
 
 describe('License Storage Service', () => {
   const testLicense = {
-    code: 'KIZU-50019-99AC6-14B35-557C8-509D0',
+    code: 'KIZUKU-50019-99AC6-14B35-557C8-509D0',
     type: 'private',
     validated: true,
     validatedAt: new Date().toISOString(),

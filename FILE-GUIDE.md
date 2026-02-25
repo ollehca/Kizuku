@@ -1,4 +1,4 @@
-# 📁 Kizu - File Guide
+# 📁 Kizuku - File Guide
 
 ## 🎯 Start Here Files
 

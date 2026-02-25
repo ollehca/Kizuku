@@ -156,7 +156,7 @@ jlink --add-modules java.base,java.sql,java.logging,... \
 - Electron makes cross-platform relatively easy
 - Design community spans all platforms
 - **Figma supports**: macOS, Windows (no native Linux app)
-- **Kizu advantage**: Native Linux support! ⭐
+- **Kizuku advantage**: Native Linux support! ⭐
 
 **Testing Matrix**:
 | Platform | Architecture | Priority |
@@ -204,9 +204,9 @@ jlink --add-modules java.base,java.sql,java.logging,... \
 
 **Structure**:
 ```
-~/Library/Application Support/Kizu/  (macOS)
-%APPDATA%/Kizu/                      (Windows)
-~/.config/Kizu/                      (Linux)
+~/Library/Application Support/Kizuku/  (macOS)
+%APPDATA%/Kizuku/                      (Windows)
+~/.config/Kizuku/                      (Linux)
 ├── database/
 │   ├── postgresql/              # PostgreSQL data directory
 │   │   ├── base/
@@ -227,7 +227,7 @@ jlink --add-modules java.base,java.sql,java.logging,... \
 │   └── backend.log
 └── config.json                  # User preferences
 
-~/Documents/Kizu/                # User-facing location
+~/Documents/Kizuku/                # User-facing location
 ├── Exports/                     # Default export location
 │   ├── Project Name.penpot      # Shareable file
 │   └── Design Export.svg
@@ -236,13 +236,13 @@ jlink --add-modules java.base,java.sql,java.logging,... \
 
 **File Workflow**:
 1. **Working**: All projects stored in PostgreSQL database
-2. **Export**: User exports to `.kizu` or `.penpot` file (shareable)
+2. **Export**: User exports to `.kizuku` or `.penpot` file (shareable)
 3. **Import**: User imports `.penpot` files (from Figma, other designers)
 4. **Backup**: Automatic database backups every 24h
 
-**`.kizu` File Format**: SQLite database (using PenPot's export format)
+**`.kizuku` File Format**: SQLite database (using PenPot's export format)
 - Self-contained
-- Can be opened by any Kizu installation
+- Can be opened by any Kizuku installation
 - Easy to share via email, Dropbox, etc.
 
 ---
@@ -536,7 +536,7 @@ class ConfigManager {
     const licenseType = this.getLicenseType();
 
     const baseConfig = {
-      appName: 'Kizu',
+      appName: 'Kizuku',
       version: app.getVersion(),
       licenseType: licenseType,
     };
@@ -645,7 +645,7 @@ if (licenseResult.license.type === 'business') {
   dialog.showMessageBox({
     type: 'info',
     title: 'Business License Activated',
-    message: 'Your account will now connect to Kizu Cloud for collaboration features. Your local projects will be synced.',
+    message: 'Your account will now connect to Kizuku Cloud for collaboration features. Your local projects will be synced.',
     buttons: ['Migrate Now', 'Later']
   }).then((result) => {
     if (result.response === 0) {

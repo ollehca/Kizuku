@@ -29,16 +29,16 @@ const userStorage = require('./src/services/user-storage');
 
 // Test data
 const TEST_LICENSE = {
-  code: 'KIZU-50019-99AC6-14B35-557C8-509D0',
+  code: 'KIZUKU-50019-99AC6-14B35-557C8-509D0',
   type: 'private',
   validated: true,
   validatedAt: new Date().toISOString(),
-  activatedBy: 'demo@kizu.local',
+  activatedBy: 'demo@kizuku.local',
 };
 
 const TEST_USER = {
   username: 'demo_user',
-  email: 'demo@kizu.local',
+  email: 'demo@kizuku.local',
   fullName: 'Demo User',
   preferences: {
     theme: 'dark',
@@ -132,7 +132,7 @@ async function testUserStorage() {
     // Test 5: Update user
     console.log('\nTest 5: Update user...');
     const updateResult = await userStorage.updateUser({
-      email: 'updated@kizu.local',
+      email: 'updated@kizuku.local',
     });
     console.log('✓ Update result:', updateResult);
 
@@ -247,7 +247,7 @@ async function testErrorHandling() {
 // Run all tests
 async function runAllTests() {
   console.log('╔════════════════════════════════════════╗');
-  console.log('║   Kizu Storage System Test Suite      ║');
+  console.log('║   Kizuku Storage System Test Suite      ║');
   console.log('╚════════════════════════════════════════╝');
 
   await cleanup();

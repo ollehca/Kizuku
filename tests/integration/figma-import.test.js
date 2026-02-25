@@ -31,7 +31,7 @@ describe('FigmaJSONConverter integration', () => {
     const result = await converter.convert(doc);
 
     expect(result.project).toBeDefined();
-    expect(result.project.type).toBe('kizu-project');
+    expect(result.project.type).toBe('kizuku-project');
     expect(result.project.data.pages).toHaveLength(0);
     expect(result.stats).toBeDefined();
     expect(result.compatibilityScore).toBeDefined();

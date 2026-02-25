@@ -1,14 +1,14 @@
 /* Theme Editor Styles */
 
-@import url('../styles/kizu-palette.css');
+@import url('../styles/kizuku-palette.css');
 
 :root {
-  --editor-bg: var(--kizu-bg-dark);
-  --editor-surface: var(--kizu-surface);
-  --editor-text: var(--kizu-text);
-  --editor-text-muted: var(--kizu-text-muted);
-  --editor-border: var(--kizu-border);
-  --editor-primary: var(--kizu-primary);
+  --editor-bg: var(--kizuku-bg-dark);
+  --editor-surface: var(--kizuku-surface);
+  --editor-text: var(--kizuku-text);
+  --editor-text-muted: var(--kizuku-text-muted);
+  --editor-border: var(--kizuku-border);
+  --editor-primary: var(--kizuku-primary);
 }
 
 * {
@@ -80,17 +80,17 @@ body {
 }
 
 .btn-secondary:hover {
-  background: var(--kizu-surface-hover);
+  background: var(--kizuku-surface-hover);
 }
 
 .btn-danger {
   background: transparent;
-  color: var(--kizu-error);
-  border: 1px solid var(--kizu-error);
+  color: var(--kizuku-error);
+  border: 1px solid var(--kizuku-error);
 }
 
 .btn-danger:hover {
-  background: var(--kizu-error);
+  background: var(--kizuku-error);
   color: white;
 }
 

@@ -1,7 +1,7 @@
 # Desktop Menu System
 
 ## Overview
-Kizu provides comprehensive native menus that integrate seamlessly with the PenPot web application. The menu system includes professional design tool functionality with proper keyboard shortcuts and platform-specific behaviors.
+Kizuku provides comprehensive native menus that integrate seamlessly with the PenPot web application. The menu system includes professional design tool functionality with proper keyboard shortcuts and platform-specific behaviors.
 
 ## Menu Structure
 

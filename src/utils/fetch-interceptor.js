@@ -11,8 +11,8 @@
 function getFetchInterceptorScript() {
   return `
 (function() {
-  if (window.__kizuFetchInterceptorInstalled) return;
-  window.__kizuFetchInterceptorInstalled = true;
+  if (window.__kizukuFetchInterceptorInstalled) return;
+  window.__kizukuFetchInterceptorInstalled = true;
 
   var originalFetch = window.fetch;
   var MOCK_SERVER = 'http://localhost:9999';
@@ -23,7 +23,7 @@ function getFetchInterceptorScript() {
     if (url && url.includes('/api/rpc/command/')) {
       var apiPath = url.substring(url.indexOf('/api/rpc/command/'));
       var mockUrl = MOCK_SERVER + apiPath;
-      console.log('🔄 [Kizu Fetch] Redirecting:', url.split('/api/rpc/command/')[1]);
+      console.log('🔄 [Kizuku Fetch] Redirecting:', url.split('/api/rpc/command/')[1]);
       return originalFetch(mockUrl, {
         method: init.method || 'GET',
         headers: init.headers || {},
@@ -39,13 +39,13 @@ function getFetchInterceptorScript() {
     if (url && url.includes('/api/rpc/command/')) {
       var apiPath = url.substring(url.indexOf('/api/rpc/command/'));
       var mockUrl = MOCK_SERVER + apiPath;
-      console.log('🔄 [Kizu XHR] Redirecting:', url.split('/api/rpc/command/')[1]);
+      console.log('🔄 [Kizuku XHR] Redirecting:', url.split('/api/rpc/command/')[1]);
       return originalXHROpen.apply(this, [method, mockUrl].concat(args));
     }
     return originalXHROpen.apply(this, arguments);
   };
 
-  console.log('✅ [Kizu] Fetch interceptor installed EARLY');
+  console.log('✅ [Kizuku] Fetch interceptor installed EARLY');
 })();
 `;
 }
@@ -60,7 +60,32 @@ function injectFetchInterceptor(webContents) {
   });
 }
 
+/**
+ * Redirect API and asset requests to the mock server at session level.
+ * Catches web-worker requests that bypass the fetch interceptor.
+ * @param {object} ses - Electron session (e.g. session.defaultSession)
+ */
+function setupSessionRedirect(ses) {
+  const filter = {
+    urls: [
+      '*://localhost:*/api/rpc/command/*',
+      '*://localhost:*/assets/by-id/*',
+      '*://localhost:*/assets/by-file-media-id/*',
+    ],
+  };
+  ses.webRequest.onBeforeRequest(filter, (details, callback) => {
+    const url = new URL(details.url);
+    if (url.port === '9999') {
+      callback({});
+      return;
+    }
+    const mockUrl = `http://localhost:9999${url.pathname}${url.search}`;
+    callback({ redirectURL: mockUrl });
+  });
+}
+
 module.exports = {
   getFetchInterceptorScript,
   injectFetchInterceptor,
+  setupSessionRedirect,
 };

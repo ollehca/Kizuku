@@ -1,5 +1,5 @@
 /**
- * Tests for kizu-node-transformer.js
+ * Tests for kizuku-node-transformer.js
  * Verifies node type transformation functions.
  */
 
@@ -10,7 +10,7 @@ const {
   transformTextAlign,
   transformBooleanType,
   transformLineToPath,
-} = require('../../../src/services/figma/kizu-node-transformer');
+} = require('../../../src/services/figma/kizuku-node-transformer');
 
 const {
   createRectangle,
@@ -229,9 +229,9 @@ describe('buildDispatch', () => {
     expect(result.type).toBe('component');
   });
 
-  test('transforms INSTANCE with componentId', () => {
+  test('transforms INSTANCE with componentId', async () => {
     const inst = createInstance({ componentId: 'comp-123' });
-    const result = dispatch.INSTANCE(inst);
+    const result = await dispatch.INSTANCE(inst);
     expect(result.type).toBe('instance');
     expect(result.componentId).toBeDefined();
   });

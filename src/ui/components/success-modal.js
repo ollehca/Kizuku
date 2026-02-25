@@ -7,7 +7,7 @@
  * @module success-modal
  */
 
-const { ipcRenderer } = require('electron');
+const api = window.electronAPI;
 
 /**
  * Initialize modal
@@ -31,8 +31,8 @@ async function initialize() {
  */
 async function loadUserData() {
   try {
-    const userData = await ipcRenderer.invoke('get-user-summary');
-    const licenseData = await ipcRenderer.invoke('get-license-validation-state');
+    const userData = await api.onboarding.getUserSummary();
+    const licenseData = await api.license.getValidationState();
 
     if (userData) {
       // Update username
@@ -71,7 +71,7 @@ function getLicenseTypeLabel(type) {
  */
 function handleGetStarted() {
   // Send event to main process to proceed to main app
-  ipcRenderer.send('onboarding-complete');
+  api.onboarding.onboardingComplete();
 }
 
 // Initialize when DOM is ready

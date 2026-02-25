@@ -54,7 +54,7 @@ try {
   };
 }
 
-// Recovery and health monitoring utilities for Kizu
+// Recovery and health monitoring utilities for Kizuku
 
 const PENPOT_CONFIG = {
   frontend: {

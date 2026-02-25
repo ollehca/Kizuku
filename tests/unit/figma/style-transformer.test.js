@@ -1,5 +1,5 @@
 /**
- * Tests for kizu-style-transformer.js
+ * Tests for kizuku-style-transformer.js
  * Verifies color, fill, stroke, effect, and blend mode conversion.
  */
 
@@ -10,7 +10,7 @@ const {
   transformEffects,
   transformBlendMode,
   transformGradient,
-} = require('../../../src/services/figma/kizu-style-transformer');
+} = require('../../../src/services/figma/kizuku-style-transformer');
 
 describe('transformColor', () => {
   test('converts black (0,0,0) to #000000', () => {
@@ -102,15 +102,17 @@ describe('transformFills', () => {
     expect(result[0].gradient.stops).toHaveLength(2);
   });
 
-  test('drops IMAGE fills with warning', () => {
+  test('converts IMAGE fill to image type', () => {
     const fills = [{
       type: 'IMAGE',
       opacity: 1,
       visible: true,
+      imageRef: 'abc123',
     }];
     const result = transformFills(fills, warn, unsupported);
-    expect(result).toHaveLength(0);
-    expect(unsupported.has('image-fills')).toBe(true);
+    expect(result).toHaveLength(1);
+    expect(result[0].type).toBe('image');
+    expect(result[0].imageRef).toBe('abc123');
   });
 });
 

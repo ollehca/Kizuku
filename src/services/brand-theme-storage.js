@@ -1,12 +1,12 @@
 /**
- * Kizu Brand Theme Storage
+ * Kizuku Brand Theme Storage
  * Manages persistence of brand theme configuration via electron-store.
  */
 
 const fs = require('fs');
 const { getDefaultTheme } = require('./brand-theme-defaults');
 
-const STORE_KEY = 'kizu-brand-theme';
+const STORE_KEY = 'kizuku-brand-theme';
 let storeInstance = null;
 
 /**

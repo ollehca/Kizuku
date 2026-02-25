@@ -7,7 +7,7 @@
  * @module license-selection
  */
 
-const { ipcRenderer } = require('electron');
+const api = window.electronAPI;
 
 // State (used for future enhancement tracking)
 // eslint-disable-next-line no-unused-vars
@@ -50,7 +50,7 @@ function handlePrivateSelection(event) {
   selectedType = 'private';
 
   // Send selection to main process
-  ipcRenderer.send('license-type-selected', {
+  api.license.typeSelected({
     type: 'private',
     timestamp: new Date().toISOString(),
   });
@@ -129,7 +129,7 @@ function showComingSoonNotification() {
     <div class="notification-content">
       <strong>Business License Coming Soon</strong>
       <p>
-        We're working hard on bringing team collaboration features to Kizu.
+        We're working hard on bringing team collaboration features to Kizuku.
         Enter your email to be notified when it's available.
       </p>
       <div class="notification-actions">
@@ -160,7 +160,7 @@ function showComingSoonNotification() {
   document.getElementById('notify-submit').addEventListener('click', () => {
     const email = document.getElementById('notify-email').value;
     if (validateEmail(email)) {
-      ipcRenderer.send('business-notify-request', { email });
+      api.license.businessNotify({ email });
       closeNotification(notification);
       showSuccessMessage("Thanks! We'll notify you when it's ready.");
     } else {
@@ -348,11 +348,11 @@ function validateEmail(email) {
  */
 async function checkExistingLicense() {
   try {
-    const result = await ipcRenderer.invoke('check-license-status');
+    const result = await api.license.checkStatus();
 
     if (result.hasValidLicense) {
       // User already has a license, skip this screen
-      ipcRenderer.send('skip-license-selection', {
+      api.license.skipSelection({
         reason: 'existing-license',
         type: result.type,
       });

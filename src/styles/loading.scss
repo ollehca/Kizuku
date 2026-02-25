@@ -1,14 +1,14 @@
 // Loading Screen - Professional splash screen
 
-@import 'kizu-variables';
+@import 'kizuku-variables';
 
 $loading-colors: (
-  background: $kizu-bg-dark,
+  background: $kizuku-bg-dark,
   overlay: rgb(15 25 35 / 95%),
-  text-primary: $kizu-text,
-  text-secondary: $kizu-text-muted,
-  accent: $kizu-primary,
-  spinner: $kizu-primary,
+  text-primary: $kizuku-text,
+  text-secondary: $kizuku-text-muted,
+  accent: $kizuku-primary,
+  spinner: $kizuku-primary,
 );
 
 // BEM Block: Loading Screen

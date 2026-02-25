@@ -2,7 +2,7 @@
 
 **Status:** Ready to start
 **Branch:** `feature/figma-import-100-percent`
-**Issue:** [#84](https://github.com/ollehca/Kizu/issues/84)
+**Issue:** [#84](https://github.com/ollehca/Kizuku/issues/84)
 
 ---
 
@@ -68,7 +68,7 @@ Phase 4 (6 months)  → 100% ████████████  Complete Pari
 - Kiwi Parser: https://github.com/evanw/kiwi
 
 **Demo:**
-- License: `KIZU-50019-99FF9-D4EFF-5DE58-DC837`
+- License: `KIZUKU-50019-99FF9-D4EFF-5DE58-DC837`
 - User: `demouser`
 - Password: (none - auto-login)
 
@@ -76,7 +76,7 @@ Phase 4 (6 months)  → 100% ████████████  Complete Pari
 
 ## 💪 This Is The Killer Feature
 
-Why Kizu will win:
+Why Kizuku will win:
 - ✅ **Only** 100% compatible Figma alternative
 - ✅ No vendor lock-in
 - ✅ One-time purchase (not subscription)
@@ -93,7 +93,7 @@ Users can't switch to other tools because migration is too risky.
 
 1. Check [FIGMA_IMPORT_ARCHITECTURE.md](FIGMA_IMPORT_ARCHITECTURE.md) for technical details
 2. See [FIGMA_IMPORT_TASKS.md](FIGMA_IMPORT_TASKS.md) for implementation steps
-3. Review [Issue #84](https://github.com/ollehca/Kizu/issues/84) for progress tracking
+3. Review [Issue #84](https://github.com/ollehca/Kizuku/issues/84) for progress tracking
 
 ---
 

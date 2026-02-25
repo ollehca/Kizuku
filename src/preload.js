@@ -6,8 +6,8 @@ const { contextBridge, ipcRenderer, webUtils, webFrame } = require('electron');
 // ============================================================================
 const FETCH_INTERCEPTOR = `
 (function() {
-  if (window.__kizuFetchInterceptorInstalled) return;
-  window.__kizuFetchInterceptorInstalled = true;
+  if (window.__kizukuFetchInterceptorInstalled) return;
+  window.__kizukuFetchInterceptorInstalled = true;
 
   const originalFetch = window.fetch;
   const MOCK_SERVER = 'http://localhost:9999';
@@ -17,7 +17,7 @@ const FETCH_INTERCEPTOR = `
     if (url && url.includes('/api/rpc/command/')) {
       const apiPath = url.substring(url.indexOf('/api/rpc/command/'));
       const mockUrl = MOCK_SERVER + apiPath;
-      console.log('🔄 [Kizu Fetch] Redirecting:', url.split('/api/rpc/command/')[1]);
+      console.log('🔄 [Kizuku Fetch] Redirecting:', url.split('/api/rpc/command/')[1]);
       return originalFetch(mockUrl, {
         ...init,
         method: init.method || 'GET',
@@ -33,13 +33,13 @@ const FETCH_INTERCEPTOR = `
     if (url && url.includes('/api/rpc/command/')) {
       const apiPath = url.substring(url.indexOf('/api/rpc/command/'));
       const mockUrl = MOCK_SERVER + apiPath;
-      console.log('🔄 [Kizu XHR] Redirecting:', url.split('/api/rpc/command/')[1]);
+      console.log('🔄 [Kizuku XHR] Redirecting:', url.split('/api/rpc/command/')[1]);
       return originalXHROpen.call(this, method, mockUrl, ...args);
     }
     return originalXHROpen.call(this, method, url, ...args);
   };
 
-  console.log('✅ [Kizu Preload] Fetch interceptor installed in main world');
+  console.log('✅ [Kizuku Preload] Fetch interceptor installed in main world');
 })();
 `;
 
@@ -48,7 +48,7 @@ webFrame.executeJavaScript(FETCH_INTERCEPTOR).catch((err) => {
   console.error('❌ [Preload] Failed to inject fetch interceptor:', err);
 });
 
-console.log('🚀 Kizu preload script starting...');
+console.log('🚀 Kizuku preload script starting...');
 console.log('🔧 contextBridge available:', !!contextBridge);
 console.log('🔧 ipcRenderer available:', !!ipcRenderer);
 
@@ -81,7 +81,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   addTab: (fileInfo) => ipcRenderer.invoke('add-tab', fileInfo),
   removeTab: (tabId) => ipcRenderer.invoke('remove-tab', tabId),
   switchTab: (tabId) => ipcRenderer.invoke('switch-tab', tabId),
+  reorderTabs: (fromIndex, toIndex) => ipcRenderer.invoke('reorder-tabs', { fromIndex, toIndex }),
+  navigateDashboard: () => ipcRenderer.invoke('navigate-dashboard'),
+  createNewFile: () => ipcRenderer.invoke('create-new-file'),
   onTabsUpdated: (callback) => {
+    ipcRenderer.removeAllListeners('tabs-updated');
     ipcRenderer.on('tabs-updated', (event, tabs) => callback(tabs));
   },
 
@@ -166,6 +170,32 @@ contextBridge.exposeInMainWorld('electronAPI', {
     onUpdated: (callback) => {
       ipcRenderer.on('theme:updated', (_event, theme) => callback(theme));
     },
+  },
+
+  // License & onboarding UI IPC
+  license: {
+    checkStatus: () => ipcRenderer.invoke('check-license-status'),
+    typeSelected: (data) => ipcRenderer.send('license-type-selected', data),
+    skipSelection: (data) => ipcRenderer.send('skip-license-selection', data),
+    businessNotify: (data) => ipcRenderer.send('business-notify-request', data),
+    validateCode: (code) => ipcRenderer.invoke('validate-license-code', code),
+    backToSelection: () => ipcRenderer.send('back-to-license-selection'),
+    validated: (data) => ipcRenderer.send('license-validated', data),
+    getData: () => ipcRenderer.invoke('get-license-data'),
+    getValidationState: () => ipcRenderer.invoke('get-license-validation-state'),
+    showChangeDialog: () => ipcRenderer.send('show-change-license-dialog'),
+    showDeactivateDialog: () => ipcRenderer.send('show-deactivate-license-dialog'),
+  },
+  onboarding: {
+    authenticateUser: (creds) => ipcRenderer.invoke('authenticate-user', creds),
+    getAuthStatus: () => ipcRenderer.invoke('get-auth-status'),
+    openHelpPage: (page) => ipcRenderer.send('open-help-page', page),
+    authenticationSuccessful: () => ipcRenderer.send('authentication-successful'),
+    createUserAccount: (data) => ipcRenderer.invoke('create-user-account', data),
+    accountCreatedSuccessfully: () => ipcRenderer.send('account-created-successfully'),
+    getUserSummary: () => ipcRenderer.invoke('get-user-summary'),
+    onboardingComplete: () => ipcRenderer.send('onboarding-complete'),
+    openExternalLink: (data) => ipcRenderer.send('open-external-link', data),
   },
 
   // Authentication storage (legacy)
@@ -254,7 +284,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 // Helper functions for tab detection
 function getFileNameFromTitle() {
   if (document.title && document.title !== 'Penpot') {
-    return document.title.replace(' - Penpot', '');
+    return document.title.replace(/\s+-\s+(Penpot|Kizu|Kizuku)$/i, '');
   }
   return null;
 }
@@ -273,7 +303,11 @@ function addTabViaIPC(tabInfo) {
 }
 
 function extractFileId(url) {
-  const workspacePattern = /workspace\?.*file-id=([^&]+)/;
+  // Only match workspace URLs, skip dashboard
+  if (url.includes('/dashboard')) {
+    return null;
+  }
+  const workspacePattern = /workspace[^/]*[?&]file-id=([^&]+)/;
   const match = url.match(workspacePattern);
   return match ? match[1] : null;
 }
@@ -297,17 +331,39 @@ function detectAndAddTabs() {
   }
 }
 
+/**
+ * Create a tab for a detected workspace file
+ * @param {string} fileId - The file UUID
+ * @param {string} url - The workspace URL
+ */
 function createTabForFile(fileId, url) {
   console.log('✅ File detected, ID:', fileId);
-  const fileName = getFileNameFromTitle() || 'Untitled';
-  console.log('📝 Auto-creating tab for:', fileName);
 
-  if (window.electronAPI) {
-    window.electronAPI
-      .addTab({ id: fileId, name: fileName, url })
+  // Check if tab already exists before auto-creating
+  ipcRenderer.invoke('get-open-tabs').then((tabs) => {
+    const exists = tabs && tabs.some((tab) => tab.id === fileId);
+    if (exists) {
+      console.log('⏭️ Tab already exists for file:', fileId);
+      return;
+    }
+
+    const fileName = getFileNameFromTitle() || 'Untitled';
+
+    // Skip if title still shows dashboard content
+    if (
+      fileName.toLowerCase().includes('dashboard') ||
+      fileName.toLowerCase().includes('project')
+    ) {
+      console.log('⏭️ Skipping dashboard-like title:', fileName);
+      return;
+    }
+
+    console.log('📝 Auto-creating tab for:', fileName);
+    ipcRenderer
+      .invoke('add-tab', { id: fileId, name: fileName, url })
       .then((result) => console.log('📝 Auto tab created:', result))
-      .catch((error) => console.error('❌ Auto tab creation failed:', error));
-  }
+      .catch((error) => console.error('❌ Auto tab failed:', error));
+  });
 }
 
 // Watch for URL changes and page loads
@@ -330,21 +386,6 @@ document.addEventListener('DOMContentLoaded', () => {
 // Also check on window load
 window.addEventListener('load', () => {
   setTimeout(detectAndAddTabs, 3000); // Back to original timing
-
-  // MANUAL TEST - Add this automatically for debugging
-  setTimeout(() => {
-    if (window.electronAPI) {
-      console.log('🧪 Running manual IPC test...');
-      window.electronAPI
-        .addTab({
-          id: 'test-123',
-          name: 'Manual Test',
-          url: window.location.href,
-        })
-        .then((result) => console.log('🧪 Manual test result:', result))
-        .catch((error) => console.log('🧪 Manual test error:', error));
-    }
-  }, 5000);
 });
 
-console.log('✅ Kizu preload script loaded successfully');
+console.log('✅ Kizuku preload script loaded successfully');

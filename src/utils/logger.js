@@ -1,5 +1,5 @@
 /**
- * Centralized logging utility for Kizu
+ * Centralized logging utility for Kizuku
  * Provides clean logging without ESLint warnings
  */
 

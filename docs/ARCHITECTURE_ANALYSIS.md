@@ -1,14 +1,14 @@
-# Kizu Architecture Analysis: Making PenPot Truly Standalone
+# Kizuku Architecture Analysis: Making PenPot Truly Standalone
 
 **Date**: October 1, 2025
-**Purpose**: Analyze PenPot's architecture and create a plan to make Kizu a truly standalone desktop application
+**Purpose**: Analyze PenPot's architecture and create a plan to make Kizuku a truly standalone desktop application
 
 ---
 
 ## Current State: The Problem
 
 ### What We Have Now
-Kizu is currently just an **Electron wrapper** around PenPot's web application. It requires:
+Kizuku is currently just an **Electron wrapper** around PenPot's web application. It requires:
 - Docker installed on user's machine
 - Multiple containers running (PostgreSQL, Redis/Valkey, MinIO, PenPot backend)
 - Manual container startup before app launch
@@ -102,12 +102,12 @@ From `backend/src/app/config.clj`:
 3. **Embedded Database** (SQLite)
    - PenPot already includes SQLite JDBC driver!
    - Replace PostgreSQL with SQLite for single-user local mode
-   - All data in `~/Library/Application Support/Kizu/database.db`
+   - All data in `~/Library/Application Support/Kizuku/database.db`
 
 4. **Local Filesystem Storage**
    - Use PenPot's existing "fs" backend
-   - Store files in `~/Documents/Kizu/Projects/`
-   - Images/assets in `~/Library/Application Support/Kizu/assets/`
+   - Store files in `~/Documents/Kizuku/Projects/`
+   - Images/assets in `~/Library/Application Support/Kizuku/assets/`
 
 5. **Redis Replacement** (Embedded or Mocked)
    - Option A: Bundle embedded Redis (Valkey binary ~10MB)
@@ -139,15 +139,15 @@ From `backend/src/app/config.clj`:
 │               ↓ Uses                                     │
 │  ┌────────────────────────────────────────────────────┐ │
 │  │  SQLite Database (Embedded)                        │ │
-│  │  Location: ~/Library/Application Support/Kizu/     │ │
+│  │  Location: ~/Library/Application Support/Kizuku/     │ │
 │  │  File: database.db (~1-100MB depending on usage)   │ │
 │  └────────────────────────────────────────────────────┘ │
 │               │                                          │
 │               ↓ Stores                                   │
 │  ┌────────────────────────────────────────────────────┐ │
 │  │  Local File Storage                                │ │
-│  │  Projects: ~/Documents/Kizu/Projects/              │ │
-│  │  Assets: ~/Library/Application Support/Kizu/assets/│ │
+│  │  Projects: ~/Documents/Kizuku/Projects/              │ │
+│  │  Assets: ~/Library/Application Support/Kizuku/assets/│ │
 │  └────────────────────────────────────────────────────┘ │
 │                                                          │
 │  ┌────────────────────────────────────────────────────┐ │

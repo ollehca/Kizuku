@@ -25,7 +25,7 @@ function createDashboardConfig() {
       contextIsolation: true,
       preload: path.join(__dirname, '../preload.js'),
     },
-    title: 'Kizu - Project Dashboard',
+    title: 'Kizuku - Project Dashboard',
     show: false,
     backgroundColor: '#0f1923',
   };

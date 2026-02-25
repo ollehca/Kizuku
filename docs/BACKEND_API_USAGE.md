@@ -339,7 +339,7 @@ client.getConfig()
 ## Troubleshooting
 
 ### "Backend API not available"
-- Ensure preload script loaded: Check console for "✅ Kizu preload script loaded"
+- Ensure preload script loaded: Check console for "✅ Kizuku preload script loaded"
 - Verify `contextIsolation: true` in webPreferences
 - Check preload path is correct in main.js
 

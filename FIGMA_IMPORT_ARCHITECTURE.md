@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-Kizu will achieve **100% Figma compatibility** through a **three-pronged import strategy** that leverages existing open-source tools, enhances conversion accuracy, and provides seamless desktop integration.
+Kizuku will achieve **100% Figma compatibility** through a **three-pronged import strategy** that leverages existing open-source tools, enhances conversion accuracy, and provides seamless desktop integration.
 
 **Target Launch:** Initial release with 85-90% compatibility, reaching 98% within 6 months, and pushing to 100% within 12 months post-launch.
 
@@ -47,7 +47,7 @@ Kizu will achieve **100% Figma compatibility** through a **three-pronged import 
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    KIZU IMPORT SYSTEM                        │
+│                    KIZUKU IMPORT SYSTEM                        │
 ├─────────────────────────────────────────────────────────────┤
 │                                                              │
 │  Path 1: DIRECT PLUGIN INTEGRATION (Primary)                │
@@ -58,7 +58,7 @@ Kizu will achieve **100% Figma compatibility** through a **three-pronged import 
 │       ▲                    │                                 │
 │       │                    ▼                                 │
 │       │          ┌─────────────────┐                        │
-│       │          │ Kizu Enhancer   │                        │
+│       │          │ Kizuku Enhancer   │                        │
 │       │          │ • Fix blend     │                        │
 │       │          │ • Validate      │                        │
 │       │          │ • Add metadata  │                        │
@@ -641,7 +641,7 @@ npm run test:import
 
 ## Conclusion
 
-This architecture enables Kizu to achieve **100% Figma compatibility** by:
+This architecture enables Kizuku to achieve **100% Figma compatibility** by:
 
 1. ✅ Leveraging existing open-source tools (PenPot exporter)
 2. ✅ Building on stable APIs (Figma REST API)
@@ -661,4 +661,4 @@ This architecture enables Kizu to achieve **100% Figma compatibility** by:
 **Minimum Acceptable Threshold: 98%**
 **Ultimate Goal: 100% complete feature parity**
 
-This positions Kizu as the **only 100% compatible Figma alternative** with the industry's best import experience - not "close enough" but **pixel-perfect, feature-complete** parity.
+This positions Kizuku as the **only 100% compatible Figma alternative** with the industry's best import experience - not "close enough" but **pixel-perfect, feature-complete** parity.

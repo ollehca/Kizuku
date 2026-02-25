@@ -22,7 +22,7 @@ describe('AuthFactory', () => {
       mockLicenseStorage.getLicense.mockResolvedValue({
         valid: true,
         type: 'private',
-        code: 'KIZU-12345-ABCDE-FGHIJ-KLMNO-PQRST',
+        code: 'KIZUKU-12345-ABCDE-FGHIJ-KLMNO-PQRST',
       });
 
       await expect(createAuthProvider()).rejects.toThrow('Auth modules not found');
@@ -32,7 +32,7 @@ describe('AuthFactory', () => {
       mockLicenseStorage.getLicense.mockResolvedValue({
         valid: true,
         type: 'business',
-        code: 'KIZU-BIZ-12345-ABCDE',
+        code: 'KIZUKU-BIZ-12345-ABCDE',
       });
 
       await expect(createAuthProvider()).rejects.toThrow(

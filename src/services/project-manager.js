@@ -5,12 +5,12 @@ const { createLogger } = require('../utils/logger');
 
 const logger = createLogger('ProjectManager');
 
-const KIZU_VERSION = '1.0.0';
-const PROJECT_TYPE = 'kizu-project';
+const KIZUKU_VERSION = '1.0.0';
+const PROJECT_TYPE = 'kizuku-project';
 
 /**
  * Project Manager
- * Handles .kizu file operations: create, load, save, validate
+ * Handles .kizuku file operations: create, load, save, validate
  */
 class ProjectManager {
   constructor(configManager) {
@@ -36,7 +36,7 @@ class ProjectManager {
     const projectId = this._generateId();
 
     return {
-      version: KIZU_VERSION,
+      version: KIZUKU_VERSION,
       type: PROJECT_TYPE,
       metadata: this._buildMetadata(metadata, projectId, now),
       settings: this._getDefaultSettings(),
@@ -165,9 +165,9 @@ class ProjectManager {
     try {
       await fs.mkdir(projectsDir, { recursive: true });
       const files = await fs.readdir(projectsDir);
-      const kizuFiles = files.filter((f) => f.endsWith('.kizu'));
+      const kizukuFiles = files.filter((f) => f.endsWith('.kizuku'));
 
-      const projects = await this._readProjectFiles(projectsDir, kizuFiles, limit);
+      const projects = await this._readProjectFiles(projectsDir, kizukuFiles, limit);
       return this._sortProjectsByDate(projects, limit);
     } catch (error) {
       logger.error('Failed to list projects', { error });
@@ -242,7 +242,7 @@ class ProjectManager {
 
   _validateVersion(project) {
     const [major] = project.version.split('.').map(Number);
-    const [currentMajor] = KIZU_VERSION.split('.').map(Number);
+    const [currentMajor] = KIZUKU_VERSION.split('.').map(Number);
 
     if (major !== currentMajor) {
       throw new Error(`Incompatible project version: ${project.version}`);

@@ -1,5 +1,5 @@
 /**
- * Menu action handlers for Kizu
+ * Menu action handlers for Kizuku
  */
 
 const { dialog } = require('electron');
@@ -30,8 +30,8 @@ function sendMenuAction(window, action, data) {
  */
 function getProjectFileFilters() {
   return [
-    { name: 'Kizu Files', extensions: ['kizu'] },
-    { name: 'Kizu Files (Legacy)', extensions: ['penpot'] },
+    { name: 'Kizuku Files', extensions: ['kizuku'] },
+    { name: 'Kizuku Files (Legacy)', extensions: ['penpot'] },
     { name: 'Figma Files', extensions: ['fig'] },
     { name: 'JSON Files', extensions: ['json'] },
     { name: 'All Files', extensions: ['*'] },
@@ -60,7 +60,7 @@ async function showOpenProjectDialog(window) {
   try {
     logger.info('Opening project file dialog');
     const result = await dialog.showOpenDialog(window, {
-      title: 'Open Kizu Project',
+      title: 'Open Kizuku Project',
       properties: ['openFile'],
       filters: getProjectFileFilters(),
     });
@@ -92,8 +92,8 @@ async function showSaveAsDialog(window) {
   try {
     logger.info('Opening save project dialog');
     const result = await dialog.showSaveDialog(window, {
-      title: 'Save Kizu Project',
-      defaultPath: 'Untitled Project.kizu',
+      title: 'Save Kizuku Project',
+      defaultPath: 'Untitled Project.kizuku',
       filters: getProjectFileFilters(),
     });
     handleSaveDialogResult(result, window, logger);
@@ -140,7 +140,7 @@ async function showImportImageDialog(window) {
   try {
     logger.info('Opening image import dialog');
     const result = await dialog.showOpenDialog(window, {
-      title: 'Import Images to Kizu',
+      title: 'Import Images to Kizuku',
       properties: ['openFile', 'multiSelections'],
       filters: getImageFileFilters(),
     });
@@ -173,7 +173,7 @@ async function showImportFontDialog(window) {
   try {
     logger.info('Opening font import dialog');
     const result = await dialog.showOpenDialog(window, {
-      title: 'Import Fonts to Kizu',
+      title: 'Import Fonts to Kizuku',
       properties: ['openFile', 'multiSelections'],
       filters: getFontFileFilters(),
     });

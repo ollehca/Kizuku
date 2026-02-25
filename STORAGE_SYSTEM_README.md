@@ -1,16 +1,16 @@
-# Kizu Local Storage System
+# Kizuku Local Storage System
 
 ## Overview
 
-The Kizu local storage system provides secure, encrypted persistence for license validation state and user account data. Storage is OS-appropriate and follows platform conventions.
+The Kizuku local storage system provides secure, encrypted persistence for license validation state and user account data. Storage is OS-appropriate and follows platform conventions.
 
 ## Storage Locations
 
 The system automatically uses the correct location for each OS:
 
-- **macOS**: `~/Library/Application Support/Kizu/`
-- **Windows**: `%APPDATA%/Kizu/`
-- **Linux**: `~/.config/Kizu/`
+- **macOS**: `~/Library/Application Support/Kizuku/`
+- **Windows**: `%APPDATA%/Kizuku/`
+- **Linux**: `~/.config/Kizuku/`
 
 ## Files
 
@@ -51,7 +51,7 @@ Save license validation state.
 const { saveLicense } = require('./src/services/license-storage');
 
 const result = await saveLicense({
-  code: 'KIZU-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX',
+  code: 'KIZUKU-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX',
   type: 'private',
   validated: true,
   validatedAt: new Date().toISOString(),
@@ -238,7 +238,7 @@ await deleteUser();
 
 ```javascript
 {
-  code: 'KIZU-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX',
+  code: 'KIZUKU-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX',
   type: 'private' | 'business' | 'trial',
   validated: boolean,
   validatedAt: '2025-09-30T18:03:03.424Z',
@@ -305,7 +305,7 @@ The test suite covers:
 
 ```
 ╔════════════════════════════════════════╗
-║   Kizu Storage System Test Suite      ║
+║   Kizuku Storage System Test Suite      ║
 ╚════════════════════════════════════════╝
 
 === Testing License Storage ===
@@ -346,7 +346,7 @@ Encryption keys are derived using PBKDF2:
 ```javascript
 const key = crypto.pbkdf2Sync(
   salt,           // App name + version
-  'kizu-secret',  // Base secret
+  'kizuku-secret',  // Base secret
   100000,         // Iterations
   32,             // Key length (256 bits)
   'sha256'        // Hash algorithm
@@ -557,7 +557,7 @@ await clearLicense(); // Clear corrupted file
 **Solution**:
 ```bash
 # macOS/Linux
-chmod 600 ~/Library/Application\ Support/Kizu/*.dat
+chmod 600 ~/Library/Application\ Support/Kizuku/*.dat
 
 # Windows
 # Use File Explorer → Properties → Security

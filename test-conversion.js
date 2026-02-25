@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Test script for Figma → Kizu → PenPot conversion pipeline
+ * Test script for Figma → Kizuku → PenPot conversion pipeline
  * Verifies that the test Figma JSON file can be converted and would render
  */
 
@@ -12,7 +12,7 @@ const { getFigmaJSONConverter } = require('./src/services/figma/figma-json-conve
 
 async function testConversion() {
   console.log('='.repeat(60));
-  console.log('Testing Figma → Kizu → PenPot Conversion Pipeline');
+  console.log('Testing Figma → Kizuku → PenPot Conversion Pipeline');
   console.log('='.repeat(60));
 
   try {
@@ -23,8 +23,8 @@ async function testConversion() {
     console.log('   ✅ Loaded:', figmaJson.name);
     console.log('   Pages:', figmaJson.document.children.length);
 
-    // Step 2: Convert to Kizu format
-    console.log('\n🔄 Step 2: Converting to Kizu format...');
+    // Step 2: Convert to Kizuku format
+    console.log('\n🔄 Step 2: Converting to Kizuku format...');
     const converter = getFigmaJSONConverter();
     const result = await converter.convert(figmaJson, { name: 'Test Import' });
 
@@ -35,13 +35,13 @@ async function testConversion() {
     console.log('   Warnings:', result.stats.warnings.length);
     console.log('   Errors:', result.stats.errors.length);
 
-    const kizuProject = result.project;
-    console.log('\n📦 Kizu Project Structure:');
-    console.log('   ID:', kizuProject.metadata.id);
-    console.log('   Name:', kizuProject.metadata.name);
-    console.log('   Pages:', kizuProject.data.pages.length);
+    const kizukuProject = result.project;
+    console.log('\n📦 Kizuku Project Structure:');
+    console.log('   ID:', kizukuProject.metadata.id);
+    console.log('   Name:', kizukuProject.metadata.name);
+    console.log('   Pages:', kizukuProject.data.pages.length);
 
-    for (const page of kizuProject.data.pages) {
+    for (const page of kizukuProject.data.pages) {
       console.log(`   📄 Page "${page.name}": ${page.children?.length || 0} children`);
       for (const child of page.children || []) {
         console.log(`      - ${child.type}: ${child.name}`);
@@ -139,7 +139,7 @@ async function testConversion() {
     }
 
     // Process pages
-    for (const page of kizuProject.data.pages) {
+    for (const page of kizukuProject.data.pages) {
       const pageId = page.id || crypto.randomUUID();
       pagesArray.push(pageId);
 
@@ -187,9 +187,9 @@ async function testConversion() {
     }
 
     const penpotFile = {
-      id: kizuProject.metadata.id,
-      name: kizuProject.metadata.name,
-      'project-id': kizuProject.metadata.id,
+      id: kizukuProject.metadata.id,
+      name: kizukuProject.metadata.name,
+      'project-id': kizukuProject.metadata.id,
       'team-id': '00000000-0000-0000-0000-000000000001',
       version: 22,
       revn: 0,

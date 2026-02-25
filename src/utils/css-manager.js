@@ -64,14 +64,14 @@ function setupCSSHotReloading() {
 
   const watchFiles = [
     {
-      css: path.join(__dirname, '..', 'styles', 'kizu-palette.css'),
+      css: path.join(__dirname, '..', 'styles', 'kizuku-palette.css'),
     },
     {
       scss: path.join(__dirname, '..', 'styles', 'desktop.scss'),
       css: path.join(__dirname, '..', 'styles', 'desktop.css'),
     },
     {
-      css: path.join(__dirname, '..', 'styles', 'kizu-branding.css'),
+      css: path.join(__dirname, '..', 'styles', 'kizuku-branding.css'),
     },
     {
       css: path.join(__dirname, '..', 'styles', 'loading.css'),
@@ -105,10 +105,10 @@ function setupCSSHotReloading() {
 
 function injectCSSFiles(window) {
   const cssFiles = [
-    path.join(__dirname, '..', 'styles', 'kizu-palette.css'),
+    path.join(__dirname, '..', 'styles', 'kizuku-palette.css'),
     path.join(__dirname, '..', 'styles', 'desktop.css'),
     path.join(__dirname, '..', 'styles', 'loading.css'),
-    path.join(__dirname, '..', 'styles', 'kizu-branding.css'),
+    path.join(__dirname, '..', 'styles', 'kizuku-branding.css'),
   ];
 
   try {

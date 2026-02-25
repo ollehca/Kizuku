@@ -10,7 +10,7 @@ const userStorage = require('../../src/services/user-storage');
 const fs = require('fs').promises;
 
 describe('Authentication Orchestrator', () => {
-  const validLicenseCode = 'KIZU-50019-99AC6-14B35-557C8-509D0';
+  const validLicenseCode = 'KIZUKU-50019-99AC6-14B35-557C8-509D0';
 
   const testUserData = {
     username: 'testuser',

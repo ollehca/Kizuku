@@ -1,4 +1,4 @@
-# Kizu Development Guide
+# Kizuku Development Guide
 
 **A local-first design tool with cloud collaboration (when needed)**
 
@@ -73,7 +73,7 @@ All technical documentation is in `docs/`:
 │  └──────────────────────────────────┘  │
 └─────────────────────────────────────────┘
         ↓ Stores Data
-~/Library/Application Support/Kizu/
+~/Library/Application Support/Kizuku/
 ├── database/postgresql/
 ├── assets/
 └── config.json
@@ -140,7 +140,7 @@ npm start
 
 ```bash
 # Development
-npm start                  # Start Kizu in development mode
+npm start                  # Start Kizuku in development mode
 npm run dev:backend        # Start PenPot backend separately (debug)
 npm run dev:frontend       # Start PenPot frontend separately (debug)
 
@@ -257,12 +257,12 @@ Press `Cmd+Option+I` (macOS) or `Ctrl+Shift+I` (Windows/Linux) to open DevTools.
 **App won't start**:
 - Check Java is installed: `java --version`
 - Check Node version: `node --version`
-- Check logs in `~/Library/Application Support/Kizu/logs/`
+- Check logs in `~/Library/Application Support/Kizuku/logs/`
 
 **Database errors**:
 - Check PostgreSQL is embedded correctly
 - Check database directory permissions
-- Try removing database and recreating: `rm -rf ~/Library/Application\ Support/Kizu/database`
+- Try removing database and recreating: `rm -rf ~/Library/Application\ Support/Kizuku/database`
 
 **Backend won't start**:
 - Check port 54321 is available

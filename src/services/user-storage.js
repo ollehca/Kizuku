@@ -1,13 +1,13 @@
 /**
- * Kizu User Storage Service
+ * Kizuku User Storage Service
  *
  * Manages persistent storage of local user account data.
  * Uses OS-appropriate userData directory with encrypted storage.
  *
  * Storage locations:
- * - macOS: ~/Library/Application Support/Kizu/
- * - Windows: %APPDATA%/Kizu/
- * - Linux: ~/.config/Kizu/
+ * - macOS: ~/Library/Application Support/Kizuku/
+ * - Windows: %APPDATA%/Kizuku/
+ * - Linux: ~/.config/Kizuku/
  *
  * @module user-storage
  */
@@ -25,8 +25,8 @@ const AUTH_TAG_LENGTH = 16;
 
 // Derive encryption key from machine-specific data
 function getDerivedKey() {
-  const salt = `kizu-user-storage-${app.getVersion()}`;
-  return crypto.pbkdf2Sync(salt, 'kizu-secret', 100000, KEY_LENGTH, 'sha256');
+  const salt = `kizuku-user-storage-${app.getVersion()}`;
+  return crypto.pbkdf2Sync(salt, 'kizuku-secret', 100000, KEY_LENGTH, 'sha256');
 }
 
 /**

@@ -1,5 +1,5 @@
 /**
- * Tests for kizu-text-formatter.js
+ * Tests for kizuku-text-formatter.js
  * Verifies PenPot rich text format generation from Figma text nodes.
  *
  * Written TDD-style: tests define the expected behavior BEFORE implementation.
@@ -11,7 +11,7 @@ const {
   buildTextRuns,
   formatTextRun,
   splitIntoParagraphs,
-} = require('../../../src/services/figma/kizu-text-formatter');
+} = require('../../../src/services/figma/kizuku-text-formatter');
 
 const { createText } = require('../../fixtures/figma-nodes');
 

@@ -1,9 +1,9 @@
-const { app, BrowserWindow, dialog, shell, protocol, net, ipcMain } = require('electron');
+const { app, BrowserWindow, dialog, shell, protocol, net, ipcMain, session } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { buildApplicationMenu } = require('./menu-builder');
 const { registerIpcHandlers } = require('./ipc-handlers');
-const { initializeTabManager, registerTabHandlers } = require('./tab-manager');
+const { initializeTabManager, registerTabHandlers, sendRestoredTabs } = require('./tab-manager');
 const { createHeaderBar } = require('./utils/tab-helpers');
 const cssManager = require('./utils/css-manager');
 const recovery = require('./utils/recovery');
@@ -13,8 +13,9 @@ const { getBackendServiceManager } = require('./services/backend-service-manager
 const { setupDragAndDrop } = require('./utils/drag-drop-handler');
 const themeStorage = require('./services/brand-theme-storage');
 const themeApplicator = require('./services/brand-theme-applicator');
-const { injectAuthIntegration, injectKizuBranding } = require('./utils/frontend-injection');
-const { injectFetchInterceptor } = require('./utils/fetch-interceptor');
+const { registerAuthIPCHandlers } = require('./services/auth-ipc-handlers');
+const { injectAuthIntegration, injectKizukuBranding } = require('./utils/frontend-injection');
+const { injectFetchInterceptor, setupSessionRedirect } = require('./utils/fetch-interceptor');
 const rendererScripts = require('./utils/renderer-scripts');
 const { startMockServer } = require('./services/mock-server');
 const { handleFileOpen } = require('./services/file-open-handler');
@@ -83,7 +84,7 @@ const isDev =
   fs.existsSync(path.join(__dirname, '../../penpot')) ||
   process.env.NODE_ENV !== 'production'; // Default to dev unless explicitly production
 
-// Kizu configuration
+// Kizuku configuration
 const PENPOT_CONFIG = {
   frontend: {
     dev: 'http://localhost:3449',
@@ -95,7 +96,7 @@ const PENPOT_CONFIG = {
   },
 };
 
-// Check if response contains Kizu content
+// Check if response contains Kizuku content
 function validatePenpotContent(htmlContent) {
   return htmlContent.includes('penpotTranslations') && htmlContent.includes('penpotWorkerURI');
 }
@@ -130,13 +131,13 @@ async function attemptRecoveryAndRetry() {
   return false;
 }
 
-// Validate Kizu frontend content
+// Validate Kizuku frontend content
 async function validateFrontendResponse(frontendResponse) {
   const htmlContent = await frontendResponse.text();
   const isPenpotApp = validatePenpotContent(htmlContent);
 
   console.log('Frontend status:', frontendResponse.ok);
-  console.log('Kizu app detected:', isPenpotApp);
+  console.log('Kizuku app detected:', isPenpotApp);
 
   return isPenpotApp;
 }
@@ -154,7 +155,7 @@ async function handleServerError(error) {
   return false;
 }
 
-// Check if Kizu development server is running
+// Check if Kizuku development server is running
 async function checkPenpotServer() {
   try {
     const frontendResponse = await createTimeoutFetch(PENPOT_CONFIG.frontend.dev);
@@ -373,16 +374,18 @@ function injectDomReadyScripts(window) {
  * @param {object} window - BrowserWindow instance
  */
 function injectCustomizations(window) {
-  console.log('Kizu finished loading, injecting customizations...');
+  console.log('Kizuku finished loading, injecting customizations...');
 
-  setTimeout(() => {
+  setTimeout(async () => {
     if (!injectionState.headerBar) {
       createHeaderBar(window);
       injectionState.headerBar = true;
     }
+    // Navigate to restored tab BEFORE auth so it sees a valid workspace URL
+    await sendRestoredTabs();
     attemptAutoLogin(window);
     injectAuthIntegration(window);
-    injectKizuBranding(window);
+    injectKizukuBranding(window);
   }, 2000);
 }
 
@@ -407,14 +410,14 @@ function handleServerSuccess(window) {
       cssManager.setupCSSHotReloading();
     })
     .catch((err) => {
-      console.error('Failed to load Kizu:', err);
+      console.error('Failed to load Kizuku:', err);
       showConnectionError();
     });
 }
 
 // Helper function to handle development mode loading
 function handleDevelopmentLoading(window) {
-  console.log('Checking Kizu server...');
+  console.log('Checking Kizuku server...');
   checkPenpotServer().then((isRunning) => {
     console.log('Server running:', isRunning);
     if (isRunning) {
@@ -445,7 +448,7 @@ function handleProductionLoading(window) {
       }
     })
     .catch((err) => {
-      console.error('Failed to load Kizu:', err);
+      console.error('Failed to load Kizuku:', err);
       showConnectionError();
     });
 }
@@ -493,7 +496,7 @@ async function createWindow() {
     return;
   }
 
-  // User is authenticated, load main app (Kizu)
+  // User is authenticated, load main app (Kizuku)
   if (isDev) {
     handleDevelopmentLoading(mainWindow);
   } else {
@@ -523,21 +526,21 @@ async function loadAuthScreen(window, screenName) {
     setupWindowEventHandlers(window);
   } catch (error) {
     console.error('Failed to load auth screen:', error);
-    dialog.showErrorBox('Kizu Error', `Failed to load authentication screen: ${error.message}`);
+    dialog.showErrorBox('Kizuku Error', `Failed to load authentication screen: ${error.message}`);
   }
 }
 
 function showConnectionError() {
   dialog.showErrorBox(
-    'Kizu Connection Error',
+    'Kizuku Connection Error',
     isDev
-      ? 'Kizu development server not ready:\n\n' +
-          '• Check if Kizu is fully started at localhost:3449\n' +
+      ? 'Kizuku development server not ready:\n\n' +
+          '• Check if Kizuku is fully started at localhost:3449\n' +
           '• Backend services may still be starting\n\n' +
-          'Please ensure FULL Kizu environment is running:\n' +
+          'Please ensure FULL Kizuku environment is running:\n' +
           'cd ../penpot && ./manage.sh run-devenv\n\n' +
           'Wait for ALL services to start before launching desktop app.'
-      : 'Could not load the Kizu application. Please check the installation.'
+      : 'Could not load the Kizuku application. Please check the installation.'
   );
 }
 
@@ -579,9 +582,12 @@ app.whenReady().then(async () => {
   // Setup mock backend interception at protocol level (catches ALL requests, even early ones)
   setupMockBackendInterception();
 
+  // Redirect API + asset calls from web workers to the mock server
+  setupSessionRedirect(session.defaultSession);
+
   // Register custom protocol to serve logo files
-  protocol.handle('kizu', (request) => {
-    const url = request.url.replace('kizu://logos/', '');
+  protocol.handle('kizuku', (request) => {
+    const url = request.url.replace('kizuku://logos/', '');
     const logoPath = path.join(__dirname, 'Logos', url);
     return net.fetch(`file://${logoPath}`);
   });
@@ -592,6 +598,7 @@ app.whenReady().then(async () => {
   createWindow();
   buildApplicationMenu(mainWindow);
   registerIpcHandlers(mainWindow);
+  registerAuthIPCHandlers(mainWindow);
   initializeTabManager(store, mainWindow);
   registerTabHandlers();
 
@@ -617,14 +624,14 @@ app.on('window-all-closed', () => {
   }
 });
 
-// Handle file opening (.fig, .kizu, .json files)
+// Handle file opening (.fig, .kizuku, .json files)
 // macOS: open-file event
 app.on('open-file', async (event, filePath) => {
   event.preventDefault();
   console.log('File open requested:', filePath);
 
   const ext = path.extname(filePath).toLowerCase();
-  if (['.fig', '.kizu', '.json'].includes(ext)) {
+  if (['.fig', '.kizuku', '.json'].includes(ext)) {
     await handleFileOpen(filePath, mainWindow);
   }
 });
@@ -632,7 +639,7 @@ app.on('open-file', async (event, filePath) => {
 // Windows/Linux: command line arguments
 if (process.platform !== 'darwin') {
   const fileArg = process.argv.find((arg) =>
-    ['.fig', '.kizu', '.json'].some((ext) => arg.toLowerCase().endsWith(ext))
+    ['.fig', '.kizuku', '.json'].some((ext) => arg.toLowerCase().endsWith(ext))
   );
 
   if (fileArg) {
@@ -670,6 +677,6 @@ if (process.platform === 'darwin') {
 // Re-export handleFileOpen for IPC handlers that reference main.handleFileOpen
 module.exports.handleFileOpen = (filePath) => handleFileOpen(filePath, mainWindow);
 
-console.log('Kizu starting...');
+console.log('Kizuku starting...');
 console.log('Development mode:', isDev);
 console.log('Electron version:', process.versions.electron);

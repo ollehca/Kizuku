@@ -1,4 +1,4 @@
-# Kizu Development Setup Guide
+# Kizuku Development Setup Guide
 
 ## Overview
 
@@ -35,7 +35,7 @@ mkdir PenPotDesktop && cd PenPotDesktop
 git clone https://github.com/penpot/penpot.git
 
 # Clone desktop wrapper (this project)
-git clone https://github.com/your-username/kizu.git
+git clone https://github.com/your-username/kizuku.git
 ```
 
 ### 2. Set up Node.js Environment
@@ -73,7 +73,7 @@ cd penpot
 ### 4. Set up Electron Desktop App
 
 ```bash
-cd ../kizu
+cd ../kizuku
 
 # Install dependencies
 npm install
@@ -94,7 +94,7 @@ npm run dev
 
 2. **Start Electron App**:
    ```bash
-   cd kizu
+   cd kizuku
    npm run dev
    ```
 
@@ -154,7 +154,7 @@ penpot/
 ### Electron Desktop Structure
 
 ```
-kizu/
+kizuku/
 ├── src/
 │   ├── main.js               # Electron main process
 │   ├── preload.js           # Secure IPC bridge

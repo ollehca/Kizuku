@@ -4,3 +4,6 @@ tests/**/*.test.js
 coverage/
 backup/
 *.log
+
+# Quarantined code - not used in v1.0 (see LINTING_QUARANTINE.md)
+src/_quarantine/**

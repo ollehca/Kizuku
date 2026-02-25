@@ -1,7 +1,7 @@
 /**
  * Test Report Generator Utility
  *
- * Handles generation of comprehensive test reports for Kizu design tools testing.
+ * Handles generation of comprehensive test reports for Kizuku design tools testing.
  * Extracted from main test file to reduce complexity and file size.
  */
 
@@ -35,7 +35,7 @@ class TestReportGenerator {
 
   _printReportHeader(total, duration) {
     console.log('\n' + '='.repeat(75));
-    console.log('🎨 KIZU DESIGN TOOLS TEST RESULTS');
+    console.log('🎨 KIZUKU DESIGN TOOLS TEST RESULTS');
     console.log('='.repeat(75));
     console.log(`✅ Passed: ${this.results.passed}`);
     console.log(`❌ Failed: ${this.results.failed}`);
@@ -97,7 +97,7 @@ class TestReportGenerator {
   _printFinalVerdict(allCriteriaPassed) {
     if (allCriteriaPassed) {
       console.log('🎉 All Issue #58 acceptance criteria passed!');
-      console.log('✨ Kizu design tools are fully functional in desktop app.');
+      console.log('✨ Kizuku design tools are fully functional in desktop app.');
     } else {
       console.log('⚠️  Some acceptance criteria not fully met.');
       console.log('🔧 Review specific test failures above for improvement areas.');
@@ -119,7 +119,7 @@ class TestReportGenerator {
   }
 
   _saveDetailedResults(duration, acceptanceCriteria, allCriteriaPassed) {
-    const reportPath = path.join(process.cwd(), 'kizu-design-tools-test-results.json');
+    const reportPath = path.join(process.cwd(), 'kizuku-design-tools-test-results.json');
     const reportData = {
       timestamp: new Date().toISOString(),
       duration: parseFloat(duration),

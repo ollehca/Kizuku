@@ -6,7 +6,7 @@
  * @module account-creation
  */
 
-const { ipcRenderer } = require('electron');
+const api = window.electronAPI;
 
 // DOM Elements
 let form;
@@ -78,7 +78,7 @@ async function handleSubmit(event) {
 
   try {
     // Create account via IPC
-    const result = await ipcRenderer.invoke('create-user-account', userData);
+    const result = await api.onboarding.createUserAccount(userData);
 
     if (result.success) {
       // Account created successfully
@@ -383,7 +383,7 @@ function setLoadingState(loading) {
  */
 function proceedToCompletion() {
   setTimeout(() => {
-    ipcRenderer.send('account-created-successfully');
+    api.onboarding.accountCreatedSuccessfully();
   }, 500);
 }
 

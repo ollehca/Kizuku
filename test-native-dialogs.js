@@ -49,14 +49,14 @@ class DialogTester {
     await this.testFunction(
       'showOpenProjectDialog',
       () => menuActions.showOpenProjectDialog(this.window),
-      'Open project dialog should display with .kizu extensions'
+      'Open project dialog should display with .kizuku extensions'
     );
 
     // Test save as dialog
     await this.testFunction(
       'showSaveAsDialog',
       () => menuActions.showSaveAsDialog(this.window),
-      'Save as dialog should display with .kizu default extension'
+      'Save as dialog should display with .kizuku default extension'
     );
   }
 
@@ -100,7 +100,7 @@ class DialogTester {
     const testDialog = {
       title: 'Cross-Platform Test',
       filters: [
-        { name: 'Kizu Files', extensions: ['kizu'] },
+        { name: 'Kizuku Files', extensions: ['kizuku'] },
         { name: 'All Files', extensions: ['*'] },
       ],
     };

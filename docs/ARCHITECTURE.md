@@ -1,14 +1,14 @@
-# Kizu Architecture
+# Kizuku Architecture
 
 ## Overview
 
-Kizu is built as a hybrid application that combines the existing PenPot web application with Electron to provide desktop-specific features and offline capabilities.
+Kizuku is built as a hybrid application that combines the existing PenPot web application with Electron to provide desktop-specific features and offline capabilities.
 
 ## High-Level Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                         Kizu                                │
+│                         Kizuku                                │
 ├─────────────────────────────────────────────────────────────┤
 │  Electron Main Process                                      │
 │  ├── Window Management                                      │
@@ -274,7 +274,7 @@ npm run build
 
 ### Code Organization
 ```
-kizu/
+kizuku/
 ├── src/
 │   ├── main/           # Electron main process
 │   ├── renderer/       # Desktop-specific renderer code  

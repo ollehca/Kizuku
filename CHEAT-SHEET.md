@@ -1,4 +1,4 @@
-# 🎨 Kizu - Cheat Sheet
+# 🎨 Kizuku - Cheat Sheet
 
 ## ⚡ Essential Commands
 

@@ -275,7 +275,7 @@ describe('Complete Authentication Flow - Integration Tests', () => {
   describe('Demo Account Integration', () => {
     test('demo license setup creates working authentication', async () => {
       // Simulate the demo setup script
-      const DEMO_LICENSE_CODE = 'KIZU-50019-99FF9-D4EFF-5DE58-DC837';
+      const DEMO_LICENSE_CODE = 'KIZUKU-50019-99FF9-D4EFF-5DE58-DC837';
 
       // Save demo license
       await licenseStorage.saveLicense({

@@ -1,16 +1,16 @@
-# Kizu License System Documentation
+# Kizuku License System Documentation
 
 ## Overview
 
-Kizu uses a cryptographically secure license code system for user authentication and access control. This document describes the complete license system implementation.
+Kizuku uses a cryptographically secure license code system for user authentication and access control. This document describes the complete license system implementation.
 
 ## License Code Format
 
-**Format**: `KIZU-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX`
+**Format**: `KIZUKU-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX`
 
-**Example**: `KIZU-50019-99AC6-14B35-557C8-509D0`
+**Example**: `KIZUKU-50019-99AC6-14B35-557C8-509D0`
 
-- **Prefix**: KIZU- (identifies as Kizu license)
+- **Prefix**: KIZUKU- (identifies as Kizuku license)
 - **Length**: 25 hexadecimal characters (0-9, A-F) after prefix
 - **Groups**: 5 groups of 5 characters, separated by hyphens
 - **Case**: Case-insensitive (automatically converted to uppercase)
@@ -67,7 +67,7 @@ Each license code encodes 12.5 bytes of data:
 ### Cryptographic Security
 
 - **Algorithm**: HMAC-SHA256
-- **Secret Key**: Stored in `KIZU_LICENSE_SECRET` environment variable
+- **Secret Key**: Stored in `KIZUKU_LICENSE_SECRET` environment variable
 - **Signature**: Validates code integrity and authenticity
 - **Tampering Detection**: Any change to the code invalidates the signature
 
@@ -121,7 +121,7 @@ Output:
 ```
 ✓ License Generated Successfully
 
-Code:        KIZU-50019-99AC6-14B35-557C8-509D0
+Code:        KIZUKU-50019-99AC6-14B35-557C8-509D0
 Type:        private
 Email:       user@example.com
 Generated:   2025-09-30T13:18:16.755Z
@@ -134,14 +134,14 @@ If lost or stolen, contact support immediately.
 #### Validate License Code
 
 ```bash
-node tools/generate-license.js --validate "KIZU-50019-99AC6-14B35-557C8-509D0"
+node tools/generate-license.js --validate "KIZUKU-50019-99AC6-14B35-557C8-509D0"
 ```
 
 Output:
 ```
 ✓ License Code Valid
 
-Code:        KIZU-50019-99AC6-14B35-557C8-509D0
+Code:        KIZUKU-50019-99AC6-14B35-557C8-509D0
 Type:        private
 Generated:   2025-09-30T13:18:16.755Z
 ```
@@ -176,7 +176,7 @@ const license = generateLicense({
   metadata: { plan: 'pro' }
 });
 
-console.log(license.code); // KIZU-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX
+console.log(license.code); // KIZUKU-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX
 
 // Validate license
 const result = validateLicense(license.code);
@@ -187,13 +187,13 @@ if (result.valid) {
 }
 
 // Check format (fast, no crypto)
-if (isValidFormat('KIZU-50019-99AC6-14B35-557C8-509D0')) {
+if (isValidFormat('KIZUKU-50019-99AC6-14B35-557C8-509D0')) {
   console.log('Format is valid');
 }
 
 // Format code with hyphens
 const formatted = formatCode('500199AC614B35557C8509D0');
-console.log(formatted); // KIZU-50019-99AC6-14B35-557C8-509D0
+console.log(formatted); // KIZUKU-50019-99AC6-14B35-557C8-509D0
 ```
 
 ## Security Best Practices
@@ -220,27 +220,27 @@ console.log(formatted); // KIZU-50019-99AC6-14B35-557C8-509D0
 
 **Email Delivery** (Recommended for initial distribution):
 ```
-Subject: Your Kizu License Code
+Subject: Your Kizuku License Code
 
 Hello,
 
 Thank you for purchasing Kizu!
 
-Your license code: KIZU-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX
+Your license code: KIZUKU-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX
 
 ⚠️ IMPORTANT SECURITY NOTICE:
 • Keep this code secure - treat it like a password
 • Store in a password manager immediately
 • Do not share with anyone
 • Delete this email after storing the code
-• If lost or stolen, contact support@kizu.app
+• If lost or stolen, contact support@kizuku.app
 
-Copy and paste this code during Kizu activation.
+Copy and paste this code during Kizuku activation.
 
-Questions? support@kizu.app
+Questions? support@kizuku.app
 
 —
-Kizu Team
+Kizuku Team
 ```
 
 **Security Notice** (Include in all communications):
@@ -253,7 +253,7 @@ We recommend:
 2. Delete the email after securing your code
 3. Never share or forward the email
 
-Kizu is not responsible for lost or stolen license codes. Users are
+Kizuku is not responsible for lost or stolen license codes. Users are
 responsible for keeping their codes secure.
 ```
 
@@ -262,10 +262,10 @@ responsible for keeping their codes secure.
 **Secret Key Management**:
 ```bash
 # Development
-export KIZU_LICENSE_SECRET="dev-secret-key-change-in-production"
+export KIZUKU_LICENSE_SECRET="dev-secret-key-change-in-production"
 
 # Production (use secure key management)
-export KIZU_LICENSE_SECRET="$(cat /secure/path/to/secret)"
+export KIZUKU_LICENSE_SECRET="$(cat /secure/path/to/secret)"
 # Or use AWS Secrets Manager, Azure Key Vault, etc.
 ```
 
@@ -286,7 +286,7 @@ export KIZU_LICENSE_SECRET="$(cat /secure/path/to/secret)"
 - Copy/paste is faster and error-free
 
 ✅ **Format for readability**
-- Use hyphens: `KIZU-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX`
+- Use hyphens: `KIZUKU-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX`
 - Monospace font for display
 - Clear visual separation
 
@@ -301,7 +301,7 @@ export KIZU_LICENSE_SECRET="$(cat /secure/path/to/secret)"
 **Clear, Actionable Error Messages**:
 
 ❌ Bad: "Invalid code"
-✅ Good: "License code must start with KIZU-"
+✅ Good: "License code must start with KIZUKU-"
 
 ❌ Bad: "Validation failed"
 ✅ Good: "License code contains invalid character 'O' (only 0-9 and A-F allowed)"
@@ -313,9 +313,9 @@ export KIZU_LICENSE_SECRET="$(cat /secure/path/to/secret)"
 
 ```
 ┌─────────────────────────────────────────┐
-│  Enter Your Kizu License Code           │
+│  Enter Your Kizuku License Code           │
 │                                         │
-│  [KIZU-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX]  │
+│  [KIZUKU-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX]  │
 │          [Paste from clipboard]         │
 │                                         │
 │  ⚠️ Keep your code secure               │
@@ -329,8 +329,8 @@ export KIZU_LICENSE_SECRET="$(cat /secure/path/to/secret)"
 
 ### Demo License for Development
 
-**Email**: `demo@kizu.local`
-**License**: `KIZU-50019-99AC6-14B35-557C8-509D0`
+**Email**: `demo@kizuku.local`
+**License**: `KIZUKU-50019-99AC6-14B35-557C8-509D0`
 **Type**: Private
 **Status**: For development/testing only
 
@@ -352,7 +352,7 @@ for type in private business trial; do
 done
 
 # Test validation
-node tools/generate-license.js --validate "KIZU-50019-99AC6-14B35-557C8-509D0"
+node tools/generate-license.js --validate "KIZUKU-50019-99AC6-14B35-557C8-509D0"
 ```
 
 ### Validation Test Cases
@@ -368,7 +368,7 @@ node tools/generate-license.js --validate "KIZU-50019-99AC6-14B35-557C8-509D0"
 ❌ **Invalid Codes**:
 - Wrong length
 - Invalid characters (I, L, O not in hex)
-- Missing KIZU- prefix
+- Missing KIZUKU- prefix
 - Tampered data
 - Wrong signature
 - Invalid type code
@@ -378,13 +378,13 @@ node tools/generate-license.js --validate "KIZU-50019-99AC6-14B35-557C8-509D0"
 ### Local Storage (Next Step)
 
 License validation state stored in:
-- **macOS**: `~/Library/Application Support/Kizu/license.json`
-- **Windows**: `%APPDATA%/Kizu/license.json`
-- **Linux**: `~/.config/Kizu/license.json`
+- **macOS**: `~/Library/Application Support/Kizuku/license.json`
+- **Windows**: `%APPDATA%/Kizuku/license.json`
+- **Linux**: `~/.config/Kizuku/license.json`
 
 ```json
 {
-  "code": "KIZU-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX",
+  "code": "KIZUKU-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX",
   "type": "private",
   "validated": true,
   "validatedAt": "2025-09-30T13:18:16.755Z",
@@ -443,13 +443,13 @@ License validation state stored in:
 ### Common Issues
 
 **Problem**: "License code is invalid"
-**Solution**: Check for typos, ensure copy/paste, verify KIZU- prefix
+**Solution**: Check for typos, ensure copy/paste, verify KIZUKU- prefix
 
 **Problem**: "Invalid character in license code"
 **Solution**: Only 0-9 and A-F allowed (not O, I, L, 1)
 
 **Problem**: "License code data is incomplete"
-**Solution**: Code must be exactly 25 characters after KIZU-
+**Solution**: Code must be exactly 25 characters after KIZUKU-
 
 **Problem**: "License code has been tampered with"
 **Solution**: Code was modified - contact support for new code
@@ -457,9 +457,9 @@ License validation state stored in:
 ### Support
 
 For license issues, contact:
-- **Email**: support@kizu.app
-- **GitHub**: https://github.com/ollehca/Kizu/issues
-- **Documentation**: https://docs.kizu.app
+- **Email**: support@kizuku.app
+- **GitHub**: https://github.com/ollehca/Kizuku/issues
+- **Documentation**: https://docs.kizuku.app
 
 ## Compliance and Legal
 
@@ -475,7 +475,7 @@ Users agree to:
 - Accept responsibility for code security
 - Contact support if code is compromised
 
-Kizu is not liable for:
+Kizuku is not liable for:
 - Lost or stolen license codes
 - Unauthorized use of codes
 - Damages from compromised codes

@@ -1,20 +1,20 @@
 /**
- * Kizu Private License Auto-Login Integration
+ * Kizuku Private License Auto-Login Integration
  * For private license users - bypasses PenPot backend and uses mock backend
  */
 
-console.log('🔐 Kizu Private License Auto-Login Integration loaded');
+console.log('🔐 Kizuku Private License Auto-Login Integration loaded');
 
 // ============================================================================
-// KIZU FEATURE FLAG SYSTEM
+// KIZUKU FEATURE FLAG SYSTEM
 // Quarantine PenPot's auth/team system for private license (single-user mode)
 // Later: Re-enable for business/collab (cloud-based multi-user mode)
 // ============================================================================
 
 // Set global feature flag IMMEDIATELY (before PenPot initializes)
-window.KIZU_SINGLE_USER_MODE = true; // false for business/collab users
-localStorage.setItem('kizu-single-user-mode', 'true');
-console.log('🚩 [KIZU] Feature flag: SINGLE_USER_MODE =', window.KIZU_SINGLE_USER_MODE);
+window.KIZUKU_SINGLE_USER_MODE = true; // false for business/collab users
+localStorage.setItem('kizu-single-user-mode', 'true'); // Must match penpot submodule key
+console.log('🚩 [KIZUKU] Feature flag: SINGLE_USER_MODE =', window.KIZUKU_SINGLE_USER_MODE);
 
 // ============================================================================
 // CRITICAL: IMMEDIATE DASHBOARD REDIRECT (before PenPot renders login)
@@ -43,14 +43,21 @@ const isInvalidViewRoute = (hash) =>
   hash.startsWith('#/view?') ||
   (hash.includes('/view') && !hash.includes('file-id'));
 
+/**
+ * Check if hash is a workspace route missing file-id param
+ * @param {string} hash - URL hash
+ * @returns {boolean} True if workspace route without file-id
+ */
+const isInvalidWorkspaceRoute = (hash) => hash.includes('/workspace') && !hash.includes('file-id');
+
 (function immediateRedirect() {
   const hash = window.location.hash;
   const teamId = '00000000-0000-0000-0000-000000000001';
   const dashboardUrl =
     window.location.origin + window.location.pathname + '#/dashboard/recent?team-id=' + teamId;
 
-  if (isLoginRoute(hash) || isInvalidViewRoute(hash)) {
-    console.log('🚀 [KIZU] Redirecting to dashboard (was:', hash, ')');
+  if (isLoginRoute(hash) || isInvalidViewRoute(hash) || isInvalidWorkspaceRoute(hash)) {
+    console.log('🚀 [KIZUKU] Redirecting to dashboard (was:', hash, ')');
     window.location.replace(dashboardUrl);
     return;
   }
@@ -58,15 +65,15 @@ const isInvalidViewRoute = (hash) =>
   // Watch for hashchange to catch PenPot's router going to invalid routes
   window.addEventListener('hashchange', () => {
     const newHash = window.location.hash;
-    if (isLoginRoute(newHash) || isInvalidViewRoute(newHash)) {
-      console.log('🚀 [KIZU] Intercepted bad route change:', newHash);
+    if (isLoginRoute(newHash) || isInvalidViewRoute(newHash) || isInvalidWorkspaceRoute(newHash)) {
+      console.log('🚀 [KIZUKU] Intercepted bad route change:', newHash);
       window.location.replace(dashboardUrl);
     }
   });
 })();
 
 // ============================================================================
-// MODIFIED BY KIZU (https://github.com/ollehca/PenPotDesktop)
+// MODIFIED BY KIZUKU (https://github.com/ollehca/PenPotDesktop)
 // Original file from PenPot (https://github.com/penpot/penpot)
 // Licensed under Mozilla Public License Version 2.0
 // Modifications: Set localStorage auth immediately to prevent race condition
@@ -77,7 +84,7 @@ const isInvalidViewRoute = (hash) =>
 // This prevents team-container* from returning nil due to missing auth
 // Step 1: Set placeholder token immediately (synchronous)
 try {
-  const placeholderToken = 'kizu-private-license-token';
+  const placeholderToken = 'kizuku-private-license-token';
   localStorage.setItem('auth-token', placeholderToken);
   console.log('✅ [IMMEDIATE] Set auth-token placeholder synchronously');
 } catch (error) {
@@ -110,12 +117,12 @@ try {
 })();
 
 // Guard to prevent multiple initializations
-if (!window._kizuAuthIntegrationInitialized) {
-  window._kizuAuthIntegrationInitialized = true;
+if (!window._kizukuAuthIntegrationInitialized) {
+  window._kizukuAuthIntegrationInitialized = true;
 
   // Main initialization function
   const initializeAuth = async () => {
-    console.log('🔐 Initializing Kizu auth integration...');
+    console.log('🔐 Initializing Kizuku auth integration...');
 
     // Check if we're already authenticated via mock backend
     try {
@@ -127,11 +134,11 @@ if (!window._kizuAuthIntegrationInitialized) {
       const isAuthenticated = await window.electronAPI.mockBackend.isAuthenticated();
 
       if (!isAuthenticated) {
-        console.error('❌ No valid Kizu license found');
+        console.error('❌ No valid Kizuku license found');
         return;
       }
 
-      console.log('✅ Kizu license validated - user is authenticated');
+      console.log('✅ Kizuku license validated - user is authenticated');
 
       // Fetch profile from mock backend and inject into PenPot state
       try {
@@ -143,7 +150,7 @@ if (!window._kizuAuthIntegrationInitialized) {
         console.log('✅ Verified localStorage auth-token and auth-profile');
 
         // ============================================================================
-        // MODIFIED BY KIZU (https://github.com/ollehca/PenPotDesktop)
+        // MODIFIED BY KIZUKU (https://github.com/ollehca/PenPotDesktop)
         // Original file from PenPot (https://github.com/penpot/penpot)
         // Licensed under Mozilla Public License Version 2.0
         // Modifications: Auth handled by early localStorage setup (above) + mock backend
@@ -196,23 +203,23 @@ if (!window._kizuAuthIntegrationInitialized) {
 }
 
 // ============================================================================
-// MODIFIED BY KIZU (https://github.com/ollehca/PenPotDesktop)
-// Modifications: Force navigation away from login screen for Kizu users
+// MODIFIED BY KIZUKU (https://github.com/ollehca/PenPotDesktop)
+// Modifications: Force navigation away from login screen for Kizuku users
 // Date: 2025-11-18
 // ============================================================================
 // CRITICAL: Login screen bypass - runs EVERY time this script is injected
-console.log('🚨 Setting up login screen bypass for Kizu files...');
+console.log('🚨 Setting up login screen bypass for Kizuku files...');
 
 // AGGRESSIVE: Hide login modal with ultra-specific CSS (last resort)
 const injectHideCSS = () => {
-  if (document.getElementById('kizu-login-hide')) {
+  if (document.getElementById('kizuku-login-hide')) {
     return;
   }
 
   const style = document.createElement('style');
-  style.id = 'kizu-login-hide';
+  style.id = 'kizuku-login-hide';
   style.textContent = `
-    /* KIZU: Hide ANY element that looks like a login modal/page */
+    /* KIZUKU: Hide ANY element that looks like a login modal/page */
     main.auth-section,
     main[class*="auth"],
     div[class*="login-form"],
@@ -230,7 +237,7 @@ const injectHideCSS = () => {
     }
   `;
   document.head.appendChild(style);
-  console.log('✅ [KIZU] Injected login hide CSS');
+  console.log('✅ [KIZUKU] Injected login hide CSS');
 };
 
 // Monitor and destroy login modal if it appears in DOM
@@ -254,19 +261,19 @@ const destroyLoginModal = () => {
   selectors.forEach((selector) => {
     const elements = document.querySelectorAll(selector);
     elements.forEach((el) => {
-      console.log(`🗑️ [KIZU] Removing ${selector}:`, el.className);
+      console.log(`🗑️ [KIZUKU] Removing ${selector}:`, el.className);
       el.remove();
       removed++;
     });
   });
 
   if (removed > 0) {
-    console.log(`🗑️ [KIZU] Destroyed ${removed} login/auth element(s)`);
+    console.log(`🗑️ [KIZUKU] Destroyed ${removed} login/auth element(s)`);
   }
 };
 
 // ============================================================================
-// KIZU FIX: Routing handled by PenPot's auth.cljs (logged-out event)
+// KIZUKU FIX: Routing handled by PenPot's auth.cljs (logged-out event)
 // This file now only provides CSS hiding as fallback defense-in-depth
 // Date: 2025-11-22
 // ============================================================================
@@ -275,8 +282,8 @@ const destroyLoginModal = () => {
 injectHideCSS();
 
 // Monitor DOM for login modal appearance and destroy it (fallback)
-if (!window._kizuBypassListenerAdded) {
-  window._kizuBypassListenerAdded = true;
+if (!window._kizukuBypassListenerAdded) {
+  window._kizukuBypassListenerAdded = true;
 
   const observer = new MutationObserver((_mutations) => {
     injectHideCSS(); // Re-inject CSS if needed

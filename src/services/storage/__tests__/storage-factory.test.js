@@ -6,7 +6,7 @@ const fs = require('fs').promises;
 
 jest.mock('electron', () => ({
   app: {
-    getPath: jest.fn(() => '/tmp/kizu-test-factory'),
+    getPath: jest.fn(() => '/tmp/kizuku-test-factory'),
   },
 }));
 
@@ -23,7 +23,7 @@ describe('StorageFactory', () => {
   let mockLicenseStorage;
 
   beforeEach(() => {
-    testDir = path.join(os.tmpdir(), `kizu-test-factory-${Date.now()}`);
+    testDir = path.join(os.tmpdir(), `kizuku-test-factory-${Date.now()}`);
     mockLicenseStorage = require('../../license-storage');
     jest.clearAllMocks();
   });
@@ -41,7 +41,7 @@ describe('StorageFactory', () => {
       mockLicenseStorage.getLicense.mockResolvedValue({
         valid: true,
         type: 'private',
-        code: 'KIZU-12345-ABCDE-FGHIJ-KLMNO-PQRST',
+        code: 'KIZUKU-12345-ABCDE-FGHIJ-KLMNO-PQRST',
       });
 
       const adapter = await createStorageAdapter();
@@ -54,7 +54,7 @@ describe('StorageFactory', () => {
       mockLicenseStorage.getLicense.mockResolvedValue({
         valid: true,
         type: 'business',
-        code: 'KIZU-BIZ-12345-ABCDE',
+        code: 'KIZUKU-BIZ-12345-ABCDE',
       });
 
       await expect(createStorageAdapter()).rejects.toThrow('Cloud storage not yet implemented');

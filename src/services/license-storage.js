@@ -1,13 +1,13 @@
 /**
- * Kizu License Storage Service
+ * Kizuku License Storage Service
  *
  * Manages persistent storage of license validation state.
  * Uses OS-appropriate userData directory with encrypted storage.
  *
  * Storage locations:
- * - macOS: ~/Library/Application Support/Kizu/
- * - Windows: %APPDATA%/Kizu/
- * - Linux: ~/.config/Kizu/
+ * - macOS: ~/Library/Application Support/Kizuku/
+ * - Windows: %APPDATA%/Kizuku/
+ * - Linux: ~/.config/Kizuku/
  *
  * @module license-storage
  */
@@ -26,9 +26,9 @@ const AUTH_TAG_LENGTH = 16; // 128 bits
 // Derive encryption key from machine-specific data
 function getDerivedKey() {
   // Use app name + version as salt (consistent across restarts)
-  const salt = `kizu-license-storage-${app.getVersion()}`;
+  const salt = `kizuku-license-storage-${app.getVersion()}`;
   // Derive key using PBKDF2
-  return crypto.pbkdf2Sync(salt, 'kizu-secret', 100000, KEY_LENGTH, 'sha256');
+  return crypto.pbkdf2Sync(salt, 'kizuku-secret', 100000, KEY_LENGTH, 'sha256');
 }
 
 /**

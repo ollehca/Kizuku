@@ -8,7 +8,7 @@
 process.env.NODE_ENV = 'test';
 
 // Set test secret for license generation
-process.env.KIZU_LICENSE_SECRET = 'test-secret-key-for-testing-only';
+process.env.KIZUKU_LICENSE_SECRET = 'test-secret-key-for-testing-only';
 
 // Mock Electron globally
 jest.mock(
@@ -70,7 +70,7 @@ jest.mock('../src/services/penpot-mock-backend', () => ({
     'default-team-id': '00000000-0000-0000-0000-000000000001',
     'default-project-id': '00000000-0000-0000-0000-000000000002',
     fullname: 'Test User',
-    email: 'test@kizu.local',
+    email: 'test@kizuku.local',
   }),
   handleCommand: jest.fn().mockResolvedValue(null),
   getKizuTeamId: jest.fn(() => '00000000-0000-0000-0000-000000000001'),

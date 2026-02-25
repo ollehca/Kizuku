@@ -15,7 +15,7 @@ describe('LocalStorageAdapter', () => {
   let testDir;
 
   beforeEach(async () => {
-    testDir = path.join(os.tmpdir(), `kizu-test-storage-${Date.now()}`);
+    testDir = path.join(os.tmpdir(), `kizuku-test-storage-${Date.now()}`);
     app.getPath.mockReturnValue(testDir);
 
     adapter = new LocalStorageAdapter();

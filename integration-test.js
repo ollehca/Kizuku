@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Integration test specifically for Kizu features
+// Integration test specifically for Kizuku features
 // Tests actual functionality rather than just code structure
 
 const { spawn } = require('child_process');
@@ -26,7 +26,7 @@ class IntegrationTester {
       env: {
         ...process.env,
         NODE_ENV: 'test',
-        KIZU_TEST: 'true',
+        KIZUKU_TEST: 'true',
       },
     });
 
@@ -42,7 +42,7 @@ class IntegrationTester {
 
     // Check if menu system is working
     const hasMenuSystem =
-      output.includes('Kizu starting') && !output.includes('Menu creation failed');
+      output.includes('Kizuku starting') && !output.includes('Menu creation failed');
 
     electron.kill();
 

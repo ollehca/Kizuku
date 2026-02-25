@@ -8,7 +8,7 @@
 
 ## 🎯 Quick Start
 
-This is the **killer feature** that makes Kizu the only viable Figma alternative. It's a big job split into 4 phases over 12 months.
+This is the **killer feature** that makes Kizuku the only viable Figma alternative. It's a big job split into 4 phases over 12 months.
 
 **Week 1 starts with:**
 1. Fork PenPot exporter: `git submodule add https://github.com/penpot/penpot-exporter-figma-plugin.git external/figma-exporter`
@@ -447,6 +447,6 @@ await window.figmaAPI.importFile('/path/to/design.fig');
 
 ## 🚀 Let's Build This
 
-This is the **killer feature**. The thing that makes Kizu the only viable Figma alternative. Let's make it happen. 💪
+This is the **killer feature**. The thing that makes Kizuku the only viable Figma alternative. Let's make it happen. 💪
 
 **100% compatibility. No compromises. No "close enough". Pixel-perfect parity.**

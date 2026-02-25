@@ -1,66 +1,49 @@
 /**
  * File Open Handler
- * Handles opening .fig, .kizu, and .json files via import + workspace navigation.
+ * Handles opening .fig, .kizuku, and .json files via import + workspace navigation.
+ * Shows progress UI and user-friendly error messages.
  */
 
 const { createLogger } = require('../utils/logger');
+const { getImportProgressManager } = require('./import-progress-manager');
+const { formatImportError } = require('./import-error-formatter');
+
+const { addTabFromMain, findTabByName, switchToExistingTab } = require('../tab-manager');
+
 const logger = createLogger('FileOpen');
+
+const DEFAULT_TEAM_ID = '00000000-0000-0000-0000-000000000001';
+const IMPORT_TIMEOUT_MS = 60000;
 
 /**
  * Build workspace navigation script for renderer injection
- * @param {string} projectId - Project ID
+ * @param {string} projectId - Project ID (also used as file-id)
  * @param {string} teamId - Team ID
  * @param {string} firstPageId - First page ID
- * @param {string} filePath - Escaped file path
  * @returns {string} JavaScript source
  */
-function buildWorkspaceScript(projectId, teamId, firstPageId, filePath) {
+function buildWorkspaceScript(projectId, teamId, firstPageId) {
   return `
-    (async () => {
+    (function() {
       try {
-        console.log('🎯 Opening imported file in workspace...');
-        console.log('📥 Fetching file data from mock backend...');
-        var response = await window.electronAPI.mockBackend.command('get-file', {
-          id: '${projectId}',
-          features: 'fdata/shape-data-type'
-        });
-        if (!response || response.error) {
-          throw new Error('Failed to fetch file data: ' + (response?.error || 'Unknown'));
-        }
-        var fileData = response.raw || response;
-        if (!fileData || !fileData.data) {
-          throw new Error('File data has invalid structure');
-        }
-        if (!window.__KIZU_FILE_DATA__) {
-          window.__KIZU_FILE_DATA__ = {};
-        }
-        window.__KIZU_FILE_DATA__['${projectId}'] = fileData;
-        console.log('✅ File data stored in window.__KIZU_FILE_DATA__');
-
+        console.log('Opening imported file in workspace...');
         window.__KIZU_IMPORTED_FILE = {
           fileId: '${projectId}',
           projectId: '${projectId}',
           teamId: '${teamId}',
           pageId: '${firstPageId}',
-          filePath: '${filePath}',
           timestamp: Date.now()
         };
-
         var wsUrl = '#/workspace?team-id=${teamId}' +
-          '&project-id=kizu-local&file-id=${projectId}' +
+          '&project-id=${projectId}&file-id=${projectId}' +
           '&page-id=${firstPageId}';
-        console.log('🔗 Navigating to:', wsUrl);
         window.location.hash = wsUrl;
-        console.log('✅ Workspace navigation complete');
       } catch (error) {
-        console.error('❌ Failed to open workspace:', error);
-        alert('Failed to open workspace: ' + error.message);
+        console.error('Failed to open workspace:', error);
       }
     })();
   `;
 }
-
-const DEFAULT_TEAM_ID = '00000000-0000-0000-0000-000000000001';
 
 /**
  * Extract project IDs from import result
@@ -95,9 +78,12 @@ async function openImportedProject(importResult, mainWindow) {
     throw new Error('Project has no pages - cannot open workspace');
   }
 
-  const escapedPath = importResult.filePath.replace(/\\/g, '\\\\');
-  const script = buildWorkspaceScript(projectId, teamId, firstPageId, escapedPath);
+  const script = buildWorkspaceScript(projectId, teamId, firstPageId);
   await mainWindow.webContents.executeJavaScript(script);
+
+  const projectName = importResult.project?.metadata?.name || 'Imported File';
+  const wsUrl = `#/workspace?team-id=${teamId}&project-id=${projectId}&file-id=${projectId}`;
+  addTabFromMain({ id: projectId, name: projectName, url: wsUrl });
 
   return {
     success: true,
@@ -107,46 +93,116 @@ async function openImportedProject(importResult, mainWindow) {
 }
 
 /**
- * Handle opening .fig, .kizu, or .json files
+ * Attach progress listeners to the importer
+ * @param {object} importer - FigmaImporter instance
+ * @param {object} progress - ImportProgressManager instance
+ */
+function attachProgressListeners(importer, progress) {
+  importer.on('status-change', (status) => {
+    progress.updateProgress(status);
+  });
+  importer.on('progress', (data) => {
+    progress.sendUpdate(data);
+  });
+}
+
+/**
+ * Run import with timeout protection
+ * @param {object} importer - FigmaImporter instance
+ * @param {string} filePath - Path to file
+ * @returns {Promise<object>} Import result
+ */
+function importWithTimeout(importer, filePath) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error('Import timed out after 60 seconds'));
+    }, IMPORT_TIMEOUT_MS);
+
+    importer
+      .importFromFile(filePath)
+      .then((result) => {
+        clearTimeout(timer);
+        resolve(result);
+      })
+      .catch((err) => {
+        clearTimeout(timer);
+        reject(err);
+      });
+  });
+}
+
+/**
+ * Log diagnostic import statistics
+ * @param {object} result - Import result
+ */
+function logImportDiagnostics(result) {
+  const stats = result.stats || {};
+  const pages = result.project && result.project.data;
+  logger.info('[DIAG] Import stats', {
+    score: result.compatibilityScore,
+    pages: pages ? pages.pages.length : 0,
+    converted: stats.convertedNodes,
+    total: stats.totalNodes,
+    skipped: stats.skippedNodes,
+  });
+}
+
+/**
+ * Handle successful import result
+ * @param {object} result - Import result
+ * @param {object} mainWindow - BrowserWindow instance
+ * @param {object} progress - ImportProgressManager instance
+ * @returns {Promise<object>} Final result
+ */
+async function handleImportSuccess(result, mainWindow, progress) {
+  if (!result.success || !result.filePath) {
+    const errorMsg = result.error || 'Import failed - unknown error';
+    logger.error('Import failed:', errorMsg);
+    progress.showError(formatImportError(errorMsg));
+    return { success: false, error: errorMsg };
+  }
+
+  logger.info('File imported:', result.filePath);
+  logImportDiagnostics(result);
+  progress.showSuccess(result);
+  const openResult = await openImportedProject(result, mainWindow);
+  return openResult;
+}
+
+/**
+ * Handle opening .fig, .kizuku, or .json files
  * @param {string} filePath - Path to file to open
  * @param {object} mainWindow - BrowserWindow instance
  * @returns {Promise<object>} Result object
  */
 async function handleFileOpen(filePath, mainWindow) {
   logger.info('Opening file:', filePath);
+  const fileName = require('path').basename(filePath);
+  const tabName = require('path').basename(filePath, require('path').extname(filePath));
+
+  const existingTab = findTabByName(tabName);
+  if (existingTab) {
+    logger.info('Tab already open for:', tabName);
+    switchToExistingTab(existingTab.id);
+    return { success: true, reused: true };
+  }
+
+  const progress = getImportProgressManager();
 
   try {
+    progress.show(fileName, mainWindow);
+
     const { getFigmaImporter } = require('./figma/figma-importer');
     const importer = getFigmaImporter();
-    const result = await importer.importFromFile(filePath);
+    attachProgressListeners(importer, progress);
 
-    if (result.success && result.filePath) {
-      logger.info('File imported:', result.filePath);
-      return await openImportedProject(result, mainWindow);
-    }
-
-    const errorMsg = result.error || 'Import failed - unknown error';
-    logger.error('Import failed:', errorMsg);
-    return { success: false, error: errorMsg };
+    const result = await importWithTimeout(importer, filePath);
+    return await handleImportSuccess(result, mainWindow, progress);
   } catch (error) {
     logger.error('File import exception:', error);
-    showImportError(mainWindow, error.message);
+    progress.showError(formatImportError(error));
     return { success: false, error: error.message };
   }
-}
-
-/**
- * Show import error notification in the main window
- * @param {object} mainWindow - BrowserWindow instance
- * @param {string} message - Error message
- */
-function showImportError(mainWindow, message) {
-  const escaped = message.replace(/'/g, "\\'");
-  const script = `
-    console.error('Import error:', '${escaped}');
-    alert('Failed to import file: ${escaped}');
-  `;
-  mainWindow.webContents.executeJavaScript(script).catch(() => {});
 }
 
 module.exports = {

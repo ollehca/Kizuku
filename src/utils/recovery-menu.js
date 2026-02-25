@@ -36,7 +36,7 @@ async function showHealthCheckDialog(mainWindow, healthCheck) {
       ? 'All systems are healthy!'
       : `Issues found: ${healthCheck.issues.join(', ')}`,
     detail: healthCheck.healthy
-      ? 'Kizu development environment is working correctly.'
+      ? 'Kizuku development environment is working correctly.'
       : 'Consider running automatic recovery or check the logs.',
     buttons: healthCheck.healthy ? ['OK'] : ['OK', 'Run Recovery'],
   });

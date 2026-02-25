@@ -15,10 +15,51 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
 }
 .desktop-tabs__drag-left {
-  width: 78px !important;
+  width: 110px !important;
   background-color: #0f1923 !important;
   flex-shrink: 0;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  padding-right: 8px !important;
   -webkit-app-region: drag;
+}
+.desktop-tabs__home-btn {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  color: rgba(240, 244, 248, 0.35);
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+.desktop-tabs__home-btn:hover {
+  background-color: #1a2a3a;
+  color: #f0f4f8;
+}
+.desktop-tabs__new-btn {
+  width: 28px;
+  height: 100%;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: rgba(240, 244, 248, 0.35);
+  cursor: pointer;
+  flex-shrink: 0;
+  -webkit-app-region: no-drag;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+.desktop-tabs__new-btn:hover {
+  background-color: #1a2a3a;
+  color: #f0f4f8;
 }
 .desktop-tabs__drag-center {
   flex: 1 !important;
@@ -39,7 +80,7 @@
   display: flex !important;
   align-items: stretch !important;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif !important;
-  max-width: calc(100vw - 98px) !important;
+  max-width: calc(100vw - 130px) !important;
   -webkit-app-region: no-drag;
 }
 .desktop-tabs__bar:empty::after {
@@ -89,6 +130,12 @@
   background-color: #1a2a3a;
   color: rgba(240, 244, 248, 0.6);
 }
+.desktop-tabs__tab--dragging {
+  opacity: 0.4;
+}
+.desktop-tabs__tab--drag-over {
+  border-left: 2px solid #35f6e6;
+}
 .desktop-tabs__tab-name {
   flex: 1;
   overflow: hidden;
@@ -121,7 +168,7 @@
 
 body.has-desktop-tabs .main_ui_dashboard__dashboard,
 body.has-desktop-tabs .main_ui_workspace__workspace {
-  padding-top: 10px;
+  padding-top: 40px;
 }
 body.has-desktop-tabs .main_ui_dashboard__dashboard-sidebar,
 body.has-desktop-tabs .main_ui_workspace__left-sidebar {

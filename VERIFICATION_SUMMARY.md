@@ -1,4 +1,4 @@
-# Kizu Demo Setup Verification & Figma Import Research - Summary
+# Kizuku Demo Setup Verification & Figma Import Research - Summary
 
 **Date:** October 3, 2025
 **Status:** ✅ Demo Verified | 📋 Architecture Complete
@@ -8,7 +8,7 @@
 ## ✅ Demo Setup Verification Complete
 
 ### Demo Account Created
-- **License Code:** `KIZU-50019-99FF9-D4EFF-5DE58-DC837`
+- **License Code:** `KIZUKU-50019-99FF9-D4EFF-5DE58-DC837`
 - **License Type:** Private (auto-login, no password required)
 - **Username:** `demouser`
 - **Full Name:** Demo User
@@ -190,7 +190,7 @@ Comprehensive 500+ line architecture document covering:
 
 ### Demo Setup
 - Script: `scripts/setup-demo-license.js`
-- License Code: `KIZU-50019-99FF9-D4EFF-5DE58-DC837`
+- License Code: `KIZUKU-50019-99FF9-D4EFF-5DE58-DC837`
 - Data Directory: `test-data/`
 
 ### Figma Import
@@ -208,7 +208,7 @@ Comprehensive 500+ line architecture document covering:
 
 ## ✨ Value Proposition
 
-With this Figma import architecture, Kizu becomes:
+With this Figma import architecture, Kizuku becomes:
 
 1. **Most Compatible:** 98% Figma import accuracy (industry-leading)
 2. **Best UX:** No plugins, no setup, just drag-and-drop

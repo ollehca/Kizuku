@@ -1,21 +1,21 @@
 /* License Info Component Styles */
 
-@import url('../../styles/kizu-palette.css');
+@import url('../../styles/kizuku-palette.css');
 
 :root {
-  --color-bg: var(--kizu-bg-dark);
-  --color-surface: var(--kizu-surface);
-  --color-surface-elevated: var(--kizu-surface-hover);
-  --color-text-primary: var(--kizu-text);
-  --color-text-secondary: var(--kizu-text-muted);
-  --color-text-muted: var(--kizu-text-dim);
-  --color-primary: var(--kizu-primary);
-  --color-primary-hover: var(--kizu-primary-dark);
-  --color-border: var(--kizu-border);
-  --color-success: var(--kizu-success);
-  --color-warning: var(--kizu-warning);
-  --shadow-sm: var(--kizu-shadow-sm);
-  --shadow-md: var(--kizu-shadow-md);
+  --color-bg: var(--kizuku-bg-dark);
+  --color-surface: var(--kizuku-surface);
+  --color-surface-elevated: var(--kizuku-surface-hover);
+  --color-text-primary: var(--kizuku-text);
+  --color-text-secondary: var(--kizuku-text-muted);
+  --color-text-muted: var(--kizuku-text-dim);
+  --color-primary: var(--kizuku-primary);
+  --color-primary-hover: var(--kizuku-primary-dark);
+  --color-border: var(--kizuku-border);
+  --color-success: var(--kizuku-success);
+  --color-warning: var(--kizuku-warning);
+  --shadow-sm: var(--kizuku-shadow-sm);
+  --shadow-md: var(--kizuku-shadow-md);
 }
 
 * {

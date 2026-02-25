@@ -32,7 +32,7 @@ function createTitleElement() {
   return `
     const title = document.createElement('h1');
     title.className = 'loading-screen__title loading-title';
-    title.textContent = 'Kizu';
+    title.textContent = 'Kizuku';
     title.style.fontFamily = "'Josefin Sans', sans-serif";
     title.style.fontWeight = '400';
     title.style.fontSize = '4rem';
@@ -114,11 +114,11 @@ function createLoadingScreenJS() {
 function createHideLoadingJS() {
   return `
     console.log('🎬 Hiding loading overlay');
-    const kizuLoadingOverlay = document.getElementById('app-loading-screen');
-    if (kizuLoadingOverlay) {
-      kizuLoadingOverlay.classList.add('loading-screen--hidden');
+    const kizukuLoadingOverlay = document.getElementById('app-loading-screen');
+    if (kizukuLoadingOverlay) {
+      kizukuLoadingOverlay.classList.add('loading-screen--hidden');
       setTimeout(() => {
-        kizuLoadingOverlay.remove();
+        kizukuLoadingOverlay.remove();
         console.log('✅ Loading overlay removed');
       }, 500);
     }

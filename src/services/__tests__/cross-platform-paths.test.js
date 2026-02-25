@@ -25,7 +25,7 @@ describe('Cross-Platform Path Handling', () => {
   describe('Path Normalization', () => {
     test('handles windows-style paths', () => {
       // Note: path.join behavior depends on actual OS, not process.platform
-      const basePath = 'C:\\Users\\TestUser\\AppData\\Local\\Kizu';
+      const basePath = 'C:\\Users\\TestUser\\AppData\\Local\\Kizuku';
       const assetsPath = path.join(basePath, 'assets');
       const dbPath = path.join(basePath, 'database');
 
@@ -40,7 +40,7 @@ describe('Cross-Platform Path Handling', () => {
     test('handles mac/linux paths correctly', () => {
       setPlatform('darwin');
 
-      const basePath = '/Users/TestUser/Library/Application Support/Kizu';
+      const basePath = '/Users/TestUser/Library/Application Support/Kizuku';
       const assetsPath = path.join(basePath, 'assets');
       const dbPath = path.join(basePath, 'database');
 
@@ -65,8 +65,8 @@ describe('Cross-Platform Path Handling', () => {
     test('creates consistent category paths', () => {
       const basePath =
         process.platform === 'win32'
-          ? 'C:\\Users\\TestUser\\AppData\\Kizu\\assets'
-          : '/Users/TestUser/Library/Kizu/assets';
+          ? 'C:\\Users\\TestUser\\AppData\\Kizuku\\assets'
+          : '/Users/TestUser/Library/Kizuku/assets';
 
       const categories = {
         images: path.join(basePath, 'images'),
@@ -83,7 +83,7 @@ describe('Cross-Platform Path Handling', () => {
     test('creates consistent category paths on unix', () => {
       setPlatform('linux');
 
-      const basePath = '/home/testuser/.local/share/Kizu/assets';
+      const basePath = '/home/testuser/.local/share/Kizuku/assets';
       const categories = {
         images: path.join(basePath, 'images'),
         fonts: path.join(basePath, 'fonts'),
@@ -119,19 +119,19 @@ describe('Cross-Platform Path Handling', () => {
   describe('Database Path Handling', () => {
     test('postgres data directory path is platform-appropriate', () => {
       setPlatform('darwin');
-      const userDataPath = '/Users/TestUser/Library/Application Support/Kizu';
+      const userDataPath = '/Users/TestUser/Library/Application Support/Kizuku';
       const dbPath = path.join(userDataPath, 'database');
 
-      expect(dbPath).toBe('/Users/TestUser/Library/Application Support/Kizu/database');
+      expect(dbPath).toBe('/Users/TestUser/Library/Application Support/Kizuku/database');
       expect(path.isAbsolute(dbPath)).toBe(true);
     });
 
     test('handles spaces in paths correctly', () => {
-      const pathWithSpaces = path.join('C:\\Program Files', 'Kizu', 'database');
-      expect(pathWithSpaces).toContain('Kizu');
+      const pathWithSpaces = path.join('C:\\Program Files', 'Kizuku', 'database');
+      expect(pathWithSpaces).toContain('Kizuku');
 
-      const unixPathWithSpaces = path.join('/Applications/Kizu App', 'database');
-      expect(unixPathWithSpaces).toContain('Kizu App');
+      const unixPathWithSpaces = path.join('/Applications/Kizuku App', 'database');
+      expect(unixPathWithSpaces).toContain('Kizuku App');
     });
   });
 

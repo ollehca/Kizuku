@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Importing File...</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        background: #1e1e1e;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        color: #e0e0e0;
+      }
+
+      .import-container {
+        background: #2a2a2a;
+        border-radius: 12px;
+        border: 1px solid #3a3a3a;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        padding: 40px 48px;
+        max-width: 580px;
+        min-height: 450px;
+        width: 90%;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .icon {
+        font-size: 64px;
+        margin-bottom: 24px;
+        animation: pulse 2s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.1);
+        }
+      }
+
+      h1 {
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 12px;
+        color: #ffffff;
+      }
+
+      .file-name {
+        font-size: 14px;
+        color: #a0a0a0;
+        margin-bottom: 32px;
+        word-break: break-all;
+      }
+
+      .progress-bar-container {
+        background: #1e1e1e;
+        border: 1px solid #3a3a3a;
+        border-radius: 8px;
+        height: 8px;
+        margin-bottom: 16px;
+        overflow: hidden;
+      }
+
+      .progress-bar {
+        background: #1f85e5;
+        height: 100%;
+        width: 0%;
+        transition: width 0.3s ease;
+        box-shadow: 0 0 10px rgba(31, 133, 229, 0.5);
+      }
+
+      .progress-text {
+        font-size: 14px;
+        color: #e0e0e0;
+        margin-bottom: 8px;
+        font-weight: 500;
+      }
+
+      .status-text {
+        font-size: 12px;
+        color: #a0a0a0;
+        min-height: 20px;
+      }
+
+      .success-icon {
+        color: #48bb78;
+      }
+
+      .error-icon {
+        color: #f56565;
+      }
+
+      .warning-icon {
+        color: #ed8936;
+      }
+
+      .details {
+        margin-top: 24px;
+        padding: 16px;
+        background: #1e1e1e;
+        border: 1px solid #3a3a3a;
+        border-radius: 8px;
+        text-align: left;
+        display: none;
+      }
+
+      .details.visible {
+        display: block;
+      }
+
+      .details-title {
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 8px;
+        color: #ffffff;
+      }
+
+      .details-list {
+        font-size: 12px;
+        color: #a0a0a0;
+        line-height: 1.8;
+      }
+
+      .details-list li {
+        margin-left: 20px;
+        margin-bottom: 4px;
+      }
+
+      .action-button {
+        margin-top: 24px;
+        padding: 12px 32px;
+        background: #1f85e5;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: none;
+      }
+
+      .action-button:hover {
+        background: #1a73cc;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(31, 133, 229, 0.3);
+      }
+
+      .action-button:active {
+        transform: translateY(0);
+      }
+
+      .action-button.visible {
+        display: inline-block;
+      }
+
+      .countdown {
+        font-size: 12px;
+        color: #a0a0a0;
+        margin-top: 12px;
+        display: none;
+      }
+
+      .countdown.visible {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="import-container">
+      <div class="icon" id="statusIcon">📦</div>
+      <h1 id="title">Importing File</h1>
+      <div class="file-name" id="fileName">...</div>
+
+      <div class="progress-bar-container">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+
+      <div class="progress-text" id="progressText">Preparing...</div>
+      <div class="status-text" id="statusText"></div>
+
+      <div class="details" id="details">
+        <div class="details-title">Import Details</div>
+        <ul class="details-list" id="detailsList"></ul>
+      </div>
+
+      <button class="action-button" id="actionButton">View in Dashboard</button>
+      <div class="countdown" id="countdown">
+        Opening dashboard in <span id="countdownSeconds">5</span> seconds...
+      </div>
+    </div>
+
+    <script>
+      let importedFilePath = null;
+      let importedProjectId = null;
+      let countdownInterval = null;
+      let countdownSeconds = 5;
+
+      // Listen for updates from main process
+      window.electronAPI.onImportProgress((progress) => {
+        updateProgress(progress);
+      });
+
+      let importedTeamId = null;
+
+      function updateProgress(data) {
+        const {
+          percentage,
+          status,
+          fileName,
+          details,
+          success,
+          error,
+          filePath,
+          projectId,
+          teamId,
+        } = data;
+
+        // Store the imported file path, project ID, and team ID
+        if (filePath) {
+          importedFilePath = filePath;
+        }
+        if (projectId) {
+          importedProjectId = projectId;
+        }
+        if (teamId) {
+          importedTeamId = teamId;
+        }
+
+        // Update file name
+        if (fileName) {
+          document.getElementById('fileName').textContent = fileName;
+        }
+
+        // Update progress bar
+        if (percentage !== undefined) {
+          document.getElementById('progressBar').style.width = percentage + '%';
+          document.getElementById('progressText').textContent = Math.round(percentage) + '%';
+        }
+
+        // Update status text
+        if (status) {
+          document.getElementById('statusText').textContent = status;
+        }
+
+        // Handle success
+        if (success) {
+          document.getElementById('statusIcon').textContent = '✅';
+          document.getElementById('statusIcon').classList.add('success-icon');
+          document.getElementById('title').textContent = 'Import Complete!';
+          document.getElementById('actionButton').classList.add('visible');
+
+          if (details) {
+            showDetails(details);
+          }
+
+          // Start countdown for auto-open
+          startCountdown();
+        }
+
+        // Handle error
+        if (error) {
+          document.getElementById('statusIcon').textContent = '❌';
+          document.getElementById('statusIcon').classList.add('error-icon');
+          document.getElementById('title').textContent = 'Import Failed';
+          document.getElementById('statusText').textContent = error;
+          document.getElementById('progressBar').style.background = '#DC2626';
+        }
+      }
+
+      function showDetails(details) {
+        const detailsEl = document.getElementById('details');
+        const listEl = document.getElementById('detailsList');
+
+        listEl.innerHTML = '';
+        details.forEach((detail) => {
+          const li = document.createElement('li');
+          li.textContent = detail;
+          listEl.appendChild(li);
+        });
+
+        detailsEl.classList.add('visible');
+      }
+
+      function startCountdown() {
+        const countdownEl = document.getElementById('countdown');
+        const secondsEl = document.getElementById('countdownSeconds');
+        countdownEl.classList.add('visible');
+
+        countdownInterval = setInterval(() => {
+          countdownSeconds--;
+          secondsEl.textContent = countdownSeconds;
+
+          if (countdownSeconds <= 0) {
+            clearInterval(countdownInterval);
+            openFile();
+          }
+        }, 1000);
+      }
+
+      function openFile() {
+        if (countdownInterval) {
+          clearInterval(countdownInterval);
+        }
+        // Workspace navigation is handled by file-open-handler.js
+        // Just close the progress dialog
+        setTimeout(() => window.close(), 300);
+      }
+
+      // Handle action button click
+      document.getElementById('actionButton').addEventListener('click', () => {
+        openFile();
+      });
+    </script>
+  </body>
+</html>

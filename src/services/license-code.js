@@ -1,10 +1,10 @@
 /**
- * Kizu License Code Generation and Validation System (Final Version)
+ * Kizuku License Code Generation and Validation System (Final Version)
  *
  * Implements cryptographically secure license code generation using HMAC-SHA256.
  * Uses hex encoding (0-9, A-F) for reliable data encoding without data loss.
  *
- * Format: KIZU-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX (25 hex characters after KIZU-)
+ * Format: KIZUKU-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX (25 hex characters after KIZUKU-)
  * Data structure: TYPE(1 byte) + TIMESTAMP(6 bytes) + RANDOM(5 bytes) + SIGNATURE(0.5 byte)
  *                 = 12.5 bytes = 25 hex characters
  *
@@ -20,7 +20,8 @@
 const crypto = require('crypto');
 
 // Secret key for HMAC signing (should be stored securely in production)
-const SECRET_KEY = process.env.KIZU_LICENSE_SECRET || 'kizu-dev-secret-key-change-in-production';
+const SECRET_KEY =
+  process.env.KIZUKU_LICENSE_SECRET || 'kizuku-dev-secret-key-change-in-production';
 
 // License type constants
 const LICENSE_TYPES = {
@@ -98,11 +99,11 @@ function generateLicense(options = {}) {
   // Encode to hex (13 bytes = 26 hex chars)
   const encoded = encodeHex(combined);
 
-  // Take first 25 characters for consistent format (KIZU-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX)
+  // Take first 25 characters for consistent format (KIZUKU-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX)
   const code25 = encoded.substring(0, 25);
 
-  // Format as KIZU-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX
-  const formatted = `KIZU-${code25.match(/.{1,5}/g).join('-')}`;
+  // Format as KIZUKU-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX
+  const formatted = `KIZUKU-${code25.match(/.{1,5}/g).join('-')}`;
 
   return {
     code: formatted,
@@ -126,8 +127,8 @@ function validateBasicFormat(code) {
   }
 
   const upper = code.toUpperCase().trim();
-  if (!upper.startsWith('KIZU-')) {
-    return { valid: false, error: 'License code must start with KIZU-' };
+  if (!upper.startsWith('KIZUKU-')) {
+    return { valid: false, error: 'License code must start with KIZUKU-' };
   }
 
   return { valid: true, upper };
@@ -230,7 +231,7 @@ function verifySignature(dataBuffer, providedNibble) {
 /**
  * Validate a license code
  *
- * @param {string} code - License code (KIZU-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX)
+ * @param {string} code - License code (KIZUKU-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX)
  * @returns {Object} Validation result
  */
 function validateLicense(code) {
@@ -240,7 +241,7 @@ function validateLicense(code) {
       return formatCheck;
     }
 
-    const encoded = formatCheck.upper.replace(/^KIZU-/, '').replace(/-/g, '');
+    const encoded = formatCheck.upper.replace(/^KIZUKU-/, '').replace(/-/g, '');
     const charCheck = validateEncodedChars(encoded);
     if (!charCheck.valid) {
       return charCheck;
@@ -292,8 +293,8 @@ function isValidFormat(code) {
   if (!code || typeof code !== 'string') {
     return false;
   }
-  // Check format: KIZU- followed by 5 groups of 5 hex chars (0-9, A-F)
-  const pattern = /^KIZU-[0-9A-F]{5}(-[0-9A-F]{5}){4}$/i;
+  // Check format: KIZUKU- followed by 5 groups of 5 hex chars (0-9, A-F)
+  const pattern = /^KIZUKU-[0-9A-F]{5}(-[0-9A-F]{5}){4}$/i;
   return pattern.test(code);
 }
 
@@ -310,34 +311,34 @@ function formatCode(code) {
   // Remove all non-hex characters and uppercase (keep only 0-9, A-F)
   const clean = code.toUpperCase().replace(/[^0-9A-F]/gi, '');
 
-  // Add KIZU- prefix if missing
-  const withPrefix = clean.startsWith('KIZU') ? clean : 'KIZU' + clean;
+  // Add KIZUKU- prefix if missing
+  const withPrefix = clean.startsWith('KIZUKU') ? clean : 'KIZUKU' + clean;
 
-  // Remove KIZU prefix temporarily
-  const codeOnly = withPrefix.replace(/^KIZU/, '');
+  // Remove KIZUKU prefix temporarily
+  const codeOnly = withPrefix.replace(/^KIZUKU/, '');
 
   // Take first 25 characters
   const code25 = codeOnly.substring(0, 25);
 
   // Format with hyphens based on length
   if (code25.length <= 5) {
-    return `KIZU-${code25}`;
+    return `KIZUKU-${code25}`;
   }
   if (code25.length <= 10) {
-    return `KIZU-${code25.substring(0, 5)}-${code25.substring(5)}`;
+    return `KIZUKU-${code25.substring(0, 5)}-${code25.substring(5)}`;
   }
   if (code25.length <= 15) {
     const part1 = code25.substring(0, 5);
     const part2 = code25.substring(5, 10);
     const part3 = code25.substring(10);
-    return `KIZU-${part1}-${part2}-${part3}`;
+    return `KIZUKU-${part1}-${part2}-${part3}`;
   }
   if (code25.length <= 20) {
     const part1 = code25.substring(0, 5);
     const part2 = code25.substring(5, 10);
     const part3 = code25.substring(10, 15);
     const part4 = code25.substring(15);
-    return `KIZU-${part1}-${part2}-${part3}-${part4}`;
+    return `KIZUKU-${part1}-${part2}-${part3}-${part4}`;
   }
 
   const part1 = code25.substring(0, 5);
@@ -345,7 +346,7 @@ function formatCode(code) {
   const part3 = code25.substring(10, 15);
   const part4 = code25.substring(15, 20);
   const part5 = code25.substring(20);
-  return `KIZU-${part1}-${part2}-${part3}-${part4}-${part5}`;
+  return `KIZUKU-${part1}-${part2}-${part3}-${part4}-${part5}`;
 }
 
 /**
@@ -394,7 +395,7 @@ function generateBatch(options = {}) {
 const SECURITY_NOTICE = `
 IMPORTANT: Keep Your License Code Secure
 
-Your Kizu license code is a one-time activation key that grants access to the application.
+Your Kizuku license code is a one-time activation key that grants access to the application.
 
 ⚠️ SECURITY WARNINGS:
 • Do NOT share your license code with anyone
@@ -410,12 +411,12 @@ Your Kizu license code is a one-time activation key that grants access to the ap
 
 ❌ LIABILITY:
 • You are responsible for keeping your license code secure
-• Kizu is NOT responsible for lost, stolen, or compromised codes
+• Kizuku is NOT responsible for lost, stolen, or compromised codes
 • Unauthorized use of your code may result in license deactivation
 
 ✅ BEST PRACTICES:
 • Copy and paste the code (don't type manually)
-• Verify the code starts with "KIZU-"
+• Verify the code starts with "KIZUKU-"
 • Keep a backup in a secure location
 • Never share screenshots of your license code
 `;

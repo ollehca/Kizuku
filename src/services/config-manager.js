@@ -68,7 +68,7 @@ class ConfigManager {
 
   _getAppConfig() {
     return {
-      name: 'Kizu',
+      name: 'Kizuku',
       version: app.getVersion(),
       platform: process.platform,
       arch: process.arch,

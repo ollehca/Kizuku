@@ -160,7 +160,11 @@ async function parseBinary(buffer) {
 
     logger.info('Decoding design data...');
     const designData = compiledSchema.decodeMessage(dataBytes);
-    logger.info('Design data decoded successfully');
+    logger.info('Design data decoded successfully', {
+      topLevelKeys: Object.keys(designData || {}),
+      nodeChangesCount: designData?.nodeChanges?.length || 0,
+      blobsCount: designData?.blobs?.length || 0,
+    });
 
     return { header, version, schema, data: designData };
   } catch (error) {

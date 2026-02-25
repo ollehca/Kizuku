@@ -1,116 +1,196 @@
-# Kizu 築 Development Guide
+# Kizuku 築 Development Guide
 
-This document contains essential information for developing and maintaining the Kizu application.
+> **Claude Code CLI: Read this file at the start of every session.**
 
-## Overview
+## Project Overview
 
-Kizu is an Electron wrapper for the PenPot design platform. It provides a native desktop experience while connecting to either local development servers or production instances.
+**Kizu** is a desktop design application built on PenPot, enabling Figma file import and offline-first design work. It's positioned as "The Figma Liberation Tool" - one-time purchase, true file ownership, no subscriptions.
+
+**Current Focus:** Phase 1 - Private license with Figma import (no collaboration yet).
+
+---
+
+## ⚠️ CODE QUALITY RULES (Non-Negotiable)
+
+These limits are enforced by ESLint. Code that violates them WILL NOT pass linting.
+
+| Rule | Limit | If Exceeded |
+|------|-------|-------------|
+| Function length | 50 lines max | Split into helpers |
+| File length | 500 lines max | Create modules |
+| Nesting depth | 4 levels max | Extract logic |
+| Parameters | 5 max | Use options object |
+| Complexity | 10 cyclomatic | Decompose |
+| Line length | 100 chars max | Break lines |
+
+### Required Patterns
+```javascript
+// ✅ Use const/let, never var
+const data = getData();
+
+// ✅ Use === not ==
+if (value === null) {}
+
+// ✅ Always use braces
+if (condition) {
+  doThing();
+}
+
+// ✅ camelCase names, min 3 chars
+const userName = 'test';
+
+// ✅ JSDoc on every function
+/**
+ * Brief description.
+ * @param {string} name - Parameter description
+ * @returns {Object} Return description
+ */
+function myFunction(name) {}
+```
+
+### Don't Do These
+- ❌ Create functions over 50 lines
+- ❌ Use `var` anywhere
+- ❌ Use `==` for comparison
+- ❌ Skip JSDoc comments
+- ❌ Ignore lint errors
+- ❌ Commit without running `npm run lint`
+
+---
 
 ## Quick Start
 
-### Automated Setup (Recommended)
+### One-Command Startup (Recommended)
 ```bash
-# One-command setup that handles everything
-./start-dev-environment.sh
+./scripts/start-kizuku.sh
 ```
 
-This script will:
-- Start all PenPot containers
-- Wait for services to initialize
-- Build frontend assets
-- Create demo account
-- Validate everything is working
-- Launch the Kizu app
+This script automatically:
+1. Starts PenPot Docker containers (if not running)
+2. Starts shadow-cljs for ClojureScript hot-reload (eliminates console errors)
+3. Verifies frontend is accessible
+4. Launches Kizu
 
 ### Manual Setup
-If you need to set up components individually:
-
 ```bash
 # 1. Start PenPot development environment
-cd ../penpot && ./manage.sh start-devenv
+cd penpot && ./manage.sh start-devenv
 
-# 2. Wait for containers (30 seconds)
+# 2. Wait for containers
 sleep 30
 
-# 3. Check health
-./scripts/health-check.sh
+# 3. Start shadow-cljs (required for clean console - run in background)
+docker exec -d penpot-devenv-main bash -c \
+  "cd /home/penpot/penpot/frontend && yarn run watch:app:main"
 
-# 4. Setup demo account
-./scripts/manage-demo-accounts.sh setup
+# 4. Wait for shadow-cljs to initialize
+sleep 20
 
-# 5. Start Kizu app
+# 5. Start Kizuku app (from Kizuku directory)
 npm start
 ```
 
-## Required Startup Sequence
+### What Each Service Does
+| Port | Service | Purpose |
+|------|---------|---------|
+| 3449 | PenPot Frontend | Serves the UI (via nginx) |
+| 3448 | Shadow-cljs | Hot-reload WebSocket (eliminates console errors) |
+| 9999 | Kizuku Mock Backend | Intercepts PenPot API calls |
+| 6060 | PenPot Backend | Java backend (not used in offline mode) |
 
-⚠️ **Critical**: Follow this exact sequence to avoid issues:
+---
 
-1. **Start PenPot containers**: `cd ../penpot && ./manage.sh start-devenv`
-2. **Wait for full initialization**: Containers need 30+ seconds to fully start
-3. **Verify frontend build**: Check `/home/penpot/penpot/frontend/resources/public/js/config.js` exists
-4. **Ensure assets compilation**: If missing files, run frontend watch process
-5. **Validate demo account**: Ensure persistent demo credentials work
-6. **Start Kizu app**: `npm start`
+## Architecture
 
-## Demo License and Account Management
-
-### Quick Demo Setup (NEW - Recommended)
-```bash
-# One-command setup for Kizu authentication demo
-KIZU_LICENSE_SECRET='test-secret-key-for-testing-only' node scripts/setup-demo-license.js
+```
+src/
+├── main.js                     # Electron main process
+├── preload.js                  # Fetch interceptor + IPC bridge
+├── ipc-handlers.js             # IPC channel definitions
+├── services/
+│   ├── penpot-mock-backend.js  # Mock API (port 9999)
+│   ├── license-storage.js      # License validation
+│   ├── user-storage.js         # Local user data
+│   └── figma/                  # ⭐ FIGMA IMPORT SYSTEM
+│       ├── figma-importer.js   # Main orchestrator
+│       ├── fig-file-parser.js  # Parse .fig ZIP
+│       └── figma-json-converter.js # Convert to .kizuku
+└── frontend-integration/
+    └── auth-integration.js     # Auto-login for offline
 ```
 
-This creates:
-- **License Code**: `KIZU-50019-99FF9-D4EFF-5DE58-DC837`
-- **License Type**: Private (auto-login, no password required)
-- **Username**: `demouser`
-- **Full Name**: Demo User
-- **Email**: `demo@penpot.local`
+### Service Endpoints
+| Service | URL | Purpose |
+|---------|-----|---------|
+| Frontend | http://localhost:3449 | PenPot UI (via nginx) |
+| Shadow-cljs | http://localhost:3448 | Hot-reload WebSocket |
+| Mock Backend | http://localhost:9999 | Kizuku local API |
+| Backend API | http://localhost:6060/api | PenPot backend (not used offline) |
 
-### Authentication Flow (NEW)
-1. **First Launch**: App automatically detects demo license and account
-2. **Auto-Login**: No license entry or password needed
-3. **Direct Access**: Goes straight to main app
+### PenPot Frontend (ClojureScript)
+PenPot's UI is written in ClojureScript. Kizuku modifications to PenPot are in:
+- `penpot/frontend/src/app/main/ui.cljs` - Main UI container
+- `penpot/frontend/src/app/main/data/team.cljs` - Team state handling
 
-### Legacy PenPot Demo Account (For PenPot Backend)
-- **Email**: `demo@penpot.local`
-- **Password**: `demo123`
-- **Full Name**: Demo User
+**To modify PenPot frontend:**
+1. Ensure shadow-cljs is running (`./scripts/start-kizuku.sh` handles this)
+2. Edit `.cljs` files in `penpot/frontend/src/`
+3. Changes hot-reload automatically (watch console for errors)
 
-### Demo Account Commands
+---
 
-**Kizu Authentication (NEW):**
-```bash
-# Setup Kizu demo license and account
-KIZU_LICENSE_SECRET='test-secret-key-for-testing-only' node scripts/setup-demo-license.js
+## Current Priorities
 
-# Clean up demo data
-rm -rf test-data/
+### P0: Fix Figma Import (ACTIVE)
+The import pipeline must convert .fig files to .kizuku format accurately.
+
+**Import Flow:**
+```
+.fig file → Extract ZIP → Parse canvas.json → Convert nodes → Generate .kizuku
 ```
 
-**PenPot Backend (Legacy):**
-```bash
-# Complete setup (create + validate + cleanup old accounts)
-./scripts/manage-demo-accounts.sh setup
+**Key conversion challenges:**
+1. **Coordinates:** Figma uses absolute, Kizuku needs relative to parent
+2. **Colors:** Figma uses 0-1 range, Kizuku needs 0-255 range
+3. **Text:** Figma has per-character styling (characterStyleOverrides)
 
-# Individual operations
-./scripts/manage-demo-accounts.sh create     # Create demo account
-./scripts/manage-demo-accounts.sh validate  # Test login
-./scripts/manage-demo-accounts.sh reset     # Reset password
-./scripts/manage-demo-accounts.sh list      # List all demo accounts
-./scripts/manage-demo-accounts.sh cleanup   # Remove old temp accounts
+**Critical files:**
+- `src/services/figma/figma-importer.js` - Main entry point
+- `src/services/figma/fig-file-parser.js` - ZIP extraction
+- `src/services/figma/figma-json-converter.js` - Node conversion
+
+### P1: Dashboard Display
+Mock backend must return valid Transit-encoded responses for:
+- `get-profile` - User data
+- `get-teams` - Single "My Workspace"
+- `get-projects` - Local project list
+
+### P2: File Operations
+Save/load .kizuku files locally via native dialogs.
+
+---
+
+## Demo License and Account
+
+### Kizuku Demo (for testing auth flow)
+```bash
+KIZUKU_LICENSE_SECRET='test-secret-key-for-testing-only' node scripts/setup-demo-license.js
 ```
 
-### Important Notes
-- **Kizu demo** is for testing authentication flow (local-first, offline)
-- **PenPot demo** is for backend services (database, file storage)
-- Private license = auto-login (no password ever needed)
-- Test data stored in `./test-data/` directory
+Creates:
+- **License Code:** `KIZUKU-50019-99FF9-D4EFF-5DE58-DC837`
+- **License Type:** Private (auto-login, no password required)
+- **Username:** `demouser`
+- **Email:** `demo@penpot.local`
+
+### PenPot Demo (for backend services)
+- **Email:** `demo@penpot.local`
+- **Password:** `demo123`
+
+---
 
 ## Health Monitoring
 
-### Health Check Commands
 ```bash
 # Full comprehensive check
 ./scripts/health-check.sh
@@ -124,206 +204,151 @@ rm -rf test-data/
 
 ### Manual Health Verification
 ```bash
-# Check if all services respond
 curl -f http://localhost:3449                    # Frontend
 curl -f http://localhost:6060/api               # Backend API
 curl -f http://localhost:3449/js/config.js      # Config asset
-curl -f http://localhost:3449/css/debug.css     # Debug CSS
-
-# Validate demo login
-curl -X POST http://localhost:6060/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"demo@penpot.local","password":"demo123"}'
 ```
+
+---
 
 ## Troubleshooting
 
-### Common Issues and Solutions
-
-#### 1. 404 Errors for JavaScript/CSS Files
-**Symptoms**: Desktop app shows 404 errors for `config.js`, `debug.css`
-**Cause**: Frontend build process incomplete or files missing
-**Solution**:
+### 404 Errors for JavaScript/CSS Files
 ```bash
-# Auto-repair
 ./scripts/health-check.sh --repair
-
-# Manual fix
+# Or manually:
 docker exec penpot-devenv-main bash -c "cd /home/penpot/penpot/frontend && yarn watch"
 ```
 
-#### 2. Demo Login Fails
-**Symptoms**: Demo credentials don't work, login returns 401/403
-**Cause**: Demo account expired, deleted, or database reset
-**Solution**:
+### Demo Login Fails
 ```bash
 ./scripts/manage-demo-accounts.sh setup
 ```
 
-#### 3. Containers Not Starting
-**Symptoms**: `./manage.sh start-devenv` fails or containers exit
-**Cause**: Docker resource issues, port conflicts, or previous containers
-**Solution**:
+### Containers Not Starting
 ```bash
-# Clean restart
 cd ../penpot
 ./manage.sh drop-devenv
 ./manage.sh start-devenv
 ```
 
-#### 4. Frontend Assets Missing
-**Symptoms**: CSS/JS files return 404, page doesn't load properly
-**Cause**: Build process not running or incomplete compilation
-**Solution**:
+### Desktop App Shows Blank/Error Page
 ```bash
-# Check if watch process is running
-docker exec penpot-devenv-main pgrep -f "yarn.*watch"
-
-# Restart if needed
-docker exec -d penpot-devenv-main bash -c "cd /home/penpot/penpot/frontend && yarn watch"
-```
-
-#### 5. Desktop App Shows Blank/Error Page
-**Symptoms**: Electron window opens but shows errors or blank page
-**Cause**: Backend not ready, frontend not built, or network issues
-**Solution**:
-```bash
-# Run comprehensive health check with auto-repair
 ./scripts/health-check.sh --repair
-
-# If still failing, restart everything
+# If still failing:
 ./start-dev-environment.sh
 ```
 
-## Development Workflow
+### Figma Import Not Working
+Run diagnostic:
+```bash
+node figma-import-diagnostic.js /path/to/file.fig
+```
 
-### Daily Development Routine
-1. **Check environment**: `./scripts/health-check.sh --quick`
-2. **Start if needed**: `./start-dev-environment.sh`
-3. **Validate demo access**: Try logging in with `demo@penpot.local / demo123`
-4. **Monitor logs**: Keep an eye on console for any new errors
+Check console for:
+- `⚠️ Kizuku Mock Backend: Unhandled command: <command-name>`
+- Errors in `figma-importer.js` or `figma-json-converter.js`
 
-### Before Making Changes
-1. **Backup current state**: Note current working configuration
-2. **Test demo credentials**: Ensure they work before changes
-3. **Document changes**: Update this file with any new requirements
+---
 
-### After Development Session
-1. **Leave containers running**: No need to stop unless troubleshooting
-2. **Check for new issues**: Run `./scripts/health-check.sh`
-3. **Update documentation**: Add any new troubleshooting steps discovered
+## Figma Import Reference
 
-## Service Endpoints
+### .fig File Structure
+```
+file.fig (ZIP archive):
+├── canvas.json         # Main design data
+├── meta.json           # File metadata
+├── images/             # Embedded images
+└── thumbnail.png       # Preview
+```
 
-### Development URLs
-- **Frontend**: http://localhost:3449
-- **Backend API**: http://localhost:6060/api
-- **Admin Interface**: http://localhost:6060/admin (if enabled)
-- **Mail Catcher**: http://localhost:1080
-- **MinIO Storage**: http://localhost:9001
+### Node Type Mapping
+| Figma Type | Kizuku Type | Notes |
+|------------|-----------|-------|
+| DOCUMENT | root | Top-level |
+| CANVAS | page | Each page |
+| FRAME | frame | Container |
+| GROUP | group | Grouping |
+| RECTANGLE | rect | Shape |
+| ELLIPSE | circle | Shape |
+| TEXT | text | Text element |
+| COMPONENT | component | Definition |
+| INSTANCE | frame | With component ref |
+
+### Common Conversion Bugs
+1. **Forgetting to subtract parent position** for relative coords
+2. **Not multiplying colors by 255** (Figma uses 0-1)
+3. **Missing null checks** on optional properties
+
+---
+
+## Commands Reference
+
+### Development
+```bash
+npm start              # Launch Kizu
+npm run lint           # ESLint check + fix
+npm run lint:check     # ESLint check only
+npm test               # Run tests
+```
+
+### PenPot (from ../penpot/)
+```bash
+./manage.sh start-devenv    # Start containers
+./manage.sh stop-devenv     # Stop containers
+./manage.sh drop-devenv     # Remove everything
+./manage.sh log-devenv      # View logs
+```
 
 ### Container Access
 ```bash
-# Main development container
+# Main container
 docker exec -it penpot-devenv-main bash
 
 # Database
 docker exec -it penpotdev-postgres-1 psql -U penpot -d penpot
 
-# Check logs
+# Logs
 docker logs penpot-devenv-main -f
-```
-
-## File Structure
-
-### Key Files
-- `start-dev-environment.sh` - Automated startup script
-- `scripts/health-check.sh` - Health monitoring and auto-repair
-- `scripts/manage-demo-accounts.sh` - Demo account management
-- `src/main.js` - Electron main process (includes auto-recovery)
-- `package.json` - Dependencies and npm scripts
-
-### Important Directories
-- `../penpot/` - Main PenPot repository
-- `src/` - Desktop app source code
-- `scripts/` - Development and maintenance scripts
-
-## Build Commands
-
-### PenPot Commands (run from ../penpot/)
-```bash
-./manage.sh start-devenv     # Start development environment
-./manage.sh stop-devenv      # Stop development environment  
-./manage.sh drop-devenv      # Remove containers and volumes
-./manage.sh log-devenv       # View container logs
-```
-
-### Kizu App Commands
-```bash
-npm start                    # Start Kizu app in development
-npm run build               # Build Kizu app for production
-npm test                    # Run tests (if available)
-```
-
-### Frontend Commands (inside container)
-```bash
-docker exec penpot-devenv-main bash -c "cd /home/penpot/penpot/frontend && yarn watch"    # Start build process
-docker exec penpot-devenv-main bash -c "cd /home/penpot/penpot/frontend && yarn build"    # One-time build
-```
-
-## Automated Recovery Features
-
-The Kizu app includes automated recovery mechanisms:
-- **Missing asset detection**: Automatically creates placeholder files
-- **Service health monitoring**: Checks backend connectivity
-- **Auto-restart mechanisms**: Attempts to recover from common failures
-
-These are implemented in `src/main.js` and can be enhanced as needed.
-
-## Data Persistence
-
-### Current Setup
-- **Database**: Persisted in Docker volumes
-- **File storage**: Persisted in Docker volumes  
-- **Demo accounts**: Persistent (but can be recreated)
-
-### Backup Recommendations
-- Demo account credentials are reliable: `demo@penpot.local / demo123`
-- For important development work, consider setting up persistent demo data
-- Regular health checks prevent most data loss scenarios
-
-## Security Notes
-
-- Demo credentials are intentionally simple for development
-- Local development environment should not be exposed externally
-- All services run on localhost only
-- Admin interfaces should be access-controlled in production
-
-## Support and Resources
-
-### Getting Help
-1. **Check this documentation first**
-2. **Run health checks**: `./scripts/health-check.sh`
-3. **Check PenPot logs**: `docker logs penpot-devenv-main`
-4. **Restart environment**: `./start-dev-environment.sh`
-
-### Useful Debugging Commands
-```bash
-# Container status
-docker ps
-
-# Service health
-curl -I http://localhost:3449
-curl -I http://localhost:6060/api
-
-# Frontend assets
-ls -la ../penpot/frontend/resources/public/js/
-ls -la ../penpot/frontend/resources/public/css/
-
-# Database connection
-docker exec penpotdev-postgres-1 pg_isready -U penpot
 ```
 
 ---
 
-*Last updated: [Current Date] - This document should be updated whenever new procedures or troubleshooting steps are discovered.*
+## Session Checklist
+
+### Starting Work
+1. Read this file (CLAUDE.md)
+2. Run `./scripts/health-check.sh --quick`
+3. Check current task/priority
+4. Review relevant source files
+
+### Before Committing
+1. Run `npm run lint`
+2. Run `npm test`
+3. Verify function lengths < 50 lines
+4. Verify file lengths < 500 lines
+5. Check all functions have JSDoc
+
+### When Debugging
+1. Log the input data
+2. Check for null/undefined
+3. Verify types
+4. Test function in isolation
+
+---
+
+## Key Files
+
+| File | Purpose |
+|------|---------|
+| `src/services/figma/figma-importer.js` | Main import entry |
+| `src/services/figma/figma-json-converter.js` | Node conversion |
+| `src/services/penpot-mock-backend.js` | API handlers |
+| `src/preload.js` | Fetch interception |
+| `eslint.config.js` | Code quality rules |
+| `start-dev-environment.sh` | Main startup script |
+| `scripts/health-check.sh` | Health monitoring |
+
+---
+
+*This document combines operational setup with code quality standards. Update when procedures change.*

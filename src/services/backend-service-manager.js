@@ -101,17 +101,20 @@ class BackendServiceManager {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
 
-      const checkResponse = await fetch('http://localhost:6060/api/rpc/command/login-with-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: 'demo@penpot.local',
-          password: 'demo123',
-        }),
-        signal: controller.signal,
-      });
+      const checkResponse = await fetch(
+        'http://localhost:6060/api/rpc/command/login-with-password',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: 'demo@penpot.local',
+            password: 'demo123',
+          }),
+          signal: controller.signal,
+        }
+      );
       clearTimeout(timeoutId);
 
       if (checkResponse.ok) {

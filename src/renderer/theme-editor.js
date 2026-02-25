@@ -1,5 +1,5 @@
 /**
- * Kizu Theme Editor Controller
+ * Kizuku Theme Editor Controller
  * Manages theme editing, live preview, and persistence via IPC.
  */
 

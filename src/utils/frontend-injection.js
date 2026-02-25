@@ -48,17 +48,17 @@ function injectAuthIntegration(window) {
 }
 
 /**
- * Inject Kizu branding into the renderer
+ * Inject Kizuku branding into the renderer
  * @param {BrowserWindow} window - The Electron BrowserWindow instance
  */
-function injectKizuBranding(window) {
+function injectKizukuBranding(window) {
   if (injectionState.branding) {
-    console.log('⏭️  Kizu branding already injected, skipping');
+    console.log('⏭️  Kizuku branding already injected, skipping');
     return;
   }
 
-  const brandingPath = path.join(__dirname, '../frontend-integration', 'kizu-branding.js');
-  const logoModulePath = path.join(__dirname, '../frontend-integration', 'kizu-svg-logo.js');
+  const brandingPath = path.join(__dirname, '../frontend-integration', 'kizuku-branding.js');
+  const logoModulePath = path.join(__dirname, '../frontend-integration', 'kizuku-svg-logo.js');
 
   try {
     // Read the logo module as plain text (don't require() it to avoid Node.js processing)
@@ -69,15 +69,15 @@ function injectKizuBranding(window) {
 
     // Load the branding script
     const brandingScript = fs.readFileSync(brandingPath, 'utf8');
-    console.log('Kizu branding script loaded');
+    console.log('Kizuku branding script loaded');
 
-    // Inject the logo script first (which defines KIZU_LOGO_SVG), then the branding script
+    // Inject the logo script first (which defines KIZUKU_LOGO_SVG), then the branding script
     const wrappedScript = `
       try {
-        // Execute the logo building script (defines KIZU_LOGO_SVG)
+        // Execute the logo building script (defines KIZUKU_LOGO_SVG)
         ${logoModuleScript}
 
-        // Now execute the branding script (which uses KIZU_LOGO_SVG)
+        // Now execute the branding script (which uses KIZUKU_LOGO_SVG)
         ${brandingScript}
       } catch (error) {
         console.error('❌ Branding script error:', error);
@@ -88,7 +88,7 @@ function injectKizuBranding(window) {
     window.webContents
       .executeJavaScript(wrappedScript)
       .then(() => {
-        console.log('✅ Kizu branding applied successfully');
+        console.log('✅ Kizuku branding applied successfully');
         injectionState.branding = true;
       })
       .catch((error) => {
@@ -117,7 +117,7 @@ function getInjectionState() {
 
 module.exports = {
   injectAuthIntegration,
-  injectKizuBranding,
+  injectKizukuBranding,
   resetInjectionState,
   getInjectionState,
 };

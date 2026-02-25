@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Comprehensive test suite for Kizu functionality
+// Comprehensive test suite for Kizuku functionality
 // Tests Electron wrapper, menu system, keyboard shortcuts, and PenPot integration
 
 const { spawn } = require('child_process');
@@ -208,7 +208,7 @@ class KizuTester {
     const isRunning = !electron.killed && electron.pid;
 
     if (isRunning) {
-      const hasStartMessage = output.includes('Kizu starting');
+      const hasStartMessage = output.includes('Kizuku starting');
       const noFatalErrors = this._checkNoFatalErrors(errorOutput);
 
       resolve({
@@ -417,7 +417,7 @@ class KizuTester {
     const total = this.results.passed + this.results.failed + this.results.warnings;
 
     console.log('\n' + '='.repeat(60));
-    console.log('🧪 KIZU TEST RESULTS');
+    console.log('🧪 KIZUKU TEST RESULTS');
     console.log('='.repeat(60));
     console.log(`✅ Passed: ${this.results.passed}`);
     console.log(`❌ Failed: ${this.results.failed}`);
@@ -426,7 +426,7 @@ class KizuTester {
     console.log('');
 
     if (this.results.failed === 0) {
-      console.log('🎉 All critical tests passed! Kizu is ready for development.');
+      console.log('🎉 All critical tests passed! Kizuku is ready for development.');
     } else {
       console.log('⚠️  Some tests failed. Please review the issues above.');
     }
@@ -439,7 +439,7 @@ class KizuTester {
   }
 
   async runAllTests() {
-    this.log('Starting Kizu Test Suite...', 'info');
+    this.log('Starting Kizuku Test Suite...', 'info');
     console.log('');
 
     // Critical tests (must pass)

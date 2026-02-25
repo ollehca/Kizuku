@@ -1,13 +1,13 @@
 /**
- * Kizu server connection utilities
+ * Kizuku server connection utilities
  */
 
 const path = require('path');
 const { createLogger } = require('./utils/logger');
 
-const logger = createLogger('KizuServer');
+const logger = createLogger('KizukuServer');
 
-// Kizu server configuration
+// Kizuku server configuration
 const PENPOT_CONFIG = {
   frontend: {
     dev: 'http://localhost:3449',
@@ -22,7 +22,7 @@ const PENPOT_CONFIG = {
 const SERVER_TIMEOUT = 3000;
 
 /**
- * Check if Kizu development server is running
+ * Check if Kizuku development server is running
  * @returns {Promise<boolean>} True if server is accessible
  */
 async function checkPenpotServer() {
@@ -38,7 +38,7 @@ async function checkPenpotServer() {
 }
 
 /**
- * Get Kizu frontend URL for current mode
+ * Get Kizuku frontend URL for current mode
  * @param {boolean} isDev - Whether in development mode
  * @returns {string} URL to load
  */
@@ -47,7 +47,7 @@ function getPenpotUrl(isDev) {
 }
 
 /**
- * Load Kizu in window with connection checking
+ * Load Kizuku in window with connection checking
  * @param {object} window - BrowserWindow instance
  * @param {boolean} isDev - Whether in development mode
  * @param {Function} onError - Error callback function
@@ -66,7 +66,7 @@ async function loadPenpotInWindow(window, isDev, onError) {
   try {
     await window.loadURL(url);
   } catch (error) {
-    logger.error('Failed to load Kizu', error);
+    logger.error('Failed to load Kizuku', error);
     onError();
   }
 }

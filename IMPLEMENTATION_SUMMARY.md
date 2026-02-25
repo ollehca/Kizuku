@@ -1,4 +1,4 @@
-# Kizu Authentication System - Implementation Summary
+# Kizuku Authentication System - Implementation Summary
 
 **Date**: 2025-09-30
 **Status**: Foundation Complete, Ready for UI Implementation
@@ -19,7 +19,7 @@
   - Source code availability plan
 
 #### PenPot Modifications Marked:
-All modified files now have KIZU modification headers:
+All modified files now have KIZUKU modification headers:
 1. `penpot/frontend/src/app/main/data/auth.cljs` - Single-user mode auth
 2. `penpot/frontend/src/app/main/data/dashboard.cljs` - nil team-id support
 3. `penpot/frontend/src/app/main/data/fonts.cljs` - Single-user fonts
@@ -73,7 +73,7 @@ All modified files now have KIZU modification headers:
 - **`LICENSE_SYSTEM_README.md`** - Complete documentation
 
 #### Technical Specifications:
-- **Format**: `KIZU-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX` (25 hex chars)
+- **Format**: `KIZUKU-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX` (25 hex chars)
 - **Encoding**: Hexadecimal (0-9, A-F)
 - **Security**: HMAC-SHA256 signature
 - **Data**: Type + Timestamp + Random + Signature
@@ -96,8 +96,8 @@ All modified files now have KIZU modification headers:
 ```
 
 #### Demo License Generated:
-- **Email**: `demo@kizu.local`
-- **Code**: `KIZU-50019-99AC6-14B35-557C8-509D0`
+- **Email**: `demo@kizuku.local`
+- **Code**: `KIZUKU-50019-99AC6-14B35-557C8-509D0`
 - **Type**: Private
 - **Generated**: 2025-09-30T13:18:16.755Z
 
@@ -118,9 +118,9 @@ All modified files now have KIZU modification headers:
 - User account information
 
 **Storage Location**:
-- macOS: `~/Library/Application Support/Kizu/`
-- Windows: `%APPDATA%/Kizu/`
-- Linux: `~/.config/Kizu/`
+- macOS: `~/Library/Application Support/Kizuku/`
+- Windows: `%APPDATA%/Kizuku/`
+- Linux: `~/.config/Kizuku/`
 
 **Estimated Time**: 2-3 hours
 
@@ -400,8 +400,8 @@ All modified files now have KIZU modification headers:
 - `src/services/license-code.js` - Core license system
 
 ### Testing
-- Demo license: `KIZU-50019-99AC6-14B35-557C8-509D0`
-- Demo email: `demo@kizu.local`
+- Demo license: `KIZUKU-50019-99AC6-14B35-557C8-509D0`
+- Demo email: `demo@kizuku.local`
 
 ---
 

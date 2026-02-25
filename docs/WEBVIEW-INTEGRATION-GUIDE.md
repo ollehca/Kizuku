@@ -1,4 +1,4 @@
-# Kizu Webview Integration Implementation Guide
+# Kizuku Webview Integration Implementation Guide
 
 ## 📋 **What This Document Covers**
 **Complete implementation guide for embedding the PenPot web application inside an Electron desktop app using webview technology**
@@ -10,7 +10,7 @@
 - Enhanced error handling and recovery options
 
 ## 🎯 **End Goal**
-Transform Kizu from a simple browser wrapper into a proper desktop application that:
+Transform Kizuku from a simple browser wrapper into a proper desktop application that:
 - Loads PenPot web interface in an isolated webview container
 - Maintains full PenPot functionality (drawing, saving, collaboration)
 - Provides desktop-native features (file dialogs, menus, shortcuts)
@@ -179,7 +179,7 @@ curl -I http://localhost:3449
 # Should return: HTTP/1.1 200 OK
 
 # 3. Install PenPot Desktop dependencies
-cd ../Kizu  
+cd ../Kizuku  
 npm install
 ```
 

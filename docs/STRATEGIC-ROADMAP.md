@@ -1,4 +1,4 @@
-# Kizu Strategic Roadmap
+# Kizuku Strategic Roadmap
 ## Liberation Strategy: Free Designers from Vendor Lock-In
 
 ---
@@ -65,7 +65,7 @@ Kizu: One-time purchase
 ### **Phase 2: Hybrid Model (Future Expansion)**
 ```
 Kizu: One-time purchase (unchanged)
-Kizu + Live Collaboration: Optional subscription
+Kizuku + Live Collaboration: Optional subscription
 ✅ Everything in Phase 1
 ✅ Real-time co-editing
 ✅ Live cursors and presence
@@ -86,7 +86,7 @@ Kizu + Live Collaboration: Optional subscription
 
 #### **Core Components:**
 ```
-Kizu Application
+Kizuku Application
 ├── Local Design Engine (PenPot web embedded)
 ├── FIGMA IMPORT ENGINE ⭐
 ├── Advanced File Management System

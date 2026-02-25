@@ -4,7 +4,7 @@
 /**
  * Demo License Setup Script
  *
- * Creates a demo Kizu account with a valid test private license.
+ * Creates a demo Kizuku account with a valid test private license.
  * This allows testing the authentication flow without manual license entry.
  *
  * Usage: node scripts/setup-demo-license.js
@@ -44,7 +44,7 @@ const userStorage = require('../src/services/user-storage');
 const { validateLicense } = require('../src/services/license-code');
 
 // Demo credentials
-const DEMO_LICENSE_CODE = 'KIZU-50019-99FF9-D4EFF-5DE58-DC837';
+const DEMO_LICENSE_CODE = 'KIZUKU-50019-99FF9-D4EFF-5DE58-DC837';
 const DEMO_USER = {
   username: 'demouser',
   fullName: 'Demo User',

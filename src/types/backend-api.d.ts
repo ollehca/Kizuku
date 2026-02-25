@@ -1,6 +1,6 @@
 /**
  * Backend API Type Definitions
- * Provides TypeScript types for the Kizu backend services accessible from renderer
+ * Provides TypeScript types for the Kizuku backend services accessible from renderer
  */
 
 /**

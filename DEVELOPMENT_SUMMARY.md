@@ -1,4 +1,4 @@
-# Kizu Project - Development Summary
+# Kizuku Project - Development Summary
 
 ## Project Overview
 
@@ -62,7 +62,7 @@ PenPotDesktop/
 │   ├── backend/               # Clojure backend
 │   ├── common/                # Shared code
 │   └── docker/                # Development environment
-├── kizu/                      # Electron desktop wrapper
+├── kizuku/                      # Electron desktop wrapper
 │   ├── src/
 │   │   ├── main.js           # Electron main process
 │   │   └── preload.js        # IPC bridge
@@ -181,7 +181,7 @@ PenPotDesktop/
 
 **Phase 1 Status**: ✅ COMPLETE - All objectives achieved ahead of schedule
 
-The foundation for Kizu has been successfully established with:
+The foundation for Kizuku has been successfully established with:
 - Complete development environment operational
 - Technical architecture validated and documented
 - Electron project structure created and ready for development

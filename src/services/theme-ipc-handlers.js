@@ -60,7 +60,7 @@ async function handleThemeReset() {
 async function handleThemeExport() {
   const result = await dialog.showSaveDialog({
     title: 'Export Theme',
-    defaultPath: 'kizu-theme.json',
+    defaultPath: 'kizuku-theme.json',
     filters: [{ name: 'JSON', extensions: ['json'] }],
   });
   if (result.canceled || !result.filePath) {
@@ -99,7 +99,7 @@ async function handleOpenThemeEditor() {
   const editorWindow = new BrowserWindow({
     width: 1100,
     height: 750,
-    title: 'Kizu Theme Editor',
+    title: 'Kizuku Theme Editor',
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,

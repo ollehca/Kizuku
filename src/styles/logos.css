@@ -1,4 +1,4 @@
-/* Kizu Logo System Styles */
+/* Kizuku Logo System Styles */
 
 :root {
   --logo-color-primary: #35f6e6;
@@ -7,44 +7,44 @@
 }
 
 /* Base logo styles */
-.kizu-logo {
+.kizuku-logo {
   display: inline-block;
   vertical-align: middle;
   line-height: 0;
 }
 
-.kizu-logo svg {
+.kizuku-logo svg {
   display: block;
   width: 100%;
   height: auto;
 }
 
 /* Logo size variants */
-.kizu-logo--xs {
+.kizuku-logo--xs {
   width: 16px;
 }
 
-.kizu-logo--sm {
+.kizuku-logo--sm {
   width: 24px;
 }
 
-.kizu-logo--md {
+.kizuku-logo--md {
   width: 32px;
 }
 
-.kizu-logo--lg {
+.kizuku-logo--lg {
   width: 48px;
 }
 
-.kizu-logo--xl {
+.kizuku-logo--xl {
   width: 64px;
 }
 
-.kizu-logo--2xl {
+.kizuku-logo--2xl {
   width: 96px;
 }
 
-.kizu-logo--3xl {
+.kizuku-logo--3xl {
   width: 128px;
 }
 
@@ -56,7 +56,7 @@
   margin-bottom: 16px;
 }
 
-.loading-screen__logo .kizu-logo {
+.loading-screen__logo .kizuku-logo {
   width: 64px;
   height: auto;
 }
@@ -83,17 +83,17 @@
 }
 
 /* Logo with text combinations */
-.kizu-brand {
+.kizuku-brand {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.kizu-brand__logo {
+.kizuku-brand__logo {
   flex-shrink: 0;
 }
 
-.kizu-brand__text {
+.kizuku-brand__text {
   font-family: var(--font-heading);
   font-weight: 700;
   color: var(--logo-color-primary);
@@ -101,7 +101,7 @@
 
 /* Responsive logo sizing */
 @media (width <= 768px) {
-  .loading-screen__logo .kizu-logo {
+  .loading-screen__logo .kizuku-logo {
     width: 48px;
   }
 
@@ -112,14 +112,14 @@
 }
 
 /* Logo hover effects */
-.kizu-logo--interactive {
+.kizuku-logo--interactive {
   cursor: pointer;
   transition:
     transform 0.2s ease,
     opacity 0.2s ease;
 }
 
-.kizu-logo--interactive:hover {
+.kizuku-logo--interactive:hover {
   transform: scale(1.05);
   opacity: 0.8;
 }
@@ -156,6 +156,6 @@
   }
 }
 
-.kizu-logo--glow {
+.kizuku-logo--glow {
   animation: logoGlow 2s ease-in-out infinite;
 }

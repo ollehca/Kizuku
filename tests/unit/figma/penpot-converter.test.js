@@ -1,6 +1,6 @@
 /**
- * Tests for kizu-to-penpot-converter.js
- * Verifies conversion from Kizu format to PenPot flat structure.
+ * Tests for kizuku-to-penpot-converter.js
+ * Verifies conversion from Kizuku format to PenPot flat structure.
  */
 
 const {
@@ -9,7 +9,7 @@ const {
   convertPathCommands,
   flattenChildren,
   convertKizuToPenpotFile,
-} = require('../../../src/services/kizu-to-penpot-converter');
+} = require('../../../src/services/kizuku-to-penpot-converter');
 
 describe('convertFillsToPenpot', () => {
   test('returns empty array for null', () => {
@@ -182,8 +182,8 @@ describe('flattenChildren', () => {
 });
 
 describe('convertKizuToPenpotFile', () => {
-  test('converts minimal kizu project to penpot file', () => {
-    const kizuProject = {
+  test('converts minimal kizuku project to penpot file', () => {
+    const kizukuProject = {
       metadata: {
         id: 'test-id-123',
         name: 'Test Project',
@@ -199,7 +199,7 @@ describe('convertKizuToPenpotFile', () => {
       },
     };
 
-    const result = convertKizuToPenpotFile(kizuProject);
+    const result = convertKizuToPenpotFile(kizukuProject);
     expect(result.id).toBe('test-id-123');
     expect(result.name).toBe('Test Project');
     expect(result.version).toBe(22);
@@ -209,14 +209,14 @@ describe('convertKizuToPenpotFile', () => {
   });
 
   test('includes root frame in page objects', () => {
-    const kizuProject = {
+    const kizukuProject = {
       metadata: { id: 'id', name: 'Test', created: '', modified: '' },
       data: {
         pages: [{ id: 'p1', name: 'Page', children: [] }],
       },
     };
 
-    const result = convertKizuToPenpotFile(kizuProject);
+    const result = convertKizuToPenpotFile(kizukuProject);
     const rootId = '00000000-0000-0000-0000-000000000000';
     const pageObjs = result.data['pages-index']['p1'].objects;
     expect(pageObjs[rootId]).toBeDefined();

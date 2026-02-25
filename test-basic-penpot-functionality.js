@@ -252,7 +252,7 @@ class BasicPenPotFunctionalityTester {
    */
   async launchDesktopApp() {
     return new Promise((resolve, reject) => {
-      console.log('   🚀 Launching Kizu desktop app...');
+      console.log('   🚀 Launching Kizuku desktop app...');
 
       const spawnConfig = {
         stdio: ['ignore', 'pipe', 'pipe'],

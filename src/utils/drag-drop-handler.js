@@ -1,5 +1,5 @@
 /**
- * Drag-and-drop handler for .fig, .kizu, and .json files
+ * Drag-and-drop handler for .fig, .kizuku, and .json files
  * Production-ready implementation with multi-layered approach:
  * - Layer 1: Native Electron file drop interception (main process)
  * - Layer 2: Persistent renderer-side handlers with auto-repair
@@ -85,7 +85,7 @@ function setupEventListeners(window, handleFileOpen) {
  */
 function isSupportedFile(filePath) {
   const ext = filePath.toLowerCase();
-  return ext.endsWith('.fig') || ext.endsWith('.kizu') || ext.endsWith('.json');
+  return ext.endsWith('.fig') || ext.endsWith('.kizuku') || ext.endsWith('.json');
 }
 
 /**
@@ -105,10 +105,10 @@ function createDragDropScript() {
         return;
       }
 
-      console.log('🎯 Kizu drag-and-drop handlers initializing (production version)...');
+      console.log('🎯 Kizuku drag-and-drop handlers initializing (production version)...');
 
       // State management
-      const kizuDragDrop = {
+      const kizukuDragDrop = {
         handlers: {
           dragover: null,
           dragleave: null,
@@ -123,16 +123,16 @@ function createDragDropScript() {
       };
 
       // Store in window for debugging
-      window.__kizuDragDrop = kizuDragDrop;
+      window.__kizukuDragDrop = kizukuDragDrop;
 
       /**
        * Create visual drop overlay (Layer 3)
        */
       function createDropOverlay() {
-        if (kizuDragDrop.overlay) return kizuDragDrop.overlay;
+        if (kizukuDragDrop.overlay) return kizukuDragDrop.overlay;
 
         const overlay = document.createElement('div');
-        overlay.id = 'kizu-drop-overlay';
+        overlay.id = 'kizuku-drop-overlay';
         overlay.style.cssText = \`
           position: fixed;
           top: 0;
@@ -166,7 +166,7 @@ function createDragDropScript() {
 
         overlay.appendChild(text);
         document.body.appendChild(overlay);
-        kizuDragDrop.overlay = overlay;
+        kizukuDragDrop.overlay = overlay;
 
         return overlay;
       }
@@ -184,11 +184,11 @@ function createDragDropScript() {
        * Hide drop overlay
        */
       function hideDropOverlay() {
-        if (kizuDragDrop.overlay) {
-          kizuDragDrop.overlay.style.opacity = '0';
+        if (kizukuDragDrop.overlay) {
+          kizukuDragDrop.overlay.style.opacity = '0';
           setTimeout(() => {
-            if (kizuDragDrop.overlay) {
-              kizuDragDrop.overlay.style.display = 'none';
+            if (kizukuDragDrop.overlay) {
+              kizukuDragDrop.overlay.style.display = 'none';
             }
           }, 200);
         }
@@ -232,7 +232,7 @@ function createDragDropScript() {
        * Handle drop event
        */
       async function handleDrop(e) {
-        console.log('🎯 Kizu: Drop event detected');
+        console.log('🎯 Kizuku: Drop event detected');
 
         // Always prevent default and stop propagation for file drops
         if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
@@ -245,29 +245,29 @@ function createDragDropScript() {
         hideDropOverlay();
 
         // Prevent concurrent drops
-        if (kizuDragDrop.dropInProgress) {
+        if (kizukuDragDrop.dropInProgress) {
           console.warn('⚠️ Drop already in progress, ignoring...');
           return;
         }
 
-        kizuDragDrop.dropInProgress = true;
+        kizukuDragDrop.dropInProgress = true;
 
         try {
           const files = Array.from(e.dataTransfer.files);
-          console.log('🎯 Kizu: Dropped files count:', files.length);
+          console.log('🎯 Kizuku: Dropped files count:', files.length);
 
           // Filter for supported file types
           const supportedFiles = files.filter(file => {
             const ext = file.name.toLowerCase();
-            return ext.endsWith('.fig') || ext.endsWith('.kizu') || ext.endsWith('.json');
+            return ext.endsWith('.fig') || ext.endsWith('.kizuku') || ext.endsWith('.json');
           });
 
-          console.log('🎯 Kizu: Supported files count:', supportedFiles.length);
+          console.log('🎯 Kizuku: Supported files count:', supportedFiles.length);
 
           if (supportedFiles.length === 0) {
             if (files.length > 0) {
               showNotification(
-                'Unsupported file type. Please drop .fig, .kizu, or .json files.',
+                'Unsupported file type. Please drop .fig, .kizuku, or .json files.',
                 'warning'
               );
             }
@@ -275,7 +275,7 @@ function createDragDropScript() {
           }
 
           const fileNames = supportedFiles.map(f => f.name);
-          console.log('🎯 Kizu intercepted dropped files:', fileNames);
+          console.log('🎯 Kizuku intercepted dropped files:', fileNames);
 
           // METHOD 1: Try using webUtils (primary method)
           if (window.electronAPI && window.electronAPI.getFilePathForDrop) {
@@ -297,7 +297,7 @@ function createDragDropScript() {
           console.error('❌ Drop handler error:', error);
           showNotification('Failed to process dropped files: ' + error.message, 'error');
         } finally {
-          kizuDragDrop.dropInProgress = false;
+          kizukuDragDrop.dropInProgress = false;
         }
       }
 
@@ -408,7 +408,7 @@ function createDragDropScript() {
        * Attach event handlers to document
        */
       function attachHandlers() {
-        if (kizuDragDrop.isAttached) {
+        if (kizukuDragDrop.isAttached) {
           console.log('🔧 Handlers already attached, skipping');
           return;
         }
@@ -416,27 +416,27 @@ function createDragDropScript() {
         console.log('🔧 Attaching drag-drop handlers...');
 
         // Remove old handlers if they exist
-        if (kizuDragDrop.handlers.dragover) {
-          document.removeEventListener('dragover', kizuDragDrop.handlers.dragover, true);
+        if (kizukuDragDrop.handlers.dragover) {
+          document.removeEventListener('dragover', kizukuDragDrop.handlers.dragover, true);
         }
-        if (kizuDragDrop.handlers.dragleave) {
-          document.removeEventListener('dragleave', kizuDragDrop.handlers.dragleave, true);
+        if (kizukuDragDrop.handlers.dragleave) {
+          document.removeEventListener('dragleave', kizukuDragDrop.handlers.dragleave, true);
         }
-        if (kizuDragDrop.handlers.drop) {
-          document.removeEventListener('drop', kizuDragDrop.handlers.drop, true);
+        if (kizukuDragDrop.handlers.drop) {
+          document.removeEventListener('drop', kizukuDragDrop.handlers.drop, true);
         }
 
         // Store handler references
-        kizuDragDrop.handlers.dragover = handleDragOver;
-        kizuDragDrop.handlers.dragleave = handleDragLeave;
-        kizuDragDrop.handlers.drop = handleDrop;
+        kizukuDragDrop.handlers.dragover = handleDragOver;
+        kizukuDragDrop.handlers.dragleave = handleDragLeave;
+        kizukuDragDrop.handlers.drop = handleDrop;
 
         // Attach in capture phase with highest priority
         document.addEventListener('dragover', handleDragOver, true);
         document.addEventListener('dragleave', handleDragLeave, true);
         document.addEventListener('drop', handleDrop, true);
 
-        kizuDragDrop.isAttached = true;
+        kizukuDragDrop.isAttached = true;
         console.log('✅ Drag-drop handlers attached (capture phase)');
       }
 
@@ -444,24 +444,24 @@ function createDragDropScript() {
        * Setup MutationObserver to re-attach handlers if DOM changes
        */
       function setupMutationObserver() {
-        if (kizuDragDrop.mutationObserver) {
-          kizuDragDrop.mutationObserver.disconnect();
+        if (kizukuDragDrop.mutationObserver) {
+          kizukuDragDrop.mutationObserver.disconnect();
         }
 
-        kizuDragDrop.mutationObserver = new MutationObserver((mutations) => {
+        kizukuDragDrop.mutationObserver = new MutationObserver((mutations) => {
           // Check if body was replaced or major DOM changes occurred
           const bodyReplaced = mutations.some(m =>
             Array.from(m.removedNodes).includes(document.body) ||
             m.target === document.documentElement
           );
 
-          if (bodyReplaced && !kizuDragDrop.isAttached) {
+          if (bodyReplaced && !kizukuDragDrop.isAttached) {
             console.log('🔧 DOM change detected, re-attaching handlers...');
             setTimeout(attachHandlers, 100);
           }
         });
 
-        kizuDragDrop.mutationObserver.observe(document.documentElement, {
+        kizukuDragDrop.mutationObserver.observe(document.documentElement, {
           childList: true,
           subtree: false
         });
@@ -473,12 +473,12 @@ function createDragDropScript() {
        * Health check - verify handlers are still active
        */
       function performHealthCheck() {
-        if (!kizuDragDrop.isAttached) {
+        if (!kizukuDragDrop.isAttached) {
           console.warn('⚠️ Health check failed: handlers not attached, re-attaching...');
           attachHandlers();
         }
 
-        kizuDragDrop.lastHealthCheck = Date.now();
+        kizukuDragDrop.lastHealthCheck = Date.now();
 
         // Ping main process
         if (window.electronAPI && window.electronAPI.dragDropHealthCheck) {
@@ -496,7 +496,7 @@ function createDragDropScript() {
        * Initialize drag-drop system
        */
       function initialize() {
-        console.log('🚀 Initializing Kizu drag-drop system...');
+        console.log('🚀 Initializing Kizuku drag-drop system...');
 
         // Attach handlers immediately
         attachHandlers();
@@ -505,12 +505,12 @@ function createDragDropScript() {
         setupMutationObserver();
 
         // Start health monitoring (check every 30 seconds)
-        kizuDragDrop.healthCheckInterval = setInterval(performHealthCheck, 30000);
+        kizukuDragDrop.healthCheckInterval = setInterval(performHealthCheck, 30000);
 
         // Initial health check after 5 seconds
         setTimeout(performHealthCheck, 5000);
 
-        console.log('✅ Kizu drag-drop system initialized');
+        console.log('✅ Kizuku drag-drop system initialized');
       }
 
       // Initialize when DOM is ready
@@ -525,7 +525,7 @@ function createDragDropScript() {
 }
 
 /**
- * Setup drag-and-drop handling for .fig, .kizu, and .json files
+ * Setup drag-and-drop handling for .fig, .kizuku, and .json files
  * Production-ready multi-layered implementation
  *
  * @param {BrowserWindow} window - The Electron BrowserWindow instance

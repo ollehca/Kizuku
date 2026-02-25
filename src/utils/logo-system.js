@@ -1,5 +1,5 @@
 /**
- * Kizu Logo System
+ * Kizuku Logo System
  * Provides utilities for displaying logos with proper theming
  */
 
@@ -8,10 +8,10 @@ const path = require('path');
 
 // Logo variants available
 const LOGO_VARIANTS = {
-  DARK: 'KizuDark',
-  LIGHT: 'KizuLight',
-  DARK_OUTLINE: 'KizuDarkOutline',
-  LIGHT_OUTLINE: 'KizuLightOutline',
+  DARK: 'KizukuDark',
+  LIGHT: 'KizukuLight',
+  DARK_OUTLINE: 'KizukuDarkOutline',
+  LIGHT_OUTLINE: 'KizukuLightOutline',
 };
 
 /**
@@ -130,7 +130,7 @@ function createLogoElement(theme = 'dark', size = 48) {
     ">K</div>`;
   }
 
-  return `<div class="kizu-logo" style="display: inline-block;">${svgContent}</div>`;
+  return `<div class="kizuku-logo" style="display: inline-block;">${svgContent}</div>`;
 }
 
 /**
@@ -157,19 +157,19 @@ function getLogoDataURL(theme = 'dark', outline = false, size = 32) {
  */
 function generateLogoCSSClasses() {
   return `
-    .kizu-logo {
+    .kizuku-logo {
       display: inline-block;
       vertical-align: middle;
     }
     
-    .kizu-logo svg {
+    .kizuku-logo svg {
       display: block;
     }
     
-    .logo-dark { background-image: url("data:image/svg+xml,${encodeURIComponent(loadLogoSVG('KizuDark') || '')}"); }
-    .logo-light { background-image: url("data:image/svg+xml,${encodeURIComponent(loadLogoSVG('KizuLight') || '')}"); }
-    .logo-dark-outline { background-image: url("data:image/svg+xml,${encodeURIComponent(loadLogoSVG('KizuDarkOutline') || '')}"); }
-    .logo-light-outline { background-image: url("data:image/svg+xml,${encodeURIComponent(loadLogoSVG('KizuLightOutline') || '')}"); }
+    .logo-dark { background-image: url("data:image/svg+xml,${encodeURIComponent(loadLogoSVG('KizukuDark') || '')}"); }
+    .logo-light { background-image: url("data:image/svg+xml,${encodeURIComponent(loadLogoSVG('KizukuLight') || '')}"); }
+    .logo-dark-outline { background-image: url("data:image/svg+xml,${encodeURIComponent(loadLogoSVG('KizukuDarkOutline') || '')}"); }
+    .logo-light-outline { background-image: url("data:image/svg+xml,${encodeURIComponent(loadLogoSVG('KizukuLightOutline') || '')}"); }
     
     .logo-bg {
       background-size: contain;

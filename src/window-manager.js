@@ -1,5 +1,5 @@
 /**
- * Window management for Kizu
+ * Window management for Kizuku
  */
 
 const { BrowserWindow, dialog } = require('electron');
@@ -112,7 +112,7 @@ function createWindowConfig(windowState, isDev) {
     minHeight: MIN_HEIGHT,
     webPreferences: getWebPreferences(isDev),
     ...titleBarConfig,
-    title: 'Kizu',
+    title: 'Kizuku',
     backgroundColor: '#1E1E20',
     show: true,
     icon: getAppIconPath(),
@@ -144,10 +144,10 @@ function createBrowserWindow(store) {
  */
 function showConnectionError(isDev) {
   const message = isDev
-    ? 'Could not connect to Kizu development server at localhost:3449.\n\nPlease ensure Kizu is running with: ./manage.sh run-devenv'
-    : 'Could not load the Kizu application. Please check the installation.';
+    ? 'Could not connect to Kizuku development server at localhost:3449.\n\nPlease ensure Kizuku is running with: ./manage.sh run-devenv'
+    : 'Could not load the Kizuku application. Please check the installation.';
 
-  dialog.showErrorBox('Kizu Connection Error', message);
+  dialog.showErrorBox('Kizuku Connection Error', message);
 }
 
 module.exports = {

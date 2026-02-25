@@ -249,7 +249,7 @@ class EmbeddedPostgresManager {
 ## Technical Considerations
 
 ### Data Persistence
-- **Location**: `~/Library/Application Support/Kizu/database/` (macOS)
+- **Location**: `~/Library/Application Support/Kizuku/database/` (macOS)
 - **Size**: ~10-50MB for typical projects (grows with usage)
 - **Backup**: Can copy entire `database/` folder
 
@@ -357,8 +357,8 @@ Comparable to:
 
 - **GitHub**: https://github.com/zonkyio/embedded-postgres
 - **Maven**: https://mvnrepository.com/artifact/io.zonky.test/embedded-postgres
-- **PenPot Backend**: `/Users/Achello/Documents/Projects/Kizu/penpot/backend/`
-- **Week 1 Tasks**: `/Users/Achello/Documents/Projects/Kizu/docs/WEEK_1_TASKS.md`
+- **PenPot Backend**: `/Users/Achello/Documents/Projects/Kizuku/penpot/backend/`
+- **Week 1 Tasks**: `/Users/Achello/Documents/Projects/Kizuku/docs/WEEK_1_TASKS.md`
 
 ---
 

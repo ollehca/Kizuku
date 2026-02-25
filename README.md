@@ -1,264 +1,429 @@
-# 🎨 Kizu
+# Kizuku 築
 
 ![Version](https://img.shields.io/badge/version-0.1.0--dev-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-lightgrey)
 
-**Professional desktop application for PenPot design platform**
+**Professional offline-first desktop design application built on PenPot**
 
-## 🚀 Quick Start
-
-### One-Command Setup (Recommended)
-```bash
-./start-dev-environment.sh
-```
-This automatically:
-- ✅ Starts all PenPot services
-- ✅ Creates demo account
-- ✅ Validates everything works
-- ✅ Launches desktop app
-
-### Demo Credentials
-- **Email**: `demo@penpot.local`
-- **Password**: `demo123`
+Kizuku is a standalone desktop application that provides a native design experience without requiring internet connectivity or cloud services. It uses PenPot's open-source frontend while replacing the backend with a local mock system.
 
 ---
 
-## 🔧 Manual Commands
+## Key Features
 
-### If Quick Start Fails
-```bash
-# Check what's wrong
-./scripts/health-check.sh
-
-# Fix issues automatically  
-./scripts/health-check.sh --repair
-
-# Create demo account only
-./scripts/create-demo-simple.sh
-
-# Start desktop app
-npm start
-```
-
-### Troubleshooting
-```bash
-# Emergency reset (if everything breaks)
-./scripts/health-check.sh --repair
-./start-dev-environment.sh
-
-# Check system health
-./scripts/health-check.sh --quick
-
-# Backup your data
-./scripts/maintenance.sh backup-all
-```
+- **Offline-First**: No internet connection required for private license users
+- **Figma Import**: Import `.fig` and Figma JSON files directly
+- **Local Storage**: All files stored locally in `.kizuku` format
+- **Native Experience**: Full desktop integration with menus, shortcuts, and file associations
+- **License-Based Access**: Private (offline) or Business (cloud collaboration) modes
 
 ---
-
-## 📁 Important Files
-
-| File | Purpose |
-|------|---------|
-| `start-dev-environment.sh` | **🎯 Main startup script** |
-| `scripts/health-check.sh` | System health & auto-repair |
-| `scripts/create-demo-simple.sh` | Demo account creation |
-| `scripts/maintenance.sh` | Backup & maintenance |
-| `CLAUDE.md` | **📚 Complete documentation** |
-
----
-
-## 🆘 Common Issues
-
-### ❌ Desktop App Shows 404 Error
-```bash
-./scripts/health-check.sh --repair
-```
-
-### ❌ Demo Login Doesn't Work  
-```bash
-./scripts/create-demo-simple.sh
-```
-
-### ❌ Services Won't Start
-```bash
-cd ../penpot
-./manage.sh drop-devenv
-./manage.sh start-devenv
-./start-dev-environment.sh
-```
-
-### ❌ Everything is Broken
-```bash
-./scripts/maintenance.sh reset
-./start-dev-environment.sh
-```
-
----
-
-## 🎯 Development Workflow
-
-### Daily Routine
-1. **Start**: `./start-dev-environment.sh`
-2. **Work**: Use demo credentials to log in
-3. **Check**: Desktop app Help menu → "Run Health Check"
-
-### Before Making Changes
-1. **Backup**: `./scripts/maintenance.sh backup-all`
-2. **Health Check**: `./scripts/health-check.sh`
-
-### If Issues Occur
-1. **Auto-repair**: Desktop app Help menu → "Run Health Check" 
-2. **Manual repair**: `./scripts/health-check.sh --repair`
-3. **Emergency**: Desktop app Help menu → "Emergency Recovery"
-
----
-
-## 📱 Desktop App Features
-
-### Automatic Recovery (Built-in)
-- 🔄 Monitors health every 2 minutes
-- 🛠️ Auto-repairs missing files
-- 🚨 Emergency recovery option
-- 📊 Status tracking
-
-### Help Menu Options
-- **Run Health Check** - Check system status
-- **Emergency Recovery** - Full system restart  
-- **Recovery Status** - View recovery info
-
----
-
-## 📚 Documentation
-
-- **Complete Guide**: Read `CLAUDE.md`
-- **Versioning**: See `VERSIONING.md` for release strategy
-- **Changelog**: See `CHANGELOG.md` for version history
-- **Health Issues**: Run `./scripts/health-check.sh`
-- **Data Problems**: Use `./scripts/maintenance.sh`
-- **Demo Account**: Try `./scripts/create-demo-simple.sh`
-
----
-
-## 🎉 Success Indicators
-
-When everything works:
-- ✅ Desktop app opens without errors
-- ✅ Can log in with `demo@penpot.local / demo123`
-- ✅ PenPot interface loads completely
-- ✅ No 404 errors in console
-
-**Happy designing! 🎨**
-
----
-
-## Development Setup (Original)
 
 ## Architecture
 
-Kizu consists of:
+### Overview
 
-- **Electron Main Process** (`src/main.js`): Application window management, file system access, and native OS integration
-- **Renderer Process**: The PenPot web application running in Chromium
-- **Preload Script** (`src/preload.js`): Secure bridge between main and renderer processes
-- **PenPot Backend**: Local server providing API and data persistence
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Electron Main Process                     │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐  │
+│  │ Main Window │  │ IPC Handlers│  │ Backend Services    │  │
+│  │ (BrowserWin)│  │             │  │ - License Storage   │  │
+│  └─────────────┘  └─────────────┘  │ - User Storage      │  │
+│                                     │ - Project Manager   │  │
+│                                     └─────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                      Preload Script                          │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │ Fetch Interceptor (injected into main world)        │    │
+│  │ - Redirects /api/rpc/command/* to localhost:9999    │    │
+│  │ - Handles both fetch() and XMLHttpRequest           │    │
+│  └─────────────────────────────────────────────────────┘    │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │ electronAPI (contextBridge)                         │    │
+│  │ - File operations, clipboard, Figma import API      │    │
+│  └─────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    Renderer Process                          │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │ PenPot Frontend (ClojureScript)                     │    │
+│  │ - Loaded from localhost:3449 (dev) or bundled       │    │
+│  │ - All API calls intercepted by fetch interceptor    │    │
+│  └─────────────────────────────────────────────────────┘    │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │ Kizuku Injections                                     │    │
+│  │ - Auth integration (auto-login for private license) │    │
+│  │ - Branding (logo, colors)                           │    │
+│  │ - Drag-and-drop handlers                            │    │
+│  └─────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                 Mock Backend Server (port 9999)              │
+│  ┌─────────────────────────────────────────────────────┐    │
+│  │ HTTP Server handling PenPot RPC commands:           │    │
+│  │ - get-profile, get-teams, get-projects              │    │
+│  │ - get-file, get-file-libraries                      │    │
+│  │ - All responses Transit-encoded                     │    │
+│  └─────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Key Components
+
+| Component | Location | Purpose |
+|-----------|----------|---------|
+| Main Process | `src/main.js` | Window management, mock server, IPC |
+| Preload Script | `src/preload.js` | Fetch interceptor, electronAPI bridge |
+| Mock Backend | `src/services/penpot-mock-backend.js` | Handles all PenPot API calls locally |
+| Auth Integration | `src/frontend-integration/auth-integration.js` | Auto-login for private license |
+| Figma Importer | `src/services/figma/figma-importer.js` | Converts Figma files to .kizuku |
+| License Storage | `src/services/license-storage.js` | Validates and stores license keys |
+| User Storage | `src/services/user-storage.js` | Stores user profile locally |
+
+---
+
+## License System
+
+Kizuku uses a license-based access model:
+
+### Private License (Current Focus)
+- **Offline-first**: No internet required
+- **Auto-login**: No password needed, license = authentication
+- **Local storage**: All files stored on user's machine
+- **Single-user**: No collaboration features
+
+### Business License (Future)
+- **Cloud sync**: Files synced to Kizuku cloud
+- **Collaboration**: Real-time multi-user editing
+- **Team management**: Shared workspaces
+- **Requires login**: Email/password authentication
+
+### License Flow
+
+```
+┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+│ First Launch │ ──▶ │ Enter License│ ──▶ │ License Valid│
+│              │     │ Key          │     │              │
+└──────────────┘     └──────────────┘     └──────┬───────┘
+                                                  │
+                     ┌────────────────────────────┴────────────────────────┐
+                     │                                                     │
+                     ▼                                                     ▼
+          ┌──────────────────┐                              ┌──────────────────┐
+          │ Private License  │                              │ Business License │
+          │                  │                              │                  │
+          │ • Auto-login     │                              │ • Login required │
+          │ • Offline mode   │                              │ • Cloud sync     │
+          │ • Local storage  │                              │ • Collaboration  │
+          └──────────────────┘                              └──────────────────┘
+```
+
+---
+
+## Mock Backend System
+
+The mock backend replaces PenPot's server entirely for private license users.
+
+### How It Works
+
+1. **Fetch Interceptor** (in preload.js):
+   - Injected into page context BEFORE any scripts run
+   - Intercepts all `fetch()` and `XMLHttpRequest` calls
+   - Redirects `/api/rpc/command/*` to `localhost:9999`
+
+2. **Mock Server** (in main.js):
+   - HTTP server running on port 9999
+   - Handles PenPot RPC commands
+   - Returns Transit-encoded responses
+
+3. **Handled Commands**:
+   | Command | Purpose |
+   |---------|---------|
+   | `get-profile` | Returns user profile from license |
+   | `get-teams` | Returns single "My Workspace" team |
+   | `get-projects` | Returns local projects |
+   | `get-file` | Returns file data for editor |
+   | `get-font-variants` | Returns empty (uses system fonts) |
+   | `push-audit-events` | Silently ignored (no analytics) |
+
+---
+
+## Figma Import
+
+Kizuku can import Figma designs directly without using Figma's API.
+
+### Supported Formats
+- `.fig` - Native Figma binary files
+- `.json` - Figma JSON export (from plugins)
+
+### Import Flow
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│ Drag & Drop │ ──▶ │ Parse File  │ ──▶ │ Convert to  │ ──▶ │ Open in     │
+│ .fig/.json  │     │ (fig-kiwi)  │     │ .kizuku format│     │ Workspace   │
+└─────────────┘     └─────────────┘     └─────────────┘     └─────────────┘
+```
+
+### Components
+
+| File | Purpose |
+|------|---------|
+| `src/services/figma/figma-importer.js` | Main orchestrator |
+| `src/services/figma/fig-file-parser.js` | Parses .fig binary files |
+| `src/services/figma/figma-json-converter.js` | Converts Figma JSON to .kizuku |
+
+### .kizuku File Format
+
+```json
+{
+  "version": "1.0.0",
+  "type": "kizuku-project",
+  "metadata": {
+    "id": "uuid",
+    "name": "Project Name",
+    "created": "ISO date",
+    "modified": "ISO date"
+  },
+  "data": {
+    "pages": [...],
+    "components": [...],
+    "colorLibrary": [...],
+    "typographyLibrary": [...]
+  },
+  "assets": {
+    "images": [],
+    "fonts": []
+  }
+}
+```
+
+---
+
+## Development Setup
+
+### Prerequisites
+- Node.js 18+
+- Docker (for PenPot frontend development server)
+
+### Quick Start
+
+```bash
+# Clone repository
+git clone https://github.com/ollehca/Kizuku.git
+cd Kizu
+
+# Install dependencies
+npm install
+
+# Start PenPot development environment (in separate terminal)
+cd ../penpot && ./manage.sh start-devenv
+
+# Start Kizu
+npm start
+```
+
+### Development Commands
+
+| Command | Purpose |
+|---------|---------|
+| `npm start` | Start Electron app in dev mode |
+| `npm run lint` | Run ESLint with auto-fix |
+| `npm run lint:check` | Check linting without fixing |
+| `npm run format` | Format code with Prettier |
+| `npm test` | Run test suite |
+
+### Test Demo License
+
+```bash
+# Create test license and user data
+KIZUKU_LICENSE_SECRET='test-secret-key-for-testing-only' node scripts/setup-demo-license.js
+```
+
+This creates:
+- License: `KIZUKU-50019-99FF9-D4EFF-5DE58-DC837` (private type)
+- User: `demouser` / `Demo User` / `demo@penpot.local`
+
+---
 
 ## File Structure
 
 ```
-kizu/
+kizuku/
 ├── src/
-│   ├── main.js          # Electron main process
-│   ├── preload.js       # Preload script for renderer
-│   └── renderer.js      # Additional renderer logic (if needed)
-├── assets/              # Application icons and assets
-├── docs/                # Documentation
-├── package.json         # Project configuration
-└── README.md           # This file
+│   ├── main.js                      # Electron main process
+│   ├── preload.js                   # Preload with fetch interceptor
+│   ├── ipc-handlers.js              # IPC communication handlers
+│   ├── menu-builder.js              # Application menu
+│   ├── tab-manager.js               # File tabs management
+│   │
+│   ├── services/
+│   │   ├── penpot-mock-backend.js   # Mock backend handlers
+│   │   ├── backend-service-manager.js # Backend orchestration
+│   │   ├── license-storage.js       # License key storage
+│   │   ├── user-storage.js          # User profile storage
+│   │   ├── auth-orchestrator.js     # Authentication flow
+│   │   └── figma/
+│   │       ├── figma-importer.js    # Import orchestrator
+│   │       ├── fig-file-parser.js   # .fig binary parser
+│   │       └── figma-json-converter.js # JSON to .kizuku converter
+│   │
+│   ├── frontend-integration/
+│   │   ├── auth-integration.js      # Auto-login injection
+│   │   └── penpot-auth-override.js  # PenPot auth bypass
+│   │
+│   ├── utils/
+│   │   ├── drag-drop-handler.js     # Drag and drop support
+│   │   ├── frontend-injection.js    # Script injection utilities
+│   │   ├── workspace-launcher.js    # Opens files in workspace
+│   │   └── css-manager.js           # CSS hot reloading
+│   │
+│   └── renderer/
+│       ├── import-figma.html        # Figma import UI
+│       ├── import-figma.js          # Import UI controller
+│       └── project-dashboard.js     # Dashboard logic
+│
+├── test/
+│   └── figma-import.test.js         # Figma import tests
+│
+├── test-data/                       # Test fixtures
+│   ├── license.dat                  # Test license
+│   ├── user.dat                     # Test user
+│   └── output/                      # Test output files
+│
+├── scripts/
+│   ├── setup-demo-license.js        # Create test license
+│   ├── health-check.sh              # System health check
+│   └── manage-demo-accounts.sh      # Demo account management
+│
+├── eslint.config.js                 # Linting rules
+├── package.json                     # Dependencies
+├── CLAUDE.md                        # Development guide
+└── README.md                        # This file
 ```
 
-## Build Process
-
-### Development Build
-```bash
-npm run dev
-```
-
-### Production Build
-```bash
-npm run build
-npm run dist
-```
-
-### Package for Distribution
-```bash
-npm run pack        # Create unpacked builds
-npm run dist        # Create installers
-```
-
-## Desktop Integration Features
-
-### File Operations
-- Native file dialogs for open/save operations
-- Direct file system access for project files
-- Support for .penpot file format
-
-### Menu Integration
-- Native application menus
-- Keyboard shortcuts
-- Context menus
-
-### Platform-Specific Features
-- macOS: Hidden title bar, proper window management
-- Windows: NSIS installer, Windows-specific shortcuts  
-- Linux: AppImage distribution
-
-## PenPot Integration
-
-The desktop app integrates with PenPot by:
-
-1. **Frontend**: Embedding the PenPot ClojureScript frontend in an Electron webview
-2. **Backend**: Running a local PenPot backend server for API and data persistence
-3. **Storage**: Using local SQLite instead of PostgreSQL for offline capability
-4. **Assets**: Local file storage instead of cloud storage
+---
 
 ## Configuration
 
-Configuration is stored in the user's data directory:
-- macOS: `~/Library/Application Support/Kizu/`
-- Windows: `%APPDATA%/Kizu/`
-- Linux: `~/.config/Kizu/`
+### Data Locations
+
+| Platform | Path |
+|----------|------|
+| macOS | `~/Library/Application Support/Kizuku/` |
+| Windows | `%APPDATA%/Kizuku/` |
+| Linux | `~/.config/Kizuku/` |
+
+### Stored Data
+
+| File | Purpose |
+|------|---------|
+| `license.dat` | Encrypted license key |
+| `user.dat` | User profile (name, email) |
+| `projects/` | Local .kizuku project files |
+| `config.json` | App preferences |
+
+---
+
+## Linting Rules
+
+ESLint enforces code quality:
+
+| Rule | Limit |
+|------|-------|
+| `max-lines-per-function` | 50 lines |
+| `max-lines` (per file) | 500 lines |
+| `complexity` | 10 (cyclomatic) |
+| `max-depth` | 4 levels |
+| `max-len` | 100 characters |
+
+Run `npm run lint` to check and auto-fix issues.
+
+---
+
+## Roadmap
+
+### Completed
+- [x] Electron application setup
+- [x] PenPot frontend integration
+- [x] Mock backend system
+- [x] License-based authentication
+- [x] Auto-login for private license
+- [x] Fetch interceptor for API calls
+- [x] Figma import foundation (.fig parsing)
+- [x] .kizuku file format
+
+### In Progress
+- [ ] Figma import UI and full conversion
+- [ ] Dashboard without Internal Error
+- [ ] Project file management
+
+### Planned
+- [ ] Business license with cloud sync
+- [ ] Collaboration features
+- [ ] Auto-updater
+- [ ] Platform installers (DMG, NSIS, AppImage)
+- [ ] Performance optimizations
+
+---
+
+## Troubleshooting
+
+### "Internal Error" on Dashboard
+The mock backend may be missing API handlers. Check console for:
+```
+⚠️ Kizuku Mock Backend: Unhandled command: <command-name>
+```
+
+### Fetch Interceptor Not Working
+Verify in console:
+```
+✅ [Kizuku Preload] Fetch interceptor installed in main world
+```
+If missing, check `src/preload.js` for errors.
+
+### Mock Server Not Receiving Requests
+Check that port 9999 is free:
+```bash
+lsof -i :9999
+```
+
+### License Not Recognized
+Delete and recreate test data:
+```bash
+rm -rf test-data/
+KIZUKU_LICENSE_SECRET='test-secret-key-for-testing-only' node scripts/setup-demo-license.js
+```
+
+---
 
 ## License Compliance
 
-This project is built on PenPot's MPL 2.0 licensed codebase. All modifications to MPL-licensed files will be shared as required. The Electron wrapper and desktop-specific code are licensed under MIT.
+- **PenPot Code**: MPL 2.0 - Modifications shared as required
+- **Kizuku Wrapper**: MIT License
+- **Documentation**: CC BY 4.0
+
+---
 
 ## Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+3. Follow linting rules (`npm run lint`)
+4. Commit with descriptive messages
+5. Push and open a Pull Request
 
-## Roadmap
-
-- [x] Basic Electron application setup
-- [x] PenPot frontend integration
-- [ ] Local backend server integration
-- [ ] Offline file storage system
-- [ ] Native file format support
-- [ ] Auto-updater implementation
-- [ ] Performance optimizations
-- [ ] Platform-specific installers
-
-## Support
-
-For support and questions:
-- Create an issue on GitHub
-- Join our community discussions
-- Check the documentation in `/docs`
+---
 
 ## Acknowledgments
 
-Built on the amazing work of the PenPot team and community. Special thanks to the open-source design tools ecosystem.
+Built on the amazing work of the [PenPot](https://penpot.app) team. Kizuku extends PenPot for offline desktop use while respecting the open-source license.

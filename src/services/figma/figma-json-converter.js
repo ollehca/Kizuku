@@ -9,39 +9,14 @@
 const { createLogger } = require('../../utils/logger');
 const EventEmitter = require('events');
 const mockBackend = require('../penpot-mock-backend');
-const styles = require('./kizu-style-transformer');
-const libExtractor = require('./kizu-library-extractor');
-const nodes = require('./kizu-node-transformer');
-const layoutTransformer = require('./kizu-layout-transformer');
+const styles = require('./kizuku-style-transformer');
+const libExtractor = require('./kizuku-library-extractor');
+const nodes = require('./kizuku-node-transformer');
+const layoutTransformer = require('./kizuku-layout-transformer');
 
 const logger = createLogger('FigmaJSONConverter');
 
-/**
- * Node type mapping from Figma to PenPot
- */
-const NODE_TYPE_MAP = {
-  DOCUMENT: 'document',
-  CANVAS: 'page',
-  FRAME: 'frame',
-  GROUP: 'group',
-  VECTOR: 'path',
-  BOOLEAN_OPERATION: 'bool',
-  STAR: 'path',
-  LINE: 'path',
-  ELLIPSE: 'circle',
-  REGULAR_POLYGON: 'path',
-  RECTANGLE: 'rect',
-  TEXT: 'text',
-  SLICE: 'frame',
-  COMPONENT: 'component',
-  COMPONENT_SET: 'component',
-  INSTANCE: 'instance',
-};
-
-/**
- * FigmaJSONConverter class
- * Handles conversion of Figma JSON to PenPot format
- */
+/** Handles conversion of Figma JSON to PenPot format */
 class FigmaJSONConverter extends EventEmitter {
   constructor() {
     super();
@@ -74,10 +49,10 @@ class FigmaJSONConverter extends EventEmitter {
   }
 
   /**
-   * Convert Figma document JSON to .kizu format
+   * Convert Figma document JSON to .kizuku format
    * @param {object} figmaDocument - Figma document from REST API
    * @param {object} metadata - Optional metadata for the project
-   * @returns {Promise<object>} .kizu project structure
+   * @returns {Promise<object>} .kizuku project structure
    */
   async convert(figmaDocument, metadata = {}) {
     logger.info('Starting conversion', {
@@ -85,13 +60,14 @@ class FigmaJSONConverter extends EventEmitter {
       version: figmaDocument.version,
     });
     this.resetStats();
+    this.coordsRelative = !!figmaDocument._coordsRelative;
 
     try {
-      const kizuProject = await this.transformToKizuProject(figmaDocument, metadata);
+      const kizukuProject = await this.transformToKizukuProject(figmaDocument, metadata);
       const score = this.calculateCompatibilityScore();
       logger.info('Conversion completed', { stats: this.stats, score });
       return {
-        project: kizuProject,
+        project: kizukuProject,
         stats: {
           ...this.stats,
           unsupportedFeatures: Array.from(this.stats.unsupportedFeatures),
@@ -105,12 +81,12 @@ class FigmaJSONConverter extends EventEmitter {
   }
 
   /**
-   * Transform Figma document to .kizu project format
+   * Transform Figma document to .kizuku project format
    * @param {object} figmaDoc - Figma document object
    * @param {object} metadata - Optional metadata
-   * @returns {Promise<object>} .kizu project
+   * @returns {Promise<object>} .kizuku project
    */
-  async transformToKizuProject(figmaDoc, metadata = {}) {
+  async transformToKizukuProject(figmaDoc, metadata = {}) {
     const teamId = await this.resolveTeamId();
     const project = this.createProjectSkeleton(figmaDoc, metadata, teamId);
     await this.populatePages(figmaDoc, project);
@@ -118,6 +94,7 @@ class FigmaJSONConverter extends EventEmitter {
     libExtractor.extractComponents(figmaDoc, project.data.components, getUuid);
     libExtractor.extractColorLibrary(figmaDoc, project.data.colorLibrary, getUuid);
     libExtractor.extractTypographyLibrary(figmaDoc, project.data.typographyLibrary, getUuid);
+    this.attachExtractedImages(figmaDoc, project);
     return project;
   }
 
@@ -146,7 +123,7 @@ class FigmaJSONConverter extends EventEmitter {
     const now = new Date().toISOString();
     return {
       version: '1.0.0',
-      type: 'kizu-project',
+      type: 'kizuku-project',
       metadata: {
         id: this.generateId(),
         teamId,
@@ -196,6 +173,19 @@ class FigmaJSONConverter extends EventEmitter {
   }
 
   /**
+   * Attach extracted images from .fig metadata to project assets
+   * @param {object} figmaDoc - Figma document (may have _meta)
+   * @param {object} project - Target project
+   */
+  attachExtractedImages(figmaDoc, project) {
+    const images = figmaDoc._meta?.extractedImages;
+    if (Array.isArray(images) && images.length > 0) {
+      project.assets.images = images;
+      logger.info('Attached extracted images', { count: images.length });
+    }
+  }
+
+  /**
    * Generate unique ID
    * @returns {string} Unique identifier
    */
@@ -229,12 +219,24 @@ class FigmaJSONConverter extends EventEmitter {
       const handler = this.dispatch[figmaNode.type];
       if (!handler) {
         this.addWarning(`Unsupported node type: ${figmaNode.type}`, figmaNode);
+        logger.info('[DIAG] Skipped node - no handler', {
+          type: figmaNode.type,
+          name: figmaNode.name,
+          id: figmaNode.id,
+        });
         this.stats.skippedNodes++;
         return null;
       }
-      return await handler(figmaNode);
+      const result = await handler(figmaNode);
+      this.stats.convertedNodes++;
+      return result;
     } catch (error) {
       this.addError(`Failed to transform node: ${error.message}`, figmaNode);
+      logger.error('[DIAG] Node transform failed', {
+        type: figmaNode.type,
+        name: figmaNode.name,
+        error: error.message,
+      });
       this.stats.skippedNodes++;
       return null;
     }
@@ -250,8 +252,9 @@ class FigmaJSONConverter extends EventEmitter {
     if (!children) {
       return [];
     }
-    if (parentBbox) {
-      this.parentStack.push(parentBbox);
+    const absParent = this.resolveAbsoluteParent(parentBbox);
+    if (absParent) {
+      this.parentStack.push(absParent);
     }
     const results = [];
     for (const child of children) {
@@ -260,10 +263,29 @@ class FigmaJSONConverter extends EventEmitter {
         results.push(converted);
       }
     }
-    if (parentBbox) {
+    if (absParent) {
       this.parentStack.pop();
     }
     return results;
+  }
+
+  /**
+   * Resolve absolute parent position for the parent stack
+   * @param {object} parentBbox - Parent's bounding box
+   * @returns {object|null} Absolute position or null
+   */
+  resolveAbsoluteParent(parentBbox) {
+    if (!parentBbox) {
+      return null;
+    }
+    if (!this.coordsRelative) {
+      return parentBbox;
+    }
+    const current = this.getParentPosition();
+    return {
+      x: (parentBbox.x || 0) + (current.x || 0),
+      y: (parentBbox.y || 0) + (current.y || 0),
+    };
   }
 
   /**
@@ -321,6 +343,10 @@ class FigmaJSONConverter extends EventEmitter {
    * @returns {object} Relative x, y coordinates
    */
   calculateRelativeCoords(absBbox, parent) {
+    if (this.coordsRelative) {
+      // .fig binary: coords are already relative to parent
+      return { x: absBbox.x || 0, y: absBbox.y || 0 };
+    }
     return {
       x: (absBbox.x || 0) - (parent.x || 0),
       y: (absBbox.y || 0) - (parent.y || 0),
@@ -462,5 +488,4 @@ function getFigmaJSONConverter() {
 module.exports = {
   FigmaJSONConverter,
   getFigmaJSONConverter,
-  NODE_TYPE_MAP,
 };

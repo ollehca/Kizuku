@@ -21,8 +21,8 @@ describe('License Code System', () => {
       expect(license).toHaveProperty('generatedAt');
       expect(license).toHaveProperty('timestamp');
 
-      // Check format: KIZU-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX
-      expect(license.code).toMatch(/^KIZU-[0-9A-F]{5}-[0-9A-F]{5}-[0-9A-F]{5}-[0-9A-F]{5}-[0-9A-F]{5}$/);
+      // Check format: KIZUKU-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX
+      expect(license.code).toMatch(/^KIZUKU-[0-9A-F]{5}-[0-9A-F]{5}-[0-9A-F]{5}-[0-9A-F]{5}-[0-9A-F]{5}$/);
     });
 
     test('generates private license by default', () => {
@@ -81,7 +81,7 @@ describe('License Code System', () => {
       // With hyphens (standard)
       expect(validateLicense(code).valid).toBe(true);
 
-      // Without hyphens - should fail (missing KIZU- prefix after replace)
+      // Without hyphens - should fail (missing KIZUKU- prefix after replace)
       const noHyphens = code.replace(/-/g, '');
       expect(validateLicense(noHyphens).valid).toBe(false);
 
@@ -95,16 +95,16 @@ describe('License Code System', () => {
     test('rejects invalid format', () => {
       const result = validateLicense('INVALID-CODE');
       expect(result.valid).toBe(false);
-      expect(result.error).toContain('KIZU-'); // Error says "must start with KIZU-"
+      expect(result.error).toContain('KIZUKU-'); // Error says "must start with KIZUKU-"
     });
 
     test('rejects code with invalid characters', () => {
-      const result = validateLicense('KIZU-XXXXX-XXXXX-XXXXX-XXXXX-XXXXG'); // G not valid hex
+      const result = validateLicense('KIZUKU-XXXXX-XXXXX-XXXXX-XXXXX-XXXXG'); // G not valid hex
       expect(result.valid).toBe(false);
     });
 
     test('rejects code with wrong length', () => {
-      const result = validateLicense('KIZU-12345');
+      const result = validateLicense('KIZUKU-12345');
       expect(result.valid).toBe(false);
       expect(result.error).toContain('25 characters'); // Error says "must be exactly 25 characters"
     });
@@ -123,10 +123,10 @@ describe('License Code System', () => {
 
     test('rejects code with tampered type', () => {
       const generated = generateLicense({ type: LICENSE_TYPES.PRIVATE });
-      const encoded = generated.code.replace(/^KIZU-/, '');
+      const encoded = generated.code.replace(/^KIZUKU-/, '');
 
       // Change first character (type byte in hex)
-      const tampered = 'KIZU-' + 'B' + encoded.slice(1);
+      const tampered = 'KIZUKU-' + 'B' + encoded.slice(1);
       const result = validateLicense(tampered);
 
       expect(result.valid).toBe(false);
@@ -206,13 +206,13 @@ describe('License Code System', () => {
     });
 
     test('handles very long string', () => {
-      const longCode = 'KIZU-'.repeat(100);
+      const longCode = 'KIZUKU-'.repeat(100);
       const result = validateLicense(longCode);
       expect(result.valid).toBe(false);
     });
 
     test('handles special characters', () => {
-      const result = validateLicense('KIZU-!@#$%-XXXXX-XXXXX-XXXXX-XXXXX');
+      const result = validateLicense('KIZUKU-!@#$%-XXXXX-XXXXX-XXXXX-XXXXX');
       expect(result.valid).toBe(false);
     });
 
@@ -234,8 +234,8 @@ describe('License Code System', () => {
       const privateCode = generateLicense({ type: LICENSE_TYPES.PRIVATE });
 
       // Try to change 'P' (0x50) to 'B' (0x42) in the encoded data
-      const encoded = privateCode.code.replace('KIZU-', '');
-      const tampered = 'KIZU-4' + encoded.slice(1); // Change first nibble
+      const encoded = privateCode.code.replace('KIZUKU-', '');
+      const tampered = 'KIZUKU-4' + encoded.slice(1); // Change first nibble
 
       const result = validateLicense(tampered);
       expect(result.valid).toBe(false);
@@ -259,7 +259,7 @@ describe('License Code System', () => {
       // a valid HMAC signature. We verify this by checking that
       // manually constructed codes always fail validation.
 
-      const fakeCode = 'KIZU-50019-99AC6-14B35-557C8-00000';
+      const fakeCode = 'KIZUKU-50019-99AC6-14B35-557C8-00000';
       const result = validateLicense(fakeCode);
       expect(result.valid).toBe(false);
     });

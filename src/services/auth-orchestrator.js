@@ -214,7 +214,7 @@ async function tryCreatePenpotUser(userData, license) {
   console.log('🔐 Creating PenPot backend user for private license...');
   const result = await createPenpotUserForLicense(userData, license);
   if (!result.success) {
-    console.warn('⚠️ Failed to create PenPot user, but Kizu account created:', result.error);
+    console.warn('⚠️ Failed to create PenPot user, but Kizuku account created:', result.error);
   }
 }
 
@@ -279,8 +279,8 @@ async function createPenpotUserForLicense(userData, _license) {
     // Generate a secure password for the PenPot account
     const penpotPassword = generateSessionToken();
 
-    // Email is required for PenPot, use username@kizu.local if not provided
-    const email = userData.email || `${userData.username}@kizu.local`;
+    // Email is required for PenPot, use username@kizuku.local if not provided
+    const email = userData.email || `${userData.username}@kizuku.local`;
 
     console.log(`🔐 Registering PenPot user: ${email}`);
 

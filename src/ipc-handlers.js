@@ -12,6 +12,7 @@ const { getFigmaImporter } = require('./services/figma/figma-importer');
 const mockBackend = require('./services/penpot-mock-backend');
 const transit = require('transit-js');
 const { registerThemeHandlers } = require('./services/theme-ipc-handlers');
+const autosave = require('./services/autosave-service');
 // QUARANTINED: Backend injection not needed for v1.0 file-based workflow
 // const { createPenpotFrontendInjector } = require('./services/figma/penpot-backend-uploader');
 
@@ -318,7 +319,7 @@ function clipboardHasImage() {
 /**
  * Handle workspace launch
  * @param {object} event - IPC event
- * @param {string} filePath - Path to .kizu file
+ * @param {string} filePath - Path to .kizuku file
  * @param {object} window - BrowserWindow instance
  */
 async function handleLaunchWorkspace(event, filePath, window) {
@@ -540,6 +541,32 @@ function registerClipboardHandlers() {
 }
 
 /**
+ * Register autosave IPC handlers and start the service
+ */
+function registerAutosaveHandlers() {
+  autosave.setFileDataProvider((fileId) => {
+    const files = mockBackend.getCreatedFiles();
+    return files.get(fileId) || null;
+  });
+
+  // Restore autosaved files into createdFiles cache
+  const saved = autosave.loadAllAutosavedFiles();
+  const cache = mockBackend.getCreatedFiles();
+  for (const { id: fileId, data } of saved) {
+    if (!cache.has(fileId)) {
+      cache.set(fileId, data);
+      console.log(`📂 Restored file from autosave: ${fileId}`);
+    }
+  }
+
+  autosave.startAutosave();
+
+  ipcMain.handle('autosave:get-status', () => ({
+    active: autosave.isAutosaving(),
+  }));
+}
+
+/**
  * Register all IPC handlers
  * @param {object} window - BrowserWindow instance
  */
@@ -552,9 +579,8 @@ function registerIpcHandlers(window) {
   registerBackendIpcHandlers();
   registerFigmaHandlers(window);
   registerThemeHandlers();
-  logger.info(
-    'IPC handlers registered for webview, authentication, mock backend, clipboard, backend services, Figma import, and theme'
-  );
+  registerAutosaveHandlers();
+  logger.info('IPC handlers registered (incl. autosave)');
 }
 
 module.exports = {

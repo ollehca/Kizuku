@@ -6,7 +6,7 @@
  * @module license-entry
  */
 
-const { ipcRenderer } = require('electron');
+const api = window.electronAPI;
 
 // DOM Elements
 let form;
@@ -64,7 +64,7 @@ async function handleSubmit(event) {
 
   try {
     // Validate license code via IPC
-    const result = await ipcRenderer.invoke('validate-license-code', code);
+    const result = await api.license.validateCode(code);
 
     if (result.valid) {
       // Show success state
@@ -132,7 +132,7 @@ async function handlePaste() {
  */
 function handleBack(event) {
   event.preventDefault();
-  ipcRenderer.send('back-to-license-selection');
+  api.license.backToSelection();
 }
 
 /**
@@ -140,8 +140,8 @@ function handleBack(event) {
  */
 function handleContactSupport(event) {
   event.preventDefault();
-  ipcRenderer.send('open-external-link', {
-    url: 'mailto:support@kizu.app',
+  api.onboarding.openExternalLink({
+    url: 'mailto:support@kizuku.app',
     label: 'Contact Support',
   });
 }
@@ -151,8 +151,8 @@ function handleContactSupport(event) {
  */
 function handlePurchase(event) {
   event.preventDefault();
-  ipcRenderer.send('open-external-link', {
-    url: 'https://kizu.app/purchase',
+  api.onboarding.openExternalLink({
+    url: 'https://kizuku.app/purchase',
     label: 'Purchase License',
   });
 }
@@ -162,7 +162,7 @@ function handlePurchase(event) {
  */
 function proceedToAccountCreation(licenseResult) {
   setTimeout(() => {
-    ipcRenderer.send('license-validated', {
+    api.license.validated({
       code: licenseResult.code,
       type: licenseResult.type,
       timestamp: licenseResult.timestamp,
@@ -175,13 +175,20 @@ function proceedToAccountCreation(licenseResult) {
  * Format license code with hyphens
  */
 function formatLicenseCode(code) {
-  // Remove all non-alphanumeric characters
-  const clean = code.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+  const upper = code.toUpperCase();
 
-  // Add hyphens after every 5 characters
-  const parts = [];
-  for (let i = 0; i < clean.length; i += 5) {
-    parts.push(clean.substring(i, i + 5));
+  // Preserve KIZUKU- prefix, only format the hex portion
+  const prefix = 'KIZUKU-';
+  const stripped = upper.replace(/[^A-Z0-9]/g, '');
+
+  if (!stripped.startsWith('KIZUKU')) {
+    return upper;
+  }
+
+  const hexPart = stripped.substring(6);
+  const parts = [prefix.slice(0, -1)];
+  for (let idx = 0; idx < hexPart.length; idx += 5) {
+    parts.push(hexPart.substring(idx, idx + 5));
   }
 
   return parts.join('-');

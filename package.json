@@ -1,7 +1,7 @@
 {
-  "name": "kizu",
+  "name": "kizuku",
   "version": "0.1.0",
-  "description": "Kizu - Professional offline design tool",
+  "description": "Kizuku - Professional offline design tool",
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",
@@ -19,8 +19,8 @@
     "test:auth:headed": "playwright test test/auth-integration.test.js --headed",
     "test:auth:debug": "playwright test test/auth-integration.test.js --headed --debug",
     "test:integration": "node integration-test.js",
-    "test:functionality": "node kizu-functionality-test.js",
-    "test:design-tools": "node kizu-design-tools-test.js",
+    "test:functionality": "node kizuku-functionality-test.js",
+    "test:design-tools": "node kizuku-design-tools-test.js",
     "test:basic-functionality": "node test-basic-penpot-functionality.js",
     "test:unit": "jest",
     "test:figma": "jest --testPathPattern=tests/unit/figma",
@@ -39,20 +39,20 @@
   "keywords": [
     "design",
     "desktop",
-    "kizu",
+    "kizuku",
     "figma-alternative",
     "offline"
   ],
-  "author": "Kizu Team",
+  "author": "Kizuku Team",
   "license": "MIT",
-  "homepage": "https://github.com/ollehca/Kizu",
+  "homepage": "https://github.com/ollehca/Kizuku",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ollehca/Kizu"
+    "url": "https://github.com/ollehca/Kizuku"
   },
   "build": {
-    "appId": "com.kizu.app",
-    "productName": "Kizu 築",
+    "appId": "com.kizuku.app",
+    "productName": "Kizuku 築",
     "directories": {
       "output": "dist"
     },

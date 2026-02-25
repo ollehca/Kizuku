@@ -1,5 +1,5 @@
 /**
- * Kizu Brand Theme CSS Generator
+ * Kizuku Brand Theme CSS Generator
  * Generates CSS and SCSS variable files from theme configuration.
  */
 
@@ -7,31 +7,31 @@
  * Map of theme color keys to CSS variable names
  */
 const COLOR_VAR_MAP = {
-  primary: '--kizu-primary',
-  primaryDark: '--kizu-primary-dark',
-  primaryLight: '--kizu-primary-light',
-  bgDark: '--kizu-bg-dark',
-  bgMedium: '--kizu-bg-medium',
-  surface: '--kizu-surface',
-  surfaceHover: '--kizu-surface-hover',
-  surfaceActive: '--kizu-surface-active',
-  text: '--kizu-text',
-  textMuted: '--kizu-text-muted',
-  textDim: '--kizu-text-dim',
-  border: '--kizu-border',
-  divider: '--kizu-divider',
-  success: '--kizu-success',
-  warning: '--kizu-warning',
-  error: '--kizu-error',
+  primary: '--kizuku-primary',
+  primaryDark: '--kizuku-primary-dark',
+  primaryLight: '--kizuku-primary-light',
+  bgDark: '--kizuku-bg-dark',
+  bgMedium: '--kizuku-bg-medium',
+  surface: '--kizuku-surface',
+  surfaceHover: '--kizuku-surface-hover',
+  surfaceActive: '--kizuku-surface-active',
+  text: '--kizuku-text',
+  textMuted: '--kizuku-text-muted',
+  textDim: '--kizuku-text-dim',
+  border: '--kizuku-border',
+  divider: '--kizuku-divider',
+  success: '--kizuku-success',
+  warning: '--kizuku-warning',
+  error: '--kizuku-error',
 };
 
 /**
  * Map of theme typography keys to CSS variable names
  */
 const TYPO_VAR_MAP = {
-  fontHeading: '--kizu-font-heading',
-  fontBody: '--kizu-font-body',
-  fontMono: '--kizu-font-mono',
+  fontHeading: '--kizuku-font-heading',
+  fontBody: '--kizuku-font-body',
+  fontMono: '--kizuku-font-mono',
 };
 
 /**
@@ -72,10 +72,10 @@ function generateTypographyVars(typography) {
 function generateComputedVars(colors) {
   const gradient = `linear-gradient(135deg, ${colors.primary}, ${colors.primaryDark})`;
   return [
-    `  --kizu-accent-gradient: ${gradient};`,
-    '  --kizu-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);',
-    '  --kizu-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);',
-    '  --kizu-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);',
+    `  --kizuku-accent-gradient: ${gradient};`,
+    '  --kizuku-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);',
+    '  --kizuku-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);',
+    '  --kizuku-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);',
   ].join('\n');
 }
 
@@ -87,7 +87,7 @@ function generateComputedVars(colors) {
 function generatePaletteCSS(theme) {
   const header = [
     '/**',
-    ' * Kizu Brand Color Palette (Auto-Generated)',
+    ' * Kizuku Brand Color Palette (Auto-Generated)',
     ' * Do not edit manually — use the Theme Editor.',
     ' */',
     '',
@@ -107,7 +107,7 @@ function generatePaletteCSS(theme) {
  */
 function generateSCSSVariables(theme) {
   const header = [
-    '// Kizu Brand Variables (Auto-Generated)',
+    '// Kizuku Brand Variables (Auto-Generated)',
     '// Do not edit manually — use the Theme Editor.',
     '',
   ].join('\n');
@@ -115,7 +115,7 @@ function generateSCSSVariables(theme) {
   const lines = [];
   for (const [key, varName] of Object.entries(COLOR_VAR_MAP)) {
     if (theme.colors[key]) {
-      const scssVar = varName.replace(/^--kizu-/, '$kizu-');
+      const scssVar = varName.replace(/^--kizuku-/, '$kizuku-');
       lines.push(`${scssVar}: ${theme.colors[key]};`);
     }
   }
