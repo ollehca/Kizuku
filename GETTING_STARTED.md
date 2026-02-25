@@ -132,14 +132,6 @@ This may take a few minutes. You'll see progress percentages. Wait until it fini
 cd Kizuku
 ```
 
-4. Switch to the latest version:
-
-```
-git checkout feature/figma-import-100-percent
-```
-
-You should see a message like `Switched to branch 'feature/figma-import-100-percent'`.
-
 ---
 
 ## Step 4: Install Kizuku's Dependencies
@@ -320,7 +312,7 @@ To get the latest version in the future, open Terminal and run:
 
 ```
 cd ~/Documents/Kizuku
-git pull origin feature/figma-import-100-percent
+git pull origin main
 npm install
 ```
 
