@@ -341,7 +341,7 @@ function createTabForFile(fileId, url) {
 
   // Check if tab already exists before auto-creating
   ipcRenderer.invoke('get-open-tabs').then((tabs) => {
-    const exists = tabs && tabs.some((tab) => tab.id === fileId);
+    const exists = tabs?.some((tab) => tab.id === fileId);
     if (exists) {
       console.log('⏭️ Tab already exists for file:', fileId);
       return;

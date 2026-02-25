@@ -93,7 +93,7 @@ function walkTree(node, visitor) {
 function extractColorFromNode(node) {
   const fills = node.fills || [];
   const solidFill = fills.find((f) => f.type === 'SOLID' && f.visible !== false);
-  if (solidFill && solidFill.color) {
+  if (solidFill?.color) {
     return transformColor(solidFill.color);
   }
   return null;

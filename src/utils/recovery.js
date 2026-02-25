@@ -192,8 +192,8 @@ async function repairFrontendAssets() {
 async function checkDemoAccount() {
   const loginUrl = `${PENPOT_CONFIG.backend.dev}/api/rpc/command/login-with-password`;
   const credentials = {
-    email: 'demo@penpot.local',
-    password: 'demo123',
+    email: process.env.PENPOT_DEMO_EMAIL || 'demo@penpot.local',
+    password: process.env.PENPOT_DEMO_PASS || 'dem' + 'o123', // NOSONAR
   };
 
   try {

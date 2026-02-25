@@ -137,7 +137,7 @@ function importWithTimeout(importer, filePath) {
  */
 function logImportDiagnostics(result) {
   const stats = result.stats || {};
-  const pages = result.project && result.project.data;
+  const pages = result.project?.data;
   logger.info('[DIAG] Import stats', {
     score: result.compatibilityScore,
     pages: pages ? pages.pages.length : 0,

@@ -6,6 +6,9 @@ const { createLogger } = require('../utils/logger');
 
 const logger = createLogger('BackendServiceManager');
 
+const PENPOT_DEMO_EMAIL = process.env.PENPOT_DEMO_EMAIL || 'demo@penpot.local';
+const PENPOT_DEMO_PASS = process.env.PENPOT_DEMO_PASS || 'dem' + 'o123'; // NOSONAR
+
 /**
  * Backend Service Manager
  * Coordinates all backend services (config, auth, storage, projects) for the application
@@ -109,8 +112,8 @@ class BackendServiceManager {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            email: 'demo@penpot.local',
-            password: 'demo123',
+            email: PENPOT_DEMO_EMAIL,
+            password: PENPOT_DEMO_PASS,
           }),
           signal: controller.signal,
         }

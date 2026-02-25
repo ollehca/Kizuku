@@ -319,23 +319,4 @@ if (typeof module !== 'undefined' && module.exports) {
   module.exports = ShortcutManager;
 }
 
-// Initialize if in browser context - DISABLED FOR DEBUGGING
-// TODO: Enable when debugging is complete
-/*
-if (typeof window !== 'undefined') {
-  window.shortcutManager = new ShortcutManager();
-
-  // Helper function for Kizuku to register shortcut handlers
-  window.registerShortcutHandler = function (action, handler) {
-    if (!window.kizuku) {
-      window.kizuku = {};
-    }
-    if (!window.kizuku.shortcutActions) {
-      window.kizuku.shortcutActions = {};
-    }
-    window.kizuku.shortcutActions[action] = handler;
-  };
-}
-*/
-
 module.exports = ShortcutManager;

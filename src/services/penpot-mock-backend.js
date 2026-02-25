@@ -475,7 +475,7 @@ const mockHandlers = {
   'get-file-data-for-thumbnail': async (params) => {
     const fileId = extractFileId(params);
     const file = createdFiles.get(fileId);
-    if (!file || !file.data) {
+    if (!file?.data) {
       return { 'file-id': fileId, revn: 0, page: null };
     }
     const pageId = file.data.pages?.[0];

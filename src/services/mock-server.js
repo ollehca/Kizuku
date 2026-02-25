@@ -4,8 +4,8 @@
  * Handles Transit format conversion (keyword keys, UUID values, tagged records).
  */
 
-const http = require('http');
-const crypto = require('crypto');
+const http = require('node:http');
+const crypto = require('node:crypto');
 const transit = require('transit-js');
 
 // In-memory store: thumbnail UUID → { data: Buffer, type: string }
@@ -369,7 +369,7 @@ function extractMultipartBlob(body, contentType) {
       }
       const typeMatch = part.match(/Content-Type:\s*(.+)\r\n/i);
       const mimeType = typeMatch ? typeMatch[1].trim() : 'image/png';
-      const blobStr = part.slice(headerEnd + 4, part.length - 2);
+      const blobStr = part.slice(headerEnd + 4, -2);
       return {
         data: Buffer.from(blobStr, 'binary'),
         type: mimeType,

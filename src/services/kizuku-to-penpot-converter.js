@@ -344,7 +344,7 @@ function convertKizukuToPenpotFile(kizukuProject) {
   // Build image lookup so fills can embed data URIs
   shapes.setImageAssets(kizukuProject.assets?.images || []);
 
-  if (kizukuProject.data && kizukuProject.data.pages) {
+  if (kizukuProject.data?.pages) {
     kizukuProject.data.pages.forEach((page) => {
       const { pageId, pageData } = buildPenpotPage(page);
       pagesArray.push(pageId);

@@ -35,9 +35,8 @@ function transformColor(figmaColor) {
  * @param {number} val - Raw opacity value
  * @returns {number} Clamped opacity
  */
-function clampOpacity(val) {
-  const raw = val ?? 1;
-  return Math.min(1, Math.max(0, raw));
+function clampOpacity(val = 1) {
+  return Math.min(1, Math.max(0, val));
 }
 
 /**
@@ -303,7 +302,7 @@ function buildGradientPosition(row0, row1) {
     startY: row1[2] || 0,
     endX: (row0[0] || 0) + (row0[2] || 0),
     endY: (row1[0] || 0) + (row1[2] || 0),
-    width: Math.sqrt((row0[1] || 0) ** 2 + (row1[1] || 0) ** 2) || 1,
+    width: Math.hypot(row0[1] || 0, row1[1] || 0) || 1,
   };
 }
 

@@ -187,8 +187,7 @@ function generateBezierSegments(options) {
  * @returns {object} Segment geometry
  */
 function computeSegmentPoints(options) {
-  const { cx, cy, rx, ry, t1, t2, alpha, cosPhi, sinPhi } = options;
-  void alpha;
+  const { cx, cy, rx, ry, t1, t2, cosPhi, sinPhi } = options;
   const cos2 = Math.cos(t2);
   const sin2 = Math.sin(t2);
   return {

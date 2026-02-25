@@ -307,14 +307,14 @@ class KizuTester {
       const hasRegisterMethod = shortcutsJs.includes('register(');
       const hasPlatformDetection = shortcutsJs.includes('process.platform');
       const hasModifierKey = shortcutsJs.includes('modifierKey');
-      const hasWindowExport = shortcutsJs.includes('window.shortcutManager');
+      const hasModuleExport = shortcutsJs.includes('module.exports = ShortcutManager');
 
       const shortcutChecks = [
         hasShortcutManager,
         hasRegisterMethod,
         hasPlatformDetection,
         hasModifierKey,
-        hasWindowExport,
+        hasModuleExport,
       ];
       const passedChecks = shortcutChecks.filter(Boolean).length;
 
