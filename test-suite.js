@@ -301,21 +301,20 @@ class KizuTester {
   async testKeyboardShortcuts() {
     try {
       const shortcutsJs = fs.readFileSync(path.join(__dirname, 'src/shortcuts.js'), 'utf8');
-      const preloadJs = fs.readFileSync(path.join(__dirname, 'src/preload.js'), 'utf8');
 
       // Check for required shortcut functions
       const hasShortcutManager = shortcutsJs.includes('class ShortcutManager');
       const hasRegisterMethod = shortcutsJs.includes('register(');
       const hasPlatformDetection = shortcutsJs.includes('process.platform');
       const hasModifierKey = shortcutsJs.includes('modifierKey');
-      const hasPreloadIntegration = preloadJs.includes('ShortcutManager');
+      const hasWindowExport = shortcutsJs.includes('window.shortcutManager');
 
       const shortcutChecks = [
         hasShortcutManager,
         hasRegisterMethod,
         hasPlatformDetection,
         hasModifierKey,
-        hasPreloadIntegration,
+        hasWindowExport,
       ];
       const passedChecks = shortcutChecks.filter(Boolean).length;
 
