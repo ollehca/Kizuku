@@ -97,4 +97,9 @@ release/
 .idea/
 *.swp
 *.swo
-*~test-data/
+*~
+
+# Kizuku private files
+CLAUDE.md
+test-data/*.dat
+test-results/
