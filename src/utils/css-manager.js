@@ -3,9 +3,9 @@
  * Handles CSS injection, hot reloading, and SCSS compilation
  */
 
-const path = require('path');
-const fs = require('fs');
-const { exec } = require('child_process');
+const path = require('node:path');
+const fs = require('node:fs');
+const { execFile } = require('node:child_process');
 
 let mainWindow = null;
 const isDev = process.env.NODE_ENV !== 'production';
@@ -15,8 +15,7 @@ function setMainWindow(window) {
 }
 
 function compileSCSS(scssPath, cssPath) {
-  const command = `npx sass ${scssPath} ${cssPath}`;
-  exec(command, (error, stdout, stderr) => {
+  execFile('npx', ['sass', scssPath, cssPath], (error, stdout, stderr) => {
     if (error) {
       console.error(`SCSS compilation error: ${error.message}`);
       return;
