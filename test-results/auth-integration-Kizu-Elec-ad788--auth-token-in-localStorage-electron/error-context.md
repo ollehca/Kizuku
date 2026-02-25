@@ -1,0 +1,49 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - heading "Kizu 築" [level=1] [ref=e5]
+    - paragraph [ref=e6]: Professional design tools for creators
+  - main [ref=e7]:
+    - heading "Choose Your License Type" [level=2] [ref=e8]
+    - paragraph [ref=e9]: Select the license that best fits your needs
+    - generic [ref=e10]:
+      - generic [ref=e11]:
+        - generic [ref=e12]:
+          - img [ref=e14]
+          - heading "Private / Individual" [level=3] [ref=e17]
+        - generic [ref=e18]:
+          - paragraph [ref=e19]: Perfect for solo creators and personal projects
+          - list [ref=e20]:
+            - listitem [ref=e21]: ✓ Local-only storage
+            - listitem [ref=e22]: ✓ Full design tools
+            - listitem [ref=e23]: ✓ No cloud dependency
+            - listitem [ref=e24]: ✓ One-time license code
+          - generic [ref=e25]: One-time purchase
+        - button "Get Started" [ref=e27] [cursor=pointer]
+      - generic [ref=e28]:
+        - generic [ref=e29]: Coming Soon
+        - generic [ref=e30]:
+          - img [ref=e32]
+          - heading "Business / Collaborative" [level=3] [ref=e37]
+        - generic [ref=e38]:
+          - paragraph [ref=e39]: For teams that need real-time collaboration
+          - list [ref=e40]:
+            - listitem [ref=e41]: ✓ Cloud-based storage
+            - listitem [ref=e42]: ✓ Real-time collaboration
+            - listitem [ref=e43]: ✓ Team management
+            - listitem [ref=e44]: ✓ Priority support
+          - generic [ref=e45]: Monthly subscription
+        - button "Notify Me" [disabled] [ref=e47]
+    - generic [ref=e48]:
+      - img [ref=e49]
+      - paragraph [ref=e51]:
+        - strong [ref=e52]: "Development Mode:"
+        - text: Demo account active. License validation will be required in production.
+  - contentinfo [ref=e53]:
+    - paragraph [ref=e54]:
+      - text: Need help choosing?
+      - link "Compare license types" [ref=e55] [cursor=pointer]:
+        - /url: "#"
+```

@@ -1,0 +1,161 @@
+/* Kizuku Logo System Styles */
+
+:root {
+  --logo-color-primary: #35f6e6;
+  --logo-color-secondary: #27bdb1;
+  --logo-color-tertiary: #11605a;
+}
+
+/* Base logo styles */
+.kizuku-logo {
+  display: inline-block;
+  vertical-align: middle;
+  line-height: 0;
+}
+
+.kizuku-logo svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Logo size variants */
+.kizuku-logo--xs {
+  width: 16px;
+}
+
+.kizuku-logo--sm {
+  width: 24px;
+}
+
+.kizuku-logo--md {
+  width: 32px;
+}
+
+.kizuku-logo--lg {
+  width: 48px;
+}
+
+.kizuku-logo--xl {
+  width: 64px;
+}
+
+.kizuku-logo--2xl {
+  width: 96px;
+}
+
+.kizuku-logo--3xl {
+  width: 128px;
+}
+
+/* Loading screen logo */
+.loading-screen__logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.loading-screen__logo .kizuku-logo {
+  width: 64px;
+  height: auto;
+}
+
+/* Tab and header logos */
+.tab-logo {
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.header-logo {
+  width: 24px;
+  height: 24px;
+  margin-right: 8px;
+}
+
+/* Menu logos */
+.menu-logo {
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
+}
+
+/* Logo with text combinations */
+.kizuku-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.kizuku-brand__logo {
+  flex-shrink: 0;
+}
+
+.kizuku-brand__text {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  color: var(--logo-color-primary);
+}
+
+/* Responsive logo sizing */
+@media (width <= 768px) {
+  .loading-screen__logo .kizuku-logo {
+    width: 48px;
+  }
+
+  .header-logo {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* Logo hover effects */
+.kizuku-logo--interactive {
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.kizuku-logo--interactive:hover {
+  transform: scale(1.05);
+  opacity: 0.8;
+}
+
+/* Logo fallback */
+.logo-fallback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(
+    135deg,
+    var(--logo-color-primary) 0%,
+    var(--logo-color-secondary) 100%
+  );
+  border-radius: 6px;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  color: #1e1e20;
+  font-size: 18px;
+  text-align: center;
+}
+
+/* Logo animation */
+@keyframes logoGlow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 5px var(--logo-color-primary));
+  }
+
+  50% {
+    filter: drop-shadow(0 0 15px var(--logo-color-primary));
+  }
+}
+
+.kizuku-logo--glow {
+  animation: logoGlow 2s ease-in-out infinite;
+}

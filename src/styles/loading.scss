@@ -1,0 +1,126 @@
+// Loading Screen - Professional splash screen
+
+@import 'kizuku-variables';
+
+$loading-colors: (
+  background: $kizuku-bg-dark,
+  overlay: rgb(15 25 35 / 95%),
+  text-primary: $kizuku-text,
+  text-secondary: $kizuku-text-muted,
+  accent: $kizuku-primary,
+  spinner: $kizuku-primary,
+);
+
+// BEM Block: Loading Screen
+.loading-screen {
+  position: fixed;
+  inset: 0;
+  background: map-get($loading-colors, background);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 999999;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+
+  // Smooth fade out animation
+  opacity: 1;
+  transition:
+    opacity 0.5s ease,
+    visibility 0.5s ease;
+
+  &--hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  &__content {
+    text-align: center;
+    animation: loadingFadeIn 0.6s ease-out;
+  }
+
+  &__logo {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 24px;
+    background: map-get($loading-colors, accent);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    font-weight: 700;
+    color: map-get($loading-colors, background);
+    box-shadow: 0 4px 16px rgb(49 239 184 / 30%);
+  }
+
+  &__title {
+    font-size: 28px;
+    font-weight: 600;
+    color: map-get($loading-colors, text-primary);
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+  }
+
+  &__subtitle {
+    font-size: 16px;
+    color: map-get($loading-colors, text-secondary);
+    margin-bottom: 40px;
+    font-weight: 400;
+  }
+
+  &__spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid rgb(49 239 184 / 20%);
+    border-top: 3px solid map-get($loading-colors, spinner);
+    border-radius: 50%;
+    animation: loadingSpin 1s linear infinite;
+  }
+
+  &__status {
+    margin-top: 24px;
+    font-size: 14px;
+    color: map-get($loading-colors, text-secondary);
+    opacity: 0.8;
+
+    &--pulse {
+      animation: loadingPulse 2s ease-in-out infinite;
+    }
+  }
+}
+
+// Animations
+@keyframes loadingFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes loadingSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes loadingPulse {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}

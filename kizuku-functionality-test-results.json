@@ -1,0 +1,125 @@
+{
+  "timestamp": "2025-09-12T17:27:15.525Z",
+  "duration": 15,
+  "results": {
+    "passed": 8,
+    "failed": 0,
+    "warnings": 0,
+    "tests": [
+      {
+        "name": "Kizuku Backend Service Health",
+        "success": true,
+        "error": null,
+        "details": "Kizuku backend service responding at localhost:3449",
+        "critical": true
+      },
+      {
+        "name": "Kizuku Desktop App Launch",
+        "success": 5371,
+        "error": null,
+        "details": "Kizuku desktop app launched successfully (PID: 5371)",
+        "critical": true
+      },
+      {
+        "name": "Kizuku Desktop Menu System",
+        "success": true,
+        "error": null,
+        "details": "Kizuku desktop menu system working correctly",
+        "critical": false
+      },
+      {
+        "name": "Kizuku Keyboard Shortcuts",
+        "success": true,
+        "error": null,
+        "details": "Kizuku keyboard shortcuts: 4/4 integration checks passed",
+        "critical": false
+      },
+      {
+        "name": "Kizuku Webview Integration",
+        "success": true,
+        "error": null,
+        "details": "Kizuku webview integration working (4/4 features)",
+        "critical": false
+      },
+      {
+        "name": "Kizuku Authentication Integration",
+        "success": true,
+        "error": null,
+        "details": "Auth integration: Auth integration module present, Auth storage service present, Auth initialized in main process",
+        "critical": false
+      },
+      {
+        "name": "Kizuku Performance & Responsiveness",
+        "success": true,
+        "error": null,
+        "details": "Response time: 3ms, Memory usage: 4MB, Responsive: true",
+        "critical": false
+      },
+      {
+        "name": "Kizuku Recovery System",
+        "success": true,
+        "error": null,
+        "details": "Kizuku recovery system working (3/3 features)",
+        "critical": false
+      }
+    ]
+  },
+  "testDetails": [
+    {
+      "name": "Kizuku Backend Service Health",
+      "success": true,
+      "error": null,
+      "details": "Kizuku backend service responding at localhost:3449",
+      "critical": true
+    },
+    {
+      "name": "Kizuku Desktop App Launch",
+      "success": 5371,
+      "error": null,
+      "details": "Kizuku desktop app launched successfully (PID: 5371)",
+      "critical": true
+    },
+    {
+      "name": "Kizuku Desktop Menu System",
+      "success": true,
+      "error": null,
+      "details": "Kizuku desktop menu system working correctly",
+      "critical": false
+    },
+    {
+      "name": "Kizuku Keyboard Shortcuts",
+      "success": true,
+      "error": null,
+      "details": "Kizuku keyboard shortcuts: 4/4 integration checks passed",
+      "critical": false
+    },
+    {
+      "name": "Kizuku Webview Integration",
+      "success": true,
+      "error": null,
+      "details": "Kizuku webview integration working (4/4 features)",
+      "critical": false
+    },
+    {
+      "name": "Kizuku Authentication Integration",
+      "success": true,
+      "error": null,
+      "details": "Auth integration: Auth integration module present, Auth storage service present, Auth initialized in main process",
+      "critical": false
+    },
+    {
+      "name": "Kizuku Performance & Responsiveness",
+      "success": true,
+      "error": null,
+      "details": "Response time: 3ms, Memory usage: 4MB, Responsive: true",
+      "critical": false
+    },
+    {
+      "name": "Kizuku Recovery System",
+      "success": true,
+      "error": null,
+      "details": "Kizuku recovery system working (3/3 features)",
+      "critical": false
+    }
+  ]
+}
