@@ -367,8 +367,8 @@ function extractMultipartBlob(body, contentType) {
       if (headerEnd === -1) {
         continue;
       }
-      const typeMatch = part.match(/Content-Type:\s*(.+)\r\n/i);
-      const mimeType = typeMatch ? typeMatch[1].trim() : 'image/png';
+      const ctLine = part.split('\r\n').find((l) => l.toLowerCase().startsWith('content-type:'));
+      const mimeType = ctLine ? ctLine.substring(13).trim() : 'image/png';
       const blobStr = part.slice(headerEnd + 4, -2);
       return {
         data: Buffer.from(blobStr, 'binary'),
