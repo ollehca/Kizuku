@@ -134,8 +134,9 @@ function navigateToTab(tab) {
   }
   const hashIdx = tab.url.indexOf('#');
   const hash = hashIdx >= 0 ? tab.url.substring(hashIdx) : tab.url;
+  const safeHash = JSON.stringify(hash);
   return mainWindow.webContents
-    .executeJavaScript(`window.location.hash = '${hash}';`)
+    .executeJavaScript(`window.location.hash = ${safeHash};`)
     .catch(() => {});
 }
 
@@ -145,8 +146,9 @@ function navigateToTab(tab) {
 function navigateToDashboard() {
   if (mainWindow && !mainWindow.isDestroyed()) {
     const dashHash = `#/dashboard/recent?team-id=${KIZUKU_TEAM_ID}`;
+    const safeDashHash = JSON.stringify(dashHash);
     mainWindow.webContents
-      .executeJavaScript(`window.location.hash = '${dashHash}';`)
+      .executeJavaScript(`window.location.hash = ${safeDashHash};`)
       .catch(() => {});
   }
 }

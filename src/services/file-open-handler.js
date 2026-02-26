@@ -23,20 +23,24 @@ const IMPORT_TIMEOUT_MS = 60000;
  * @returns {string} JavaScript source
  */
 function buildWorkspaceScript(projectId, teamId, firstPageId) {
+  const payload = JSON.stringify({
+    fileId: projectId,
+    projectId: projectId,
+    teamId: teamId,
+    pageId: firstPageId,
+  });
   return `
     (function() {
       try {
         console.log('Opening imported file in workspace...');
-        window.__KIZU_IMPORTED_FILE = {
-          fileId: '${projectId}',
-          projectId: '${projectId}',
-          teamId: '${teamId}',
-          pageId: '${firstPageId}',
-          timestamp: Date.now()
-        };
-        var wsUrl = '#/workspace?team-id=${teamId}' +
-          '&project-id=${projectId}&file-id=${projectId}' +
-          '&page-id=${firstPageId}';
+        var data = JSON.parse(${JSON.stringify(payload)});
+        data.timestamp = Date.now();
+        window.__KIZU_IMPORTED_FILE = data;
+        var wsUrl = '#/workspace?team-id=' +
+          encodeURIComponent(data.teamId) +
+          '&project-id=' + encodeURIComponent(data.projectId) +
+          '&file-id=' + encodeURIComponent(data.fileId) +
+          '&page-id=' + encodeURIComponent(data.pageId);
         window.location.hash = wsUrl;
       } catch (error) {
         console.error('Failed to open workspace:', error);

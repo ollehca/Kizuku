@@ -4,6 +4,7 @@
 
 const { ipcMain, dialog, app, clipboard, nativeImage } = require('electron');
 const fs = require('node:fs').promises;
+const path = require('node:path');
 const { createLogger } = require('./utils/logger');
 const authStorage = require('./services/auth-storage');
 const { registerBackendIpcHandlers } = require('./services/backend-ipc-handlers');
@@ -17,6 +18,22 @@ const autosave = require('./services/autosave-service');
 // const { createPenpotFrontendInjector } = require('./services/figma/penpot-backend-uploader');
 
 const logger = createLogger('IPC');
+
+/**
+ * Validate file path is within allowed directories
+ * @param {string} filePath - Path to validate
+ * @returns {boolean} True if path is allowed
+ */
+function isAllowedPath(filePath) {
+  const resolved = path.resolve(filePath);
+  const allowedDirs = [
+    app.getPath('userData'),
+    app.getPath('documents'),
+    app.getPath('temp'),
+    app.getPath('home'),
+  ];
+  return allowedDirs.some((dir) => resolved.startsWith(dir + path.sep) || resolved === dir);
+}
 
 /**
  * Get application version
@@ -59,6 +76,9 @@ async function showOpenDialog(event, options, window) {
  */
 async function writeFile(event, filePath, data) {
   try {
+    if (!isAllowedPath(filePath)) {
+      return { success: false, error: 'Path not allowed' };
+    }
     await fs.writeFile(filePath, data);
     return { success: true };
   } catch (error) {
@@ -74,6 +94,9 @@ async function writeFile(event, filePath, data) {
  */
 async function readFile(event, filePath) {
   try {
+    if (!isAllowedPath(filePath)) {
+      return { success: false, error: 'Path not allowed' };
+    }
     const data = await fs.readFile(filePath, 'utf8');
     return { success: true, data };
   } catch (error) {

@@ -34,22 +34,18 @@ function reloadCSS(cssPath) {
     const cssContent = fs.readFileSync(cssPath, 'utf8');
     if (mainWindow && !mainWindow.isDestroyed()) {
       const fileName = path.basename(cssPath);
-      const safeCSS = cssContent
-        .replaceAll('\\', '\\\\')
-        .replaceAll("'", "\\'")
-        .replaceAll('\n', '\\n');
+      const safeFileName = JSON.stringify(fileName);
+      const safeCSS = JSON.stringify(cssContent);
 
       const script = `
         (function() {
-          const oldStyle = document.querySelector('style[data-file="${fileName}"]');
-          if (oldStyle) {
-            oldStyle.remove();
-          }
-          const style = document.createElement('style');
-          style.setAttribute('data-file', '${fileName}');
-          style.textContent = '${safeCSS}';
+          var fn = ${safeFileName};
+          var oldStyle = document.querySelector('style[data-file="' + fn + '"]');
+          if (oldStyle) { oldStyle.remove(); }
+          var style = document.createElement('style');
+          style.setAttribute('data-file', fn);
+          style.textContent = ${safeCSS};
           document.head.appendChild(style);
-          console.log('✅ CSS hot-reloaded: ${fileName}');
         })();
       `;
       mainWindow.webContents.executeJavaScript(script);
@@ -117,16 +113,14 @@ function injectCSSFiles(window) {
     cssFiles.forEach((cssPath) => {
       const cssContent = fs.readFileSync(cssPath, 'utf8');
       const fileName = path.basename(cssPath);
-      const safeCSS = cssContent
-        .replaceAll('\\', '\\\\')
-        .replaceAll("'", "\\'")
-        .replaceAll('\n', '\\n');
+      const safeFileName = JSON.stringify(fileName);
+      const safeCSS = JSON.stringify(cssContent);
 
       const script = `
         (function() {
-          const style = document.createElement('style');
-          style.setAttribute('data-file', '${fileName}');
-          style.textContent = '${safeCSS}';
+          var style = document.createElement('style');
+          style.setAttribute('data-file', ${safeFileName});
+          style.textContent = ${safeCSS};
           document.head.appendChild(style);
         })();
       `;

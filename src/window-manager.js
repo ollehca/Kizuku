@@ -65,14 +65,14 @@ function getAppIconPath() {
  * @param {boolean} isDev - Whether in development mode
  * @returns {object} Web preferences configuration
  */
-function getWebPreferences(isDev) {
+function getWebPreferences(_isDev) {
   return {
-    nodeIntegration: true,
-    contextIsolation: false,
+    nodeIntegration: false,
+    contextIsolation: true,
     enableRemoteModule: false,
     webviewTag: true,
-    webSecurity: !isDev,
-    // Remove preload for now to avoid errors
+    webSecurity: true,
+    preload: path.join(__dirname, 'preload.js'),
   };
 }
 

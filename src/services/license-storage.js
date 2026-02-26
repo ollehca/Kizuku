@@ -15,6 +15,7 @@
 const fs = require('node:fs').promises;
 const path = require('node:path');
 const crypto = require('node:crypto');
+const os = require('node:os');
 const { app } = require('electron');
 
 // Encryption settings
@@ -23,12 +24,14 @@ const KEY_LENGTH = 32; // 256 bits
 const IV_LENGTH = 16; // 128 bits
 const AUTH_TAG_LENGTH = 16; // 128 bits
 
-// Derive encryption key from machine-specific data
+/**
+ * Derive encryption key from machine-specific data
+ * @returns {Buffer} Derived encryption key
+ */
 function getDerivedKey() {
-  // Use app name + version as salt (consistent across restarts)
-  const salt = `kizuku-license-storage-${app.getVersion()}`;
-  // Derive key using PBKDF2
-  return crypto.pbkdf2Sync(salt, 'kizuku-secret', 100000, KEY_LENGTH, 'sha256');
+  const salt = 'kizuku-license-storage-v1';
+  const machineKey = `${os.hostname()}-${os.userInfo().username}-${app.getPath('userData')}`;
+  return crypto.pbkdf2Sync(salt, machineKey, 100000, KEY_LENGTH, 'sha256');
 }
 
 /**

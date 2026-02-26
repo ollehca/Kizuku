@@ -78,11 +78,8 @@ let mainWindow;
 // Backend process reference (unused but kept for future implementation)
 // const penpotBackendProcess = null;
 
-// Development mode detection - always use dev mode if localhost:3449 is accessible
-const isDev =
-  process.env.NODE_ENV === 'development' ||
-  fs.existsSync(path.join(__dirname, '../../penpot')) ||
-  process.env.NODE_ENV !== 'production'; // Default to dev unless explicitly production
+// Development mode detection - use Electron's packaged check as primary signal
+const isDev = !app.isPackaged;
 
 // Kizuku configuration
 const PENPOT_CONFIG = {
@@ -276,14 +273,20 @@ function cleanupWindowResources() {
   mainWindow = null;
 }
 
-// Helper function to handle external navigation
+/**
+ * Handle external navigation with URL scheme validation
+ * @param {object} event - Navigation event
+ * @param {string} navigationUrl - Target URL
+ */
 function handleNavigation(event, navigationUrl) {
   const parsedUrl = new URL(navigationUrl);
 
   // Allow navigation within the app
   if (parsedUrl.origin !== PENPOT_CONFIG.frontend.dev && !navigationUrl.startsWith('file://')) {
     event.preventDefault();
-    shell.openExternal(navigationUrl);
+    if (parsedUrl.protocol === 'https:' || parsedUrl.protocol === 'http:') {
+      shell.openExternal(navigationUrl);
+    }
   }
 }
 
@@ -293,7 +296,14 @@ function setupWindowEventHandlers(window) {
   window.on('closed', cleanupWindowResources);
 
   window.webContents.setWindowOpenHandler(({ url }) => {
-    shell.openExternal(url);
+    try {
+      const parsed = new URL(url);
+      if (parsed.protocol === 'https:' || parsed.protocol === 'http:') {
+        shell.openExternal(url);
+      }
+    } catch {
+      // Invalid URL - ignore
+    }
     return { action: 'deny' };
   });
 
@@ -313,15 +323,16 @@ async function attemptAutoLogin(window) {
   console.log('Attempting auto-login for user:', storedCredentials.email);
 
   // Inject stored credentials into the frontend for automatic authentication
+  const credentialsPayload = JSON.stringify({
+    autoLogin: true,
+    token: storedCredentials.token,
+    email: storedCredentials.email,
+    profile: storedCredentials.profile,
+    rememberMe: storedCredentials.rememberMe,
+  });
   const authScript = `
-    window.penpotDesktopAuth = {
-      autoLogin: true,
-      token: "${storedCredentials.token}",
-      email: "${storedCredentials.email}",
-      profile: ${JSON.stringify(storedCredentials.profile)},
-      rememberMe: ${storedCredentials.rememberMe}
-    };
-    console.log('🔐 Auto-login credentials injected for:', "${storedCredentials.email}");
+    window.penpotDesktopAuth = JSON.parse(${JSON.stringify(credentialsPayload)});
+    console.log('Auto-login credentials injected');
   `;
 
   window.webContents.executeJavaScript(authScript).catch((error) => {
@@ -588,8 +599,13 @@ app.whenReady().then(async () => {
   // Register custom protocol to serve logo files
   protocol.handle('kizuku', (request) => {
     const url = request.url.replace('kizuku://logos/', '');
-    const logoPath = path.join(__dirname, 'Logos', url);
-    return net.fetch(`file://${logoPath}`);
+    const basePath = path.resolve(path.join(__dirname, 'Logos'));
+    const resolvedPath = path.resolve(path.join(__dirname, 'Logos', url));
+    if (!resolvedPath.startsWith(basePath + path.sep) && resolvedPath !== basePath) {
+      // eslint-disable-next-line no-undef -- Response is available in Electron protocol handlers
+      return new Response('Forbidden', { status: 403 });
+    }
+    return net.fetch(`file://${resolvedPath}`);
   });
 
   // Initialize backend services first

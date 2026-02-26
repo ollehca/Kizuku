@@ -19,9 +19,11 @@
 
 const crypto = require('node:crypto');
 
-// Secret key for HMAC signing (should be stored securely in production)
-const SECRET_KEY =
-  process.env.KIZUKU_LICENSE_SECRET || 'kizuku-dev-secret-key-change-in-production';
+// Secret key for HMAC signing - must be set via environment variable in production
+const SECRET_KEY = process.env.KIZUKU_LICENSE_SECRET;
+if (!SECRET_KEY) {
+  console.warn('[LicenseCode] KIZUKU_LICENSE_SECRET not set. License operations will fail.');
+}
 
 // License type constants
 const LICENSE_TYPES = {

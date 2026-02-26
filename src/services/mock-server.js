@@ -428,9 +428,14 @@ async function handleCommandRequest(req, res, url, mockBackend) {
 }
 
 async function handleRequest(req, res, mockBackend) {
-  console.log('🌐 [MockServer] Request:', req.method, req.url);
+  const sanitizedUrl = req.url.replace(/[\r\n]/g, '');
+  console.log('[MockServer] Request:', req.method, sanitizedUrl);
 
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  const allowedOrigins = ['http://localhost:3449', 'http://localhost:9999'];
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept');
 
