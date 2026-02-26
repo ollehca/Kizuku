@@ -76,7 +76,7 @@ const isInvalidWorkspaceRoute = (hash) => hash.includes('/workspace') && !hash.i
 })();
 
 // ============================================================================
-// MODIFIED BY KIZUKU (https://github.com/ollehca/PenPotDesktop)
+// MODIFIED BY KIZUKU (https://github.com/ollehca/Kizuku)
 // Original file from PenPot (https://github.com/penpot/penpot)
 // Licensed under Mozilla Public License Version 2.0
 // Modifications: Set localStorage auth immediately to prevent race condition
@@ -153,7 +153,7 @@ if (!globalThis._kizukuAuthIntegrationInitialized) {
         console.log('✅ Verified localStorage auth-token and auth-profile');
 
         // ============================================================================
-        // MODIFIED BY KIZUKU (https://github.com/ollehca/PenPotDesktop)
+        // MODIFIED BY KIZUKU (https://github.com/ollehca/Kizuku)
         // Original file from PenPot (https://github.com/penpot/penpot)
         // Licensed under Mozilla Public License Version 2.0
         // Modifications: Auth handled by early localStorage setup (above) + mock backend
@@ -206,7 +206,7 @@ if (!globalThis._kizukuAuthIntegrationInitialized) {
 }
 
 // ============================================================================
-// MODIFIED BY KIZUKU (https://github.com/ollehca/PenPotDesktop)
+// MODIFIED BY KIZUKU (https://github.com/ollehca/Kizuku)
 // Modifications: Force navigation away from login screen for Kizuku users
 // Date: 2025-11-18
 // ============================================================================

@@ -29,7 +29,7 @@ This guide will help you set up the complete development environment for Kizu. T
 
 ```bash
 # Create main project directory
-mkdir PenPotDesktop && cd PenPotDesktop
+mkdir Kizuku && cd Kizuku
 
 # Clone PenPot core (original)
 git clone https://github.com/penpot/penpot.git

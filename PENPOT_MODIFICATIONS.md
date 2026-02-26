@@ -216,7 +216,7 @@ For all modified PenPot files, add this comment block:
 
 ```clojure
 ;; ============================================================================
-;; MODIFIED BY KIZUKU (https://github.com/ollehca/PenPotDesktop)
+;; MODIFIED BY KIZUKU (https://github.com/ollehca/Kizuku)
 ;; Original file from PenPot (https://github.com/penpot/penpot)
 ;; Licensed under Mozilla Public License Version 2.0
 ;; Modifications: [Brief description]
@@ -227,7 +227,7 @@ For all modified PenPot files, add this comment block:
 For SCSS/CSS files:
 ```scss
 /* ============================================================================
- * MODIFIED BY KIZUKU (https://github.com/ollehca/PenPotDesktop)
+ * MODIFIED BY KIZUKU (https://github.com/ollehca/Kizuku)
  * Original file from PenPot (https://github.com/penpot/penpot)
  * Licensed under Mozilla Public License Version 2.0
  * Modifications: [Brief description]
@@ -241,7 +241,7 @@ For SCSS/CSS files:
 ## Source Code Availability Plan
 
 ### Current Repository
-- **GitHub**: https://github.com/ollehca/PenPotDesktop
+- **GitHub**: https://github.com/ollehca/Kizuku
 - **Visibility**: Should remain public for MPL 2.0 compliance
 - **Branch Strategy**: Maintain clear separation between PenPot modifications and Kizuku code
 
@@ -260,7 +260,7 @@ This application contains:
 - Kizuku Desktop wrapper (proprietary)
 
 Source code for PenPot components and modifications is available at:
-https://github.com/ollehca/PenPotDesktop
+https://github.com/ollehca/Kizuku
 
 For PenPot license terms, see: https://github.com/penpot/penpot/blob/develop/LICENSE
 ```
@@ -369,7 +369,7 @@ When implementing Kizuku authentication/licensing:
 ## Contact
 
 For licensing questions or concerns:
-- GitHub Issues: https://github.com/ollehca/PenPotDesktop/issues
+- GitHub Issues: https://github.com/ollehca/Kizuku/issues
 - Email: [To be added]
 
 ---

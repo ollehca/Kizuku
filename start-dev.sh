@@ -7,7 +7,7 @@ echo "🚀 Starting PenPot Desktop Development Environment..."
 
 # Check if we're in the right directory
 if [[ ! -f "package.json" ] || [ ! -d "src" ]]; then
-    echo "❌ Error: Run this script from the PenPotDesktop directory"
+    echo "❌ Error: Run this script from the Kizuku directory"
     exit 1
 fi
 
@@ -38,7 +38,7 @@ BACKEND_PID=$!
 
 # Wait for backend to be ready
 echo "⏳ Waiting for PenPot backend to be ready..."
-cd ../PenPotDesktop
+cd ../Kizuku
 
 # Poll until backend responds
 for i in {1..30}; do

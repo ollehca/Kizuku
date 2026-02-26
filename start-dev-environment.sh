@@ -148,7 +148,7 @@ main() {
     
     # Step 1: Check if we're in the right directory
     if [[ ! -f "../penpot/manage.sh" ]]; then
-        print_error "PenPot directory not found. Please ensure this script is run from the PenPotDesktop directory."
+        print_error "PenPot directory not found. Please ensure this script is run from the Kizuku directory."
         exit 1
     fi
     

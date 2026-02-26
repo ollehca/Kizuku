@@ -20,7 +20,7 @@ print_warning() { echo -e "${YELLOW}⚠️  $1${NC}"; }
 print_error() { echo -e "${RED}❌ $1${NC}"; }
 
 # Backup directory
-BACKUP_DIR="/Users/Achello/Documents/Projects/PenPotDesktop/backups"
+BACKUP_DIR="/Users/Achello/Documents/Projects/Kizuku/backups"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 
 # Function to create backup directory

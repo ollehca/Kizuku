@@ -205,8 +205,8 @@ chmod +x start-dev-environment.sh
 
 ### Path Issues
 ```bash
-# Must be in PenPotDesktop directory
-cd /path/to/PenPotDesktop
+# Must be in Kizuku directory
+cd /path/to/Kizuku
 ls start-dev-environment.sh  # Should exist
 ```
 

@@ -179,7 +179,7 @@ check_system_resources() {
     print_header "Checking System Resources"
     
     # Check disk space
-    local disk_usage=$(df /Users/Achello/Documents/Projects/PenPotDesktop | tail -1 | awk '{print $5}' | sed 's/%//')
+    local disk_usage=$(df /Users/Achello/Documents/Projects/Kizuku | tail -1 | awk '{print $5}' | sed 's/%//')
     if [[ "$disk_usage" -lt 90 ]]; then
         print_success "Disk space usage: ${disk_usage}%"
     else
