@@ -6,13 +6,13 @@ const { contextBridge, ipcRenderer, webUtils, webFrame } = require('electron');
 // ============================================================================
 const FETCH_INTERCEPTOR = `
 (function() {
-  if (window.__kizukuFetchInterceptorInstalled) return;
-  window.__kizukuFetchInterceptorInstalled = true;
+  if (globalThis.__kizukuFetchInterceptorInstalled) return;
+  globalThis.__kizukuFetchInterceptorInstalled = true;
 
-  const originalFetch = window.fetch;
+  const originalFetch = globalThis.fetch;
   const MOCK_SERVER = 'http://localhost:9999';
 
-  window.fetch = async function(input, init = {}) {
+  globalThis.fetch = async function(input, init = {}) {
     const url = typeof input === 'string' ? input : input.url;
     if (url && url.includes('/api/rpc/command/')) {
       const apiPath = url.substring(url.indexOf('/api/rpc/command/'));
@@ -109,7 +109,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Desktop-specific features
   openExternal: (url) => {
     // This will be handled by the main process
-    window.open(url, '_blank');
+    globalThis.open(url, '_blank');
   },
 
   // Workspace launcher
@@ -267,7 +267,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Manual test function for debugging
   testTabDetection: () => {
     console.log('🧪 Manual tab detection test via electronAPI');
-    const url = window.location.href;
+    const url = globalThis.location.href;
     const fileName = getFileNameFromTitle() || 'Manual Test Tab';
 
     console.log('🧪 Current URL:', url);
@@ -319,12 +319,12 @@ function extractFileId(url) {
 // Simple automatic file detection
 function detectAndAddTabs() {
   // Only run in main window, not in iframes
-  if (window.self !== window.top) {
+  if (globalThis.self !== globalThis.top) {
     return;
   }
 
   console.log('🔍 Checking for file to create tab');
-  const url = window.location.href;
+  const url = globalThis.location.href;
   console.log('🔍 Current URL:', url);
 
   const fileId = extractFileId(url);
@@ -371,11 +371,11 @@ function createTabForFile(fileId, url) {
 }
 
 // Watch for URL changes and page loads
-let lastUrl = window.location.href;
+let lastUrl = globalThis.location.href;
 const urlObserver = new window.MutationObserver(() => {
-  if (window.location.href !== lastUrl) {
+  if (globalThis.location.href !== lastUrl) {
     console.log('🔄 URL changed, checking for new file');
-    lastUrl = window.location.href;
+    lastUrl = globalThis.location.href;
     setTimeout(detectAndAddTabs, 1000); // Wait for page to load
   }
 });
@@ -388,7 +388,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Also check on window load
-window.addEventListener('load', () => {
+globalThis.addEventListener('load', () => {
   setTimeout(detectAndAddTabs, 3000); // Back to original timing
 });
 

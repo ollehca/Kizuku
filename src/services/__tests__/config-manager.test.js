@@ -1,5 +1,5 @@
 const ConfigManager = require('../config-manager');
-const path = require('path');
+const path = require('node:path');
 
 jest.mock('electron', () => ({
   app: {

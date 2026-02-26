@@ -51,12 +51,12 @@ function buildWorkspaceScript(projectId, teamId, firstPageId) {
  * @returns {object} projectId, teamId, firstPageId
  */
 function extractProjectIds(importResult) {
-  const meta = importResult.project && importResult.project.metadata;
-  const data = importResult.project && importResult.project.data;
-  const projectId = meta && meta.id;
-  const teamId = (meta && meta.teamId) || DEFAULT_TEAM_ID;
-  const firstPage = data && data.pages && data.pages[0];
-  const firstPageId = (firstPage && firstPage.id) || firstPage;
+  const meta = importResult.project?.metadata;
+  const data = importResult.project?.data;
+  const projectId = meta?.id;
+  const teamId = meta?.teamId || DEFAULT_TEAM_ID;
+  const firstPage = data?.pages?.[0];
+  const firstPageId = firstPage?.id || firstPage;
   return { projectId, teamId, firstPageId };
 }
 
@@ -177,8 +177,8 @@ async function handleImportSuccess(result, mainWindow, progress) {
  */
 async function handleFileOpen(filePath, mainWindow) {
   logger.info('Opening file:', filePath);
-  const fileName = require('path').basename(filePath);
-  const tabName = require('path').basename(filePath, require('path').extname(filePath));
+  const fileName = require('node:path').basename(filePath);
+  const tabName = require('node:path').basename(filePath, require('node:path').extname(filePath));
 
   const existingTab = findTabByName(tabName);
   if (existingTab) {

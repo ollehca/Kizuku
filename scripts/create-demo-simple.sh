@@ -11,9 +11,9 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m'
 
-print_success() { echo -e "${GREEN}✅ $1${NC}"; }
-print_warning() { echo -e "${YELLOW}⚠️  $1${NC}"; }
-print_error() { echo -e "${RED}❌ $1${NC}"; }
+print_success() { local msg="$1"; echo -e "${GREEN}✅ ${msg}${NC}"; return 0; }
+print_warning() { local msg="$1"; echo -e "${YELLOW}⚠️  ${msg}${NC}"; return 0; }
+print_error() { local msg="$1"; echo -e "${RED}❌ ${msg}${NC}" >&2; return 0; }
 
 # Demo account details
 DEMO_EMAIL="demo@penpot.local"
@@ -27,7 +27,7 @@ for i in {1..30}; do
         print_success "Backend is ready"
         break
     fi
-    if [ $i -eq 30 ]; then
+    if [[ $i -eq 30 ]]; then
         print_error "Backend not responding after 30 attempts"
         exit 1
     fi
@@ -55,7 +55,7 @@ RESPONSE=$(curl -s -w "%{http_code}" -X POST http://localhost:6060/api/auth/regi
   -d "$REGISTRATION_DATA" \
   -o /tmp/registration_response.json 2>/dev/null || echo "000")
 
-if [ "$RESPONSE" = "200" ] || [ "$RESPONSE" = "201" ]; then
+if [[ "$RESPONSE" = "200" ] || [ "$RESPONSE" = "201" ]]; then
     print_success "Demo account created successfully!"
     print_success "Email: $DEMO_EMAIL"
     print_success "Password: $DEMO_PASSWORD"
@@ -67,13 +67,13 @@ if [ "$RESPONSE" = "200" ] || [ "$RESPONSE" = "201" ]; then
       -d "{\"email\":\"$DEMO_EMAIL\",\"password\":\"$DEMO_PASSWORD\"}" \
       -o /tmp/login_response.json 2>/dev/null || echo "000")
     
-    if [ "$LOGIN_RESPONSE" = "200" ]; then
+    if [[ "$LOGIN_RESPONSE" = "200" ]]; then
         print_success "Demo account login test successful!"
     else
         print_warning "Demo account created but login test failed"
     fi
     
-elif [ "$RESPONSE" = "409" ] || [ "$RESPONSE" = "400" ]; then
+elif [[ "$RESPONSE" = "409" ] || [ "$RESPONSE" = "400" ]]; then
     print_warning "Demo account may already exist"
     
     # Test login to verify
@@ -83,7 +83,7 @@ elif [ "$RESPONSE" = "409" ] || [ "$RESPONSE" = "400" ]; then
       -d "{\"email\":\"$DEMO_EMAIL\",\"password\":\"$DEMO_PASSWORD\"}" \
       -o /tmp/login_response.json 2>/dev/null || echo "000")
     
-    if [ "$LOGIN_RESPONSE" = "200" ]; then
+    if [[ "$LOGIN_RESPONSE" = "200" ]]; then
         print_success "Existing demo account is working!"
         print_success "Email: $DEMO_EMAIL"
         print_success "Password: $DEMO_PASSWORD"
@@ -94,7 +94,7 @@ elif [ "$RESPONSE" = "409" ] || [ "$RESPONSE" = "400" ]; then
     
 else
     print_error "Failed to create demo account (HTTP: $RESPONSE)"
-    if [ -f /tmp/registration_response.json ]; then
+    if [[ -f /tmp/registration_response.json ]]; then
         echo "Response: $(cat /tmp/registration_response.json)"
     fi
     exit 1

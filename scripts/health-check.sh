@@ -95,7 +95,7 @@ check_frontend_assets() {
         if check_service "$url" "$name" 5; then
             # Check file size to ensure it's not empty
             local size=$(curl -s -I "$url" 2>/dev/null | grep -i content-length | awk '{print $2}' | tr -d '\r')
-            if [ -n "$size" ] && [ "$size" -gt 10 ]; then
+            if [[ -n "$size" ] && [ "$size" -gt 10 ]]; then
                 print_success "$name is available and properly sized ($size bytes)"
             else
                 print_warning "$name is available but seems small (${size:-unknown} bytes)"
@@ -139,7 +139,7 @@ check_demo_account() {
         -d "{\"email\":\"$demo_email\",\"password\":\"$demo_password\"}" \
         -o /tmp/login_response.json 2>/dev/null || echo "000")
     
-    if [ "$response" = "200" ]; then
+    if [[ "$response" = "200" ]]; then
         print_success "Demo account login successful"
         print_success "Credentials: $demo_email / $demo_password"
     else
@@ -147,7 +147,7 @@ check_demo_account() {
         add_issue "Demo account not working"
         
         # Show response for debugging
-        if [ -f /tmp/login_response.json ]; then
+        if [[ -f /tmp/login_response.json ]]; then
             print_status "Response: $(cat /tmp/login_response.json)"
             rm -f /tmp/login_response.json
         fi
@@ -180,7 +180,7 @@ check_system_resources() {
     
     # Check disk space
     local disk_usage=$(df /Users/Achello/Documents/Projects/PenPotDesktop | tail -1 | awk '{print $5}' | sed 's/%//')
-    if [ "$disk_usage" -lt 90 ]; then
+    if [[ "$disk_usage" -lt 90 ]]; then
         print_success "Disk space usage: ${disk_usage}%"
     else
         print_warning "Disk space usage is high: ${disk_usage}%"
@@ -193,8 +193,8 @@ check_system_resources() {
     
     # Check memory usage of main container
     local memory_usage=$(docker stats penpot-devenv-main --no-stream --format "table {{.MemPerc}}" 2>/dev/null | tail -1 | sed 's/%//' || echo "N/A")
-    if [ "$memory_usage" != "N/A" ] && [ "$memory_usage" != "MEMORY %" ]; then
-        if [ "${memory_usage%.*}" -lt 80 ]; then
+    if [[ "$memory_usage" != "N/A" ] && [ "$memory_usage" != "MEMORY %" ]]; then
+        if [[ "${memory_usage%.*}" -lt 80 ]]; then
             print_success "Main container memory usage: ${memory_usage}%"
         else
             print_warning "Main container memory usage is high: ${memory_usage}%"
@@ -238,7 +238,7 @@ auto_repair() {
 generate_summary() {
     print_header "Health Check Summary"
     
-    if [ $OVERALL_STATUS -eq 0 ]; then
+    if [[ $OVERALL_STATUS -eq 0 ]]; then
         print_success "All systems are healthy!"
         print_success "PenPot development environment is ready to use"
         echo ""
@@ -273,7 +273,7 @@ main() {
             check_database
             check_system_resources
             
-            if [ $OVERALL_STATUS -ne 0 ]; then
+            if [[ $OVERALL_STATUS -ne 0 ]]; then
                 auto_repair
                 
                 print_header "Re-checking after repairs..."

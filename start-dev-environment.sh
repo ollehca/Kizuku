@@ -14,19 +14,27 @@ NC='\033[0m' # No Color
 
 # Function to print colored output
 print_status() {
-    echo -e "${BLUE}🚀 $1${NC}"
+    local msg="$1"
+    echo -e "${BLUE}🚀 ${msg}${NC}"
+    return 0
 }
 
 print_success() {
-    echo -e "${GREEN}✅ $1${NC}"
+    local msg="$1"
+    echo -e "${GREEN}✅ ${msg}${NC}"
+    return 0
 }
 
 print_warning() {
-    echo -e "${YELLOW}⚠️  $1${NC}"
+    local msg="$1"
+    echo -e "${YELLOW}⚠️  ${msg}${NC}"
+    return 0
 }
 
 print_error() {
-    echo -e "${RED}❌ $1${NC}"
+    local msg="$1"
+    echo -e "${RED}❌ ${msg}${NC}" >&2
+    return 0
 }
 
 # Function to wait for a service to be ready
@@ -139,7 +147,7 @@ main() {
     print_status "Starting PenPot Development Environment..."
     
     # Step 1: Check if we're in the right directory
-    if [ ! -f "../penpot/manage.sh" ]; then
+    if [[ ! -f "../penpot/manage.sh" ]]; then
         print_error "PenPot directory not found. Please ensure this script is run from the PenPotDesktop directory."
         exit 1
     fi

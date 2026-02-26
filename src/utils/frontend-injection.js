@@ -3,8 +3,8 @@
  * Handles injection of authentication and branding scripts into the renderer process
  */
 
-const path = require('path');
-const fs = require('fs');
+const path = require('node:path');
+const fs = require('node:fs');
 
 // Track injection state to prevent race conditions
 const injectionState = {

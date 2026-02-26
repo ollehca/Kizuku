@@ -256,8 +256,8 @@ class ShortcutManager {
   }
 
   sendToElectronAPI(action) {
-    if (window.electronAPI) {
-      window.electronAPI.onMenuAction?.(action);
+    if (globalThis.electronAPI) {
+      globalThis.electronAPI.onMenuAction?.(action);
     }
   }
 
@@ -274,8 +274,8 @@ class ShortcutManager {
   }
 
   callDirectHandler(action, event) {
-    if (window.kizuku?.shortcutActions?.[action]) {
-      window.kizuku.shortcutActions[action](event);
+    if (globalThis.kizuku?.shortcutActions?.[action]) {
+      globalThis.kizuku.shortcutActions[action](event);
     }
   }
 

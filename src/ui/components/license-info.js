@@ -10,7 +10,7 @@
  * @module license-info
  */
 
-const api = window.electronAPI;
+const api = globalThis.electronAPI;
 
 // State
 let licenseData = null;

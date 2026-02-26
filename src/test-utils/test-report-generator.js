@@ -5,8 +5,8 @@
  * Extracted from main test file to reduce complexity and file size.
  */
 
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 
 class TestReportGenerator {
   constructor(results, testResults, performanceMetrics, startTime) {
@@ -122,7 +122,7 @@ class TestReportGenerator {
     const reportPath = path.join(process.cwd(), 'kizuku-design-tools-test-results.json');
     const reportData = {
       timestamp: new Date().toISOString(),
-      duration: parseFloat(duration),
+      duration: Number.parseFloat(duration),
       results: this.results,
       testDetails: this.testResults,
       performanceMetrics: this.performanceMetrics,

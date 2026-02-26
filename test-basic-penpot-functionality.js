@@ -11,7 +11,7 @@
  * ✅ Performance acceptable vs web version
  */
 
-const { spawn } = require('child_process');
+const { spawn } = require('node:child_process');
 const fetch = require('node-fetch');
 const { createLogger } = require('./src/utils/logger');
 const LaunchHelpers = require('./src/test-utils/launch-helpers');
@@ -659,7 +659,7 @@ class BasicPenPotFunctionalityTester {
   async cleanup() {
     console.log('\n🧹 Cleaning up test environment...');
 
-    if (this.electronProcess && this.electronProcess.pid) {
+    if (this.electronProcess?.pid) {
       try {
         process.kill(this.electronProcess.pid, 'SIGTERM');
         console.log('   ✅ Desktop app terminated');

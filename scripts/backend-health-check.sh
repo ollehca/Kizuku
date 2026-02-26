@@ -78,10 +78,10 @@ for ((i=1; i<=MAX_RETRIES; i++)); do
     else
         echo "❌ Backend API routes not responding"
 
-        if [ $i -le 3 ]; then
+        if [[ $i -le 3 ]]; then
             echo "🔄 Restarting nginx (attempt $i)..."
             restart_nginx
-        elif [ $i -eq 10 ]; then
+        elif [[ $i -eq 10 ]]; then
             echo "🔄 Major restart - restarting backend process..."
             restart_backend
         fi

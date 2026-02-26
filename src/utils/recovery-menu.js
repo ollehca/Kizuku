@@ -161,7 +161,7 @@ function addRecoveryMenuItems(mainWindow) {
         item.label && (item.label.toLowerCase().includes('help') || item.label.includes('?'))
     );
 
-    if (helpMenu && helpMenu.submenu) {
+    if (helpMenu?.submenu) {
       addRecoveryMenuItemsToMenu(helpMenu, mainWindow);
       Menu.setApplicationMenu(currentMenu);
     }

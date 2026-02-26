@@ -7,7 +7,7 @@
  * @module success-modal
  */
 
-const api = window.electronAPI;
+const api = globalThis.electronAPI;
 
 /**
  * Initialize modal

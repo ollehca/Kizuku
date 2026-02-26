@@ -4,7 +4,7 @@
  * Based on yagudaev/figma-to-json, fig2sketch, kiwi-schema.
  */
 
-const fs = require('fs').promises;
+const fs = require('node:fs').promises;
 const AdmZip = require('adm-zip');
 const { createLogger } = require('../../utils/logger');
 const { parseBinary } = require('./fig-binary-decoder');
@@ -433,7 +433,7 @@ class FigFileParser {
 
   /** Convert guid to node ID string (e.g. "1:42") */
   guidToNodeId(guid, fallbackIndex) {
-    if (guid && guid.sessionID !== undefined && guid.localID !== undefined) {
+    if (guid?.sessionID !== undefined && guid?.localID !== undefined) {
       return `${guid.sessionID}:${guid.localID}`;
     }
     return `0:${fallbackIndex}`;

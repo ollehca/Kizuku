@@ -164,9 +164,7 @@ function registerAuthIPCHandlers(mainWindow) {
  * Load main Kizuku application
  */
 function loadMainApp(mainWindow) {
-  // Determine URL based on environment
-  const isDev = process.env.NODE_ENV === 'development';
-  const url = isDev ? 'http://localhost:3449' : 'http://localhost:3449';
+  const url = 'http://localhost:3449';
 
   console.log('Loading main app from:', url);
   mainWindow.loadURL(url);

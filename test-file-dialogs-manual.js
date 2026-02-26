@@ -36,8 +36,8 @@ function testFileExtensions() {
   console.log('\n📁 Verifying file extension updates:');
 
   // Read the menu-actions.js file to verify extensions
-  const fs = require('fs');
-  const path = require('path');
+  const fs = require('node:fs');
+  const path = require('node:path');
 
   try {
     const menuActionsPath = path.join(__dirname, 'src', 'menu-actions.js');
@@ -82,8 +82,8 @@ function testFileExtensions() {
 function testErrorHandling() {
   console.log('\n⚠️ Verifying error handling implementation:');
 
-  const fs = require('fs');
-  const path = require('path');
+  const fs = require('node:fs');
+  const path = require('node:path');
 
   try {
     const menuActionsPath = path.join(__dirname, 'src', 'menu-actions.js');
@@ -126,7 +126,7 @@ function testCrossPlatformCompatibility() {
   // Test electron availability (without importing to avoid issues)
   try {
     const packageJson = require('./package.json');
-    const hasElectron = packageJson.devDependencies && packageJson.devDependencies.electron;
+    const hasElectron = packageJson.devDependencies?.electron;
 
     if (hasElectron) {
       console.log(`  ✅ Electron dependency found: ${packageJson.devDependencies.electron}`);

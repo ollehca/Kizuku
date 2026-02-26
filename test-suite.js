@@ -2,10 +2,10 @@
 // Comprehensive test suite for Kizuku functionality
 // Tests Electron wrapper, menu system, keyboard shortcuts, and PenPot integration
 
-const { spawn } = require('child_process');
-const http = require('http');
-const fs = require('fs');
-const path = require('path');
+const { spawn } = require('node:child_process');
+const http = require('node:http');
+const fs = require('node:fs');
+const path = require('node:path');
 
 class KizuTester {
   constructor() {

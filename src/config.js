@@ -1,5 +1,5 @@
 // Kizuku Configuration
-window.kizukuConfig = {
+globalThis.kizukuConfig = {
   // Desktop-specific configuration
   isDesktop: true,
   version: process?.versions?.electron || 'unknown',

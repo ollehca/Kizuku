@@ -26,7 +26,7 @@ const COLOR_KEYS = [
  */
 async function initEditor() {
   try {
-    currentTheme = await window.electronAPI.theme.load();
+    currentTheme = await globalThis.electronAPI.theme.load();
     populateControls(currentTheme);
     updatePreview();
     attachEventListeners();
@@ -253,8 +253,8 @@ function setStyles(elementId, styles) {
  */
 async function saveAndApply() {
   try {
-    await window.electronAPI.theme.save(currentTheme);
-    await window.electronAPI.theme.apply();
+    await globalThis.electronAPI.theme.save(currentTheme);
+    await globalThis.electronAPI.theme.apply();
     showToast('Theme saved and applied!');
   } catch (error) {
     showToast('Failed to save theme: ' + error.message);
@@ -270,7 +270,7 @@ async function handleReset() {
     return;
   }
   try {
-    currentTheme = await window.electronAPI.theme.reset();
+    currentTheme = await globalThis.electronAPI.theme.reset();
     populateControls(currentTheme);
     updatePreview();
     showToast('Theme reset to defaults');
@@ -284,7 +284,7 @@ async function handleReset() {
  */
 async function handleExport() {
   try {
-    const result = await window.electronAPI.theme.exportFile();
+    const result = await globalThis.electronAPI.theme.exportFile();
     if (result.success) {
       showToast('Theme exported!');
     }
@@ -298,7 +298,7 @@ async function handleExport() {
  */
 async function handleImport() {
   try {
-    const result = await window.electronAPI.theme.importFile();
+    const result = await globalThis.electronAPI.theme.importFile();
     if (result.success) {
       currentTheme = result.theme;
       populateControls(currentTheme);

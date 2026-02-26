@@ -5,7 +5,7 @@
  */
 
 const licenseStorage = require('../../src/services/license-storage');
-const fs = require('fs').promises;
+const fs = require('node:fs').promises;
 
 describe('License Storage Service', () => {
   const testLicense = {

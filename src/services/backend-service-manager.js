@@ -14,13 +14,11 @@ const PENPOT_DEMO_PASS = process.env.PENPOT_DEMO_PASS || 'dem' + 'o123'; // NOSO
  * Coordinates all backend services (config, auth, storage, projects) for the application
  */
 class BackendServiceManager {
-  constructor() {
-    this.configManager = null;
-    this.authProvider = null;
-    this.storageAdapter = null;
-    this.projectManager = null;
-    this.initialized = false;
-  }
+  configManager = null;
+  authProvider = null;
+  storageAdapter = null;
+  projectManager = null;
+  initialized = false;
 
   async initialize() {
     if (this.initialized) {
@@ -130,12 +128,12 @@ class BackendServiceManager {
 
       // Account doesn't exist, create it
       logger.info('Creating PenPot demo account...');
-      const { exec } = require('child_process');
-      const util = require('util');
+      const { exec } = require('node:child_process');
+      const util = require('node:util');
       const execPromise = util.promisify(exec);
 
       const result = await execPromise('./scripts/manage-demo-accounts.sh create', {
-        cwd: require('path').join(__dirname, '../..'),
+        cwd: require('node:path').join(__dirname, '../..'),
       });
 
       console.log('✅ PenPot demo account created:', result.stdout);

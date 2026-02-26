@@ -1,6 +1,6 @@
-const fs = require('fs').promises;
-const path = require('path');
-const os = require('os');
+const fs = require('node:fs').promises;
+const path = require('node:path');
+const os = require('node:os');
 const { app } = require('electron');
 const LocalStorageAdapter = require('../local-storage-adapter');
 

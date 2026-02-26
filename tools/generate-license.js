@@ -11,8 +11,8 @@
  * @module generate-license-cli
  */
 
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 const {
   generateLicense,
   validateLicense,
@@ -67,11 +67,11 @@ function processArgument(parsed, arg, next, index) {
       return index + 1;
     },
     '--count': () => {
-      parsed.count = parseInt(next, 10);
+      parsed.count = Number.parseInt(next, 10);
       return index + 1;
     },
     '-c': () => {
-      parsed.count = parseInt(next, 10);
+      parsed.count = Number.parseInt(next, 10);
       return index + 1;
     },
     '--output': () => {

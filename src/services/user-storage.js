@@ -12,9 +12,9 @@
  * @module user-storage
  */
 
-const fs = require('fs').promises;
-const path = require('path');
-const crypto = require('crypto');
+const fs = require('node:fs').promises;
+const path = require('node:path');
+const crypto = require('node:crypto');
 const { app } = require('electron');
 
 // Encryption settings
@@ -78,7 +78,7 @@ function getUserFilePath() {
     const testDataPath = path.join(__dirname, '../../test-data/user.dat');
     try {
       // Synchronously check if test-data file exists
-      const fsSync = require('fs');
+      const fsSync = require('node:fs');
       if (fsSync.existsSync(testDataPath)) {
         console.log('📁 Using test-data user file:', testDataPath);
         return testDataPath;

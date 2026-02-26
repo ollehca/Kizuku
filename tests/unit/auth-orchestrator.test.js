@@ -7,7 +7,7 @@
 const authOrchestrator = require('../../src/services/auth-orchestrator');
 const licenseStorage = require('../../src/services/license-storage');
 const userStorage = require('../../src/services/user-storage');
-const fs = require('fs').promises;
+const fs = require('node:fs').promises;
 
 describe('Authentication Orchestrator', () => {
   const validLicenseCode = 'KIZUKU-50019-99AC6-14B35-557C8-509D0';

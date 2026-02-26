@@ -15,10 +15,11 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 KIZUKU_DIR="$(dirname "$SCRIPT_DIR")"
 PENPOT_DIR="$KIZUKU_DIR/penpot"
+SEPARATOR="=========================================="
 
-echo "=========================================="
+echo "$SEPARATOR"
 echo "  Kizuku Development Environment Startup"
-echo "=========================================="
+echo "$SEPARATOR"
 
 # Step 1: Check if PenPot containers are running
 echo ""
@@ -58,7 +59,7 @@ echo "[3/4] Verifying PenPot frontend..."
 if curl -s -o /dev/null http://localhost:3449/ 2>/dev/null; then
     echo "  -> Frontend accessible at http://localhost:3449"
 else
-    echo "  -> ERROR: Frontend not accessible. Check Docker containers."
+    echo "  -> ERROR: Frontend not accessible. Check Docker containers." >&2
     exit 1
 fi
 
@@ -68,9 +69,9 @@ echo "[4/4] Starting Kizu..."
 cd "$KIZUKU_DIR"
 echo "  -> Working directory: $KIZUKU_DIR"
 echo ""
-echo "=========================================="
+echo "$SEPARATOR"
 echo "  All services ready. Launching Kizu..."
-echo "=========================================="
+echo "$SEPARATOR"
 echo ""
 
 npm start

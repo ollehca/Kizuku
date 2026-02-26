@@ -17,7 +17,7 @@
  * @module license-code
  */
 
-const crypto = require('crypto');
+const crypto = require('node:crypto');
 
 // Secret key for HMAC signing (should be stored securely in production)
 const SECRET_KEY =
@@ -76,7 +76,7 @@ function generateLicense(options = {}) {
   const random = crypto.randomBytes(5);
 
   // Type byte: P=0x50, B=0x42, T=0x54
-  const typeByte = type[0].toUpperCase().charCodeAt(0);
+  const typeByte = type[0].toUpperCase().codePointAt(0);
 
   // Create data buffer: [TYPE(1)] + [TIMESTAMP(6)] + [RANDOM(5)] = 12 bytes
   const dataBuffer = Buffer.alloc(12);
@@ -179,7 +179,7 @@ function decodeAndValidate(encoded) {
  */
 function extractLicenseType(dataBuffer) {
   const typeByte = dataBuffer[0];
-  const typeChar = String.fromCharCode(typeByte);
+  const typeChar = String.fromCodePoint(typeByte);
   let type;
 
   if (typeChar === 'P') {
@@ -241,7 +241,7 @@ function validateLicense(code) {
       return formatCheck;
     }
 
-    const encoded = formatCheck.upper.replace(/^KIZUKU-/, '').replace(/-/g, '');
+    const encoded = formatCheck.upper.replace(/^KIZUKU-/, '').replaceAll('-', '');
     const charCheck = validateEncodedChars(encoded);
     if (!charCheck.valid) {
       return charCheck;
@@ -309,7 +309,7 @@ function formatCode(code) {
   }
 
   // Remove all non-hex characters and uppercase (keep only 0-9, A-F)
-  const clean = code.toUpperCase().replace(/[^0-9A-F]/gi, '');
+  const clean = code.toUpperCase().replaceAll(/[^0-9A-F]/gi, '');
 
   // Add KIZUKU- prefix if missing
   const withPrefix = clean.startsWith('KIZUKU') ? clean : 'KIZUKU' + clean;

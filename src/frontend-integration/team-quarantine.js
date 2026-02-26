@@ -22,8 +22,8 @@ const SINGLE_USER_PERMS = {
  * @returns {object|null} beicon rx core or null
  */
 function getRxCore() {
-  if (window.beicon?.v2?.core) {
-    return window.beicon.v2.core;
+  if (globalThis.beicon?.v2?.core) {
+    return globalThis.beicon.v2.core;
   }
   return null;
 }
@@ -40,12 +40,12 @@ function quarantineTeamInit(teamModule) {
         watch: (_evt, _state, _stream) => {
           const rx = getRxCore();
           if (rx) {
-            return rx.of((s) => Object.assign({}, s, { permissions: SINGLE_USER_PERMS }));
+            return rx.of((s) => ({ ...s, permissions: SINGLE_USER_PERMS }));
           }
           return [];
         },
         effect: (_evt2, _state2, _stream2) => {
-          const storage = window.app?.main?.util?.storage?.global;
+          const storage = globalThis.app?.main?.util?.storage?.global;
           if (storage?.swap) {
             storage.swap((s) => {
               s['app.main.data.team/current-team-id'] = teamId;
@@ -134,11 +134,11 @@ function quarantineRepoCommands(repoModule) {
 
 // Wait for PenPot's app to be available
 const waitForPenPot = setInterval(() => {
-  if (!window.app?.main?.data) {
+  if (!globalThis.app?.main?.data) {
     return;
   }
 
-  const singleUserMode = window.KIZUKU_SINGLE_USER_MODE === true;
+  const singleUserMode = globalThis.KIZUKU_SINGLE_USER_MODE === true;
   if (!singleUserMode) {
     console.log('🚩 [KIZUKU] Not in single-user mode, skipping team quarantine');
     clearInterval(waitForPenPot);
@@ -149,14 +149,14 @@ const waitForPenPot = setInterval(() => {
   console.log('✅ [KIZUKU] PenPot app detected, applying team quarantine...');
 
   try {
-    if (window.app.main.data.team) {
-      quarantineTeamInit(window.app.main.data.team);
+    if (globalThis.app.main.data.team) {
+      quarantineTeamInit(globalThis.app.main.data.team);
     }
-    if (window.app.main.data.auth) {
-      quarantineAuthModule(window.app.main.data.auth);
+    if (globalThis.app.main.data.auth) {
+      quarantineAuthModule(globalThis.app.main.data.auth);
     }
-    if (window.app.main.repo) {
-      quarantineRepoCommands(window.app.main.repo);
+    if (globalThis.app.main.repo) {
+      quarantineRepoCommands(globalThis.app.main.repo);
     }
     console.log('✅ [KIZUKU] Team quarantine complete');
   } catch (error) {

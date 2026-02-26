@@ -128,9 +128,9 @@
       let client;
 
       // Initialize client on load
-      window.addEventListener('DOMContentLoaded', async () => {
+      globalThis.addEventListener('DOMContentLoaded', async () => {
         try {
-          client = window.getBackendClient();
+          client = globalThis.getBackendClient();
           log('✅ Backend client initialized');
           await checkStatus();
         } catch (error) {

@@ -3,7 +3,7 @@
  */
 
 const { BrowserWindow, dialog } = require('electron');
-const path = require('path');
+const path = require('node:path');
 
 // Window configuration constants
 const DEFAULT_WIDTH = 1400;

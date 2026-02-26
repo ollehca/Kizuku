@@ -63,7 +63,7 @@ function getCasePreservedReplacement(match) {
 function replaceTextNode(node) {
   const text = node.textContent;
   if (text && /penpot/i.test(text)) {
-    node.textContent = text.replace(/penpot/gi, getCasePreservedReplacement);
+    node.textContent = text.replaceAll(/penpot/gi, getCasePreservedReplacement);
   }
 }
 
@@ -72,13 +72,13 @@ function replaceElementAttributes(node) {
   if (node.hasAttribute('title')) {
     const title = node.getAttribute('title');
     if (/penpot/i.test(title)) {
-      node.setAttribute('title', title.replace(/penpot/gi, 'Kizuku'));
+      node.setAttribute('title', title.replaceAll(/penpot/gi, 'Kizuku'));
     }
   }
   if (node.hasAttribute('placeholder')) {
     const placeholder = node.getAttribute('placeholder');
     if (/penpot/i.test(placeholder)) {
-      node.setAttribute('placeholder', placeholder.replace(/penpot/gi, 'Kizuku'));
+      node.setAttribute('placeholder', placeholder.replaceAll(/penpot/gi, 'Kizuku'));
     }
   }
 }
@@ -112,7 +112,7 @@ function replacePenpotWithKizuku(node) {
 function replaceYourPenpot() {
   const elements = document.querySelectorAll('*');
   elements.forEach((el) => {
-    if (el.textContent && el.textContent.trim() === 'Your Penpot') {
+    if (el.textContent?.trim() === 'Your Penpot') {
       el.textContent = 'Kizuku';
     }
   });
@@ -131,7 +131,7 @@ function replaceFavicon() {
   link.type = 'image/png';
   link.href = 'data:image/svg+xml,' + encodeURIComponent(KIZUKU_LOGO_SVG);
   document.head.appendChild(link);
-  document.title = document.title.replace(/penpot/gi, 'Kizuku');
+  document.title = document.title.replaceAll(/penpot/gi, 'Kizuku');
 }
 
 /**
@@ -180,17 +180,17 @@ function applyBranding() {
 }
 
 // Global observer reference to prevent duplicates
-window._kizukuBrandingObserver = window._kizukuBrandingObserver || null;
+globalThis._kizukuBrandingObserver = globalThis._kizukuBrandingObserver || null;
 
 // Watch for DOM changes and reapply branding
 function setupBrandingObserver() {
   // Disconnect existing observer if present
-  if (window._kizukuBrandingObserver) {
-    window._kizukuBrandingObserver.disconnect();
+  if (globalThis._kizukuBrandingObserver) {
+    globalThis._kizukuBrandingObserver.disconnect();
   }
 
   // Create new observer
-  window._kizukuBrandingObserver = new MutationObserver((mutations) => {
+  globalThis._kizukuBrandingObserver = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
       for (const node of mutation.addedNodes) {
         if (node.nodeType === Node.ELEMENT_NODE || node.nodeType === Node.TEXT_NODE) {
@@ -202,7 +202,7 @@ function setupBrandingObserver() {
   });
 
   // Start observing
-  window._kizukuBrandingObserver.observe(document.body, {
+  globalThis._kizukuBrandingObserver.observe(document.body, {
     childList: true,
     subtree: true,
     characterData: true,
@@ -229,8 +229,8 @@ function retryInjection(fn, name, attempts = 10, delay = 500) {
 }
 
 // Guard to prevent multiple initializations
-if (!window._kizukuBrandingInitialized) {
-  window._kizukuBrandingInitialized = true;
+if (!globalThis._kizukuBrandingInitialized) {
+  globalThis._kizukuBrandingInitialized = true;
 
   // Main initialization function
   const initializeBranding = () => {

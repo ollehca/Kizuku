@@ -36,7 +36,7 @@ async function getLicenseType(explicitType) {
 
   const license = await licenseStorage.getLicense();
 
-  if (!license || !license.valid) {
+  if (!license?.valid) {
     throw new Error('No valid license found. Storage adapter requires valid license.');
   }
 

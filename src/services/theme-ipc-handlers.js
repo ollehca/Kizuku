@@ -5,7 +5,7 @@
 
 const { ipcMain, dialog, app } = require('electron');
 const { BrowserWindow } = require('electron');
-const path = require('path');
+const path = require('node:path');
 const themeStorage = require('./brand-theme-storage');
 const themeApplicator = require('./brand-theme-applicator');
 

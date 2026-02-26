@@ -12,9 +12,9 @@ console.log('🔐 Kizuku Private License Auto-Login Integration loaded');
 // ============================================================================
 
 // Set global feature flag IMMEDIATELY (before PenPot initializes)
-window.KIZUKU_SINGLE_USER_MODE = true; // false for business/collab users
+globalThis.KIZUKU_SINGLE_USER_MODE = true; // false for business/collab users
 localStorage.setItem('kizu-single-user-mode', 'true'); // Must match penpot submodule key
-console.log('🚩 [KIZUKU] Feature flag: SINGLE_USER_MODE =', window.KIZUKU_SINGLE_USER_MODE);
+console.log('🚩 [KIZUKU] Feature flag: SINGLE_USER_MODE =', globalThis.KIZUKU_SINGLE_USER_MODE);
 
 // ============================================================================
 // CRITICAL: IMMEDIATE DASHBOARD REDIRECT (before PenPot renders login)
@@ -51,23 +51,26 @@ const isInvalidViewRoute = (hash) =>
 const isInvalidWorkspaceRoute = (hash) => hash.includes('/workspace') && !hash.includes('file-id');
 
 (function immediateRedirect() {
-  const hash = window.location.hash;
+  const hash = globalThis.location.hash;
   const teamId = '00000000-0000-0000-0000-000000000001';
   const dashboardUrl =
-    window.location.origin + window.location.pathname + '#/dashboard/recent?team-id=' + teamId;
+    globalThis.location.origin +
+    globalThis.location.pathname +
+    '#/dashboard/recent?team-id=' +
+    teamId;
 
   if (isLoginRoute(hash) || isInvalidViewRoute(hash) || isInvalidWorkspaceRoute(hash)) {
     console.log('🚀 [KIZUKU] Redirecting to dashboard (was:', hash, ')');
-    window.location.replace(dashboardUrl);
+    globalThis.location.replace(dashboardUrl);
     return;
   }
 
   // Watch for hashchange to catch PenPot's router going to invalid routes
-  window.addEventListener('hashchange', () => {
-    const newHash = window.location.hash;
+  globalThis.addEventListener('hashchange', () => {
+    const newHash = globalThis.location.hash;
     if (isLoginRoute(newHash) || isInvalidViewRoute(newHash) || isInvalidWorkspaceRoute(newHash)) {
       console.log('🚀 [KIZUKU] Intercepted bad route change:', newHash);
-      window.location.replace(dashboardUrl);
+      globalThis.location.replace(dashboardUrl);
     }
   });
 })();
@@ -96,15 +99,15 @@ try {
   try {
     // Wait for electronAPI to be available
     let retries = 0;
-    while (!window.electronAPI?.mockBackend && retries < 10) {
+    while (!globalThis.electronAPI?.mockBackend && retries < 10) {
       await new Promise((resolve) => setTimeout(resolve, 50));
       retries++;
     }
 
-    if (window.electronAPI?.mockBackend) {
-      const isAuthenticated = await window.electronAPI.mockBackend.isAuthenticated();
+    if (globalThis.electronAPI?.mockBackend) {
+      const isAuthenticated = await globalThis.electronAPI.mockBackend.isAuthenticated();
       if (isAuthenticated) {
-        const profile = await window.electronAPI.mockBackend.getProfile();
+        const profile = await globalThis.electronAPI.mockBackend.getProfile();
         localStorage.setItem('auth-profile', JSON.stringify(profile));
         console.log('✅ [EARLY] Updated localStorage with real auth-profile');
       }
@@ -117,8 +120,8 @@ try {
 })();
 
 // Guard to prevent multiple initializations
-if (!window._kizukuAuthIntegrationInitialized) {
-  window._kizukuAuthIntegrationInitialized = true;
+if (!globalThis._kizukuAuthIntegrationInitialized) {
+  globalThis._kizukuAuthIntegrationInitialized = true;
 
   // Main initialization function
   const initializeAuth = async () => {
@@ -126,12 +129,12 @@ if (!window._kizukuAuthIntegrationInitialized) {
 
     // Check if we're already authenticated via mock backend
     try {
-      if (!window.electronAPI?.mockBackend) {
+      if (!globalThis.electronAPI?.mockBackend) {
         console.warn('⚠️  Mock backend API not available - waiting for it to load...');
         return;
       }
 
-      const isAuthenticated = await window.electronAPI.mockBackend.isAuthenticated();
+      const isAuthenticated = await globalThis.electronAPI.mockBackend.isAuthenticated();
 
       if (!isAuthenticated) {
         console.error('❌ No valid Kizuku license found');
@@ -142,7 +145,7 @@ if (!window._kizukuAuthIntegrationInitialized) {
 
       // Fetch profile from mock backend and inject into PenPot state
       try {
-        const profile = await window.electronAPI.mockBackend.getProfile();
+        const profile = await globalThis.electronAPI.mockBackend.getProfile();
         console.log('📦 Fetched profile from mock backend:', profile);
 
         // localStorage already set by early initialization above
@@ -180,7 +183,7 @@ if (!window._kizukuAuthIntegrationInitialized) {
       return;
     }
 
-    if (!window.app || !window.app.main || !window.app.main.store) {
+    if (!globalThis.app?.main?.store) {
       console.log(`⏳ Waiting for PenPot app... (attempt ${retries + 1})`);
       setTimeout(() => waitForPenpotAndInitAuth(retries + 1), 500);
       return;
@@ -282,8 +285,8 @@ const destroyLoginModal = () => {
 injectHideCSS();
 
 // Monitor DOM for login modal appearance and destroy it (fallback)
-if (!window._kizukuBypassListenerAdded) {
-  window._kizukuBypassListenerAdded = true;
+if (!globalThis._kizukuBypassListenerAdded) {
+  globalThis._kizukuBypassListenerAdded = true;
 
   const observer = new MutationObserver((_mutations) => {
     injectHideCSS(); // Re-inject CSS if needed

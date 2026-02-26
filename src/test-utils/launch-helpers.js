@@ -54,7 +54,7 @@ class LaunchHelpers {
   static validateLaunchSuccess(electronProcess, launchState) {
     const { foundSuccessIndicators, startupOutput } = launchState;
     const successCount = Object.values(foundSuccessIndicators).filter(Boolean).length;
-    const hasValidProcess = electronProcess && electronProcess.pid;
+    const hasValidProcess = electronProcess?.pid;
 
     if (hasValidProcess && successCount >= 3) {
       return {

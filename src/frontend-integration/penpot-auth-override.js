@@ -66,7 +66,7 @@ function overrideProfileAtom(profileAtom) {
 
 // Wait for PenPot's app to be available
 const waitForPenPot = setInterval(() => {
-  if (!window.app || !window.app.main) {
+  if (!globalThis.app?.main) {
     return;
   }
 
@@ -74,11 +74,11 @@ const waitForPenPot = setInterval(() => {
   console.log('✅ [KIZUKU] PenPot app detected, applying auth override...');
 
   try {
-    if (window.app.main.data && window.app.main.data.auth) {
-      overrideAuthModule(window.app.main.data.auth);
+    if (globalThis.app.main.data?.auth) {
+      overrideAuthModule(globalThis.app.main.data.auth);
     }
-    if (window.app.main.refs && window.app.main.refs.profile) {
-      overrideProfileAtom(window.app.main.refs.profile);
+    if (globalThis.app.main.refs?.profile) {
+      overrideProfileAtom(globalThis.app.main.refs.profile);
     }
     console.log('✅ [KIZUKU] Auth system override complete');
   } catch (error) {
@@ -88,7 +88,7 @@ const waitForPenPot = setInterval(() => {
 
 // Timeout after 30 seconds
 setTimeout(() => {
-  if (window.app) {
+  if (globalThis.app) {
     return;
   }
   clearInterval(waitForPenPot);

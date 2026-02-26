@@ -4,7 +4,7 @@
  * Delegates property conversion to shape-builder and geometry modules.
  */
 
-const crypto = require('crypto');
+const crypto = require('node:crypto');
 const geometry = require('./kizuku-penpot-geometry');
 const shapes = require('./kizuku-penpot-shape-builder');
 

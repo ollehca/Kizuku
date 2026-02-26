@@ -1,5 +1,5 @@
-const fs = require('fs').promises;
-const path = require('path');
+const fs = require('node:fs').promises;
+const path = require('node:path');
 const { app } = require('electron');
 const { createLogger } = require('../utils/logger');
 
@@ -235,7 +235,7 @@ class ProjectManager {
   }
 
   _validateMetadata(project) {
-    if (!project.metadata || !project.metadata.id || !project.metadata.name) {
+    if (!project.metadata?.id || !project.metadata?.name) {
       throw new Error('Invalid project metadata');
     }
   }
@@ -253,7 +253,7 @@ class ProjectManager {
    * Generate unique ID
    */
   _generateId() {
-    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    return `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
   }
 
   /**

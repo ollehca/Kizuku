@@ -73,7 +73,7 @@ async function loadDefaultAuthor() {
     const config = await backendClient.getConfig();
     const authorInput = document.getElementById('authorName');
 
-    if (config.defaultAuthor && config.defaultAuthor.name) {
+    if (config.defaultAuthor?.name) {
       authorInput.value = config.defaultAuthor.name;
     }
   } catch (error) {
@@ -145,7 +145,7 @@ async function handleProjectSave(filePath) {
 
 async function showSaveDialog(defaultName) {
   try {
-    const result = await window.electronAPI.showSaveDialog({
+    const result = await globalThis.electronAPI.showSaveDialog({
       title: 'Save Project',
       defaultPath: `${defaultName}.kizuku`,
       filters: [
@@ -163,7 +163,7 @@ async function showSaveDialog(defaultName) {
 
 async function openExistingProject() {
   try {
-    const result = await window.electronAPI.showOpenDialog({
+    const result = await globalThis.electronAPI.showOpenDialog({
       title: 'Open Project',
       filters: [
         { name: 'Kizuku Projects', extensions: ['kizuku'] },
@@ -267,12 +267,12 @@ async function openProjectInWorkspace(filePath) {
     showStatus('Opening workspace...', 'success');
 
     // Call IPC to launch workspace
-    const result = await window.electronAPI.launchWorkspace(filePath);
+    const result = await globalThis.electronAPI.launchWorkspace(filePath);
 
     if (result.success) {
       console.log('Workspace launched:', result.project.name);
       // Close dashboard window after successful launch
-      setTimeout(() => window.close(), 500);
+      setTimeout(() => globalThis.close(), 500);
     } else {
       showStatus('Failed to launch workspace', 'error');
     }
@@ -285,7 +285,7 @@ async function openProjectInWorkspace(filePath) {
 async function importFromFigma() {
   try {
     // Show file picker for Figma files
-    const result = await window.electronAPI.showOpenDialog({
+    const result = await globalThis.electronAPI.showOpenDialog({
       title: 'Import Figma File',
       filters: [
         { name: 'Figma Files', extensions: ['json', 'kizuku', 'fig'] },
@@ -304,7 +304,7 @@ async function importFromFigma() {
     showStatus('Importing files...', 'success');
 
     for (const filePath of result.filePaths) {
-      const importResult = await window.electronAPI.figmaAPI.importFile(filePath, {
+      const importResult = await globalThis.electronAPI.figmaAPI.importFile(filePath, {
         importAsLibrary: true,
         preserveNames: true,
         convertPrototyping: false,
@@ -332,7 +332,7 @@ async function importFromFigma() {
 async function setupSettingsButton() {
   const btn = document.getElementById('settingsBtn');
   try {
-    const devMode = await window.electronAPI.isDevMode();
+    const devMode = await globalThis.electronAPI.isDevMode();
     if (devMode) {
       btn.addEventListener('click', openSettings);
     } else {
@@ -348,7 +348,7 @@ async function setupSettingsButton() {
  */
 async function openSettings() {
   try {
-    await window.electronAPI.theme.openEditor();
+    await globalThis.electronAPI.theme.openEditor();
   } catch (error) {
     showStatus('Failed to open theme editor', 'error');
     console.error('Theme editor error:', error);

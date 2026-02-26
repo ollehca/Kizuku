@@ -7,7 +7,7 @@
  * @module license-selection
  */
 
-const api = window.electronAPI;
+const api = globalThis.electronAPI;
 
 // State (used for future enhancement tracking)
 // eslint-disable-next-line no-unused-vars
@@ -75,7 +75,7 @@ function handleBusinessSelection(event) {
  */
 function handleCardClick(event) {
   const card = event.currentTarget;
-  const type = card.getAttribute('data-type');
+  const type = card.dataset.type;
 
   // Don't highlight if business (disabled)
   if (type === 'business') {

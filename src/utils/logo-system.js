@@ -3,8 +3,8 @@
  * Provides utilities for displaying logos with proper theming
  */
 
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 
 // Logo variants available
 const LOGO_VARIANTS = {
@@ -59,13 +59,8 @@ function getLogoSVG(theme, outline, width, height) {
   return getLogoSVGWithDefaults(theme, outline, width, height);
 }
 
-function getLogoSVGWithDefaults(theme, outline, width, height) {
-  const finalTheme = theme || 'dark';
-  const finalOutline = outline || false;
-  const finalWidth = width || 32;
-  const finalHeight = height || null;
-
-  return processLogoRequest(finalTheme, finalOutline, finalWidth, finalHeight);
+function getLogoSVGWithDefaults(theme = 'dark', outline = false, width = 32, height = null) {
+  return processLogoRequest(theme, outline, width, height);
 }
 
 function processLogoRequest(theme, outline, width, height) {

@@ -8,7 +8,7 @@
  */
 
 const { test, expect, _electron: electron } = require('@playwright/test');
-const path = require('path');
+const path = require('node:path');
 
 test.describe('Kizuku Electron App - Login Modal Bypass', () => {
   let electronApp;

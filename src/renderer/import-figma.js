@@ -45,12 +45,12 @@ function setupEventListeners() {
   dropZone.addEventListener('drop', handleDrop);
 
   // Listen for progress updates
-  if (window.electronAPI && window.electronAPI.figmaAPI) {
-    window.electronAPI.figmaAPI.onImportProgress((progress) => {
+  if (globalThis.electronAPI?.figmaAPI) {
+    globalThis.electronAPI.figmaAPI.onImportProgress((progress) => {
       updateProgress(progress);
     });
 
-    window.electronAPI.figmaAPI.onImportStatus((status) => {
+    globalThis.electronAPI.figmaAPI.onImportStatus((status) => {
       updateStatus(status);
     });
   }
@@ -98,10 +98,10 @@ async function handleFileSelect(files) {
   const fileArray = Array.from(files);
 
   // Filter valid file types
-  const validExtensions = ['.kizuku', '.json', '.fig'];
+  const validExtensions = new Set(['.kizuku', '.json', '.fig']);
   const validFiles = fileArray.filter((file) => {
     const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
-    return validExtensions.includes(ext);
+    return validExtensions.has(ext);
   });
 
   if (validFiles.length === 0) {
@@ -111,7 +111,7 @@ async function handleFileSelect(files) {
 
   // Add files to selection
   for (const file of validFiles) {
-    if (!selectedFiles.find((f) => f.path === file.path)) {
+    if (!selectedFiles.some((f) => f.path === file.path)) {
       const fileInfo = {
         name: file.name,
         path: file.path,
@@ -134,7 +134,7 @@ async function handleFileSelect(files) {
  */
 async function validateFile(fileInfo) {
   try {
-    const result = await window.electronAPI.figmaAPI.validateFile(fileInfo.path);
+    const result = await globalThis.electronAPI.figmaAPI.validateFile(fileInfo.path);
 
     if (result.success) {
       fileInfo.status = 'valid';
@@ -275,7 +275,7 @@ async function importFiles(files, options) {
     const file = files[i];
     updateProgressDetails(`Importing ${file.name} (${i + 1}/${files.length})...`);
 
-    const result = await window.electronAPI.figmaAPI.importFile(file.path, options);
+    const result = await globalThis.electronAPI.figmaAPI.importFile(file.path, options);
     if (!result.success) {
       throw new Error(result.error || 'Import failed');
     }
@@ -297,10 +297,10 @@ async function autoOpenImportedFile(filePath) {
   console.log('🚀 Auto-opening imported file:', filePath);
   showStatus('Loading project into workspace...', 'info');
 
-  const loadResult = await window.electronAPI.backend.project.load(filePath);
+  const loadResult = await globalThis.electronAPI.backend.project.load(filePath);
   console.log('✅ Project loaded into backend:', loadResult);
 
-  const launchResult = await window.electronAPI.launchWorkspace(filePath);
+  const launchResult = await globalThis.electronAPI.launchWorkspace(filePath);
   if (!launchResult?.success) {
     const msg = launchResult?.error || 'Unknown error';
     showStatus(`File imported but failed to open: ${msg}`, 'error');
@@ -343,7 +343,7 @@ async function startImport() {
         return;
       }
     }
-    setTimeout(() => window.close(), 1000);
+    setTimeout(() => globalThis.close(), 1000);
   } catch (error) {
     console.error('Import error:', error);
     showStatus(`Import failed: ${error.message}`, 'error');
@@ -439,5 +439,5 @@ function escapeHtml(text) {
 }
 
 // Export for inline event handlers
-window.removeFile = removeFile;
-window.startImport = startImport;
+globalThis.removeFile = removeFile;
+globalThis.startImport = startImport;

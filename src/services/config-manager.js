@@ -1,15 +1,13 @@
 const { app } = require('electron');
-const path = require('path');
+const path = require('node:path');
 
 /**
  * Configuration Manager
  * Provides license-aware configuration for the application
  */
 class ConfigManager {
-  constructor() {
-    this.licenseStorage = null;
-    this.config = null;
-  }
+  licenseStorage = null;
+  config = null;
 
   async initialize() {
     try {

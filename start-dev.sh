@@ -6,7 +6,7 @@
 echo "🚀 Starting PenPot Desktop Development Environment..."
 
 # Check if we're in the right directory
-if [ ! -f "package.json" ] || [ ! -d "src" ]; then
+if [[ ! -f "package.json" ] || [ ! -d "src" ]]; then
     echo "❌ Error: Run this script from the PenPotDesktop directory"
     exit 1
 fi
@@ -14,7 +14,7 @@ fi
 # Function to cleanup on exit
 cleanup() {
     echo "🛑 Shutting down..."
-    if [ ! -z "$ELECTRON_PID" ]; then
+    if [[ ! -z "$ELECTRON_PID" ]]; then
         kill $ELECTRON_PID 2>/dev/null
     fi
     exit 0

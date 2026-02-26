@@ -1,6 +1,6 @@
 const { app, BrowserWindow, dialog, shell, protocol, net, ipcMain, session } = require('electron');
-const path = require('path');
-const fs = require('fs');
+const path = require('node:path');
+const fs = require('node:fs');
 const { buildApplicationMenu } = require('./menu-builder');
 const { registerIpcHandlers } = require('./ipc-handlers');
 const { initializeTabManager, registerTabHandlers, sendRestoredTabs } = require('./tab-manager');
@@ -439,7 +439,7 @@ function handleProductionLoading(window) {
       // Inject desktop CSS after page loads
       const cssPath = path.join(__dirname, 'styles', 'desktop.css');
       try {
-        const cssContent = require('fs').readFileSync(cssPath, 'utf8');
+        const cssContent = require('node:fs').readFileSync(cssPath, 'utf8');
         console.log('CSS file loaded, length:', cssContent.length);
         window.webContents.insertCSS(cssContent);
         console.log('CSS injected successfully');

@@ -3,8 +3,8 @@
  * Tests the complete import flow from .json/.fig files to .kizuku projects
  */
 
-const path = require('path');
-const fs = require('fs').promises;
+const path = require('node:path');
+const fs = require('node:fs').promises;
 
 // Test configuration
 const TEST_JSON_PATH = path.join(__dirname, '../test-data/test-figma-design.json');

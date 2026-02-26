@@ -11,7 +11,7 @@
  * @run node test/stage-test-hardcoded-file.js
  */
 
-const http = require('http');
+const http = require('node:http');
 const transit = require('transit-js');
 
 // ============================================================================

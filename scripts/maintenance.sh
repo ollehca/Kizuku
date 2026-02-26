@@ -25,7 +25,7 @@ TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 
 # Function to create backup directory
 ensure_backup_dir() {
-    if [ ! -d "$BACKUP_DIR" ]; then
+    if [[ ! -d "$BACKUP_DIR" ]]; then
         mkdir -p "$BACKUP_DIR"
         print_success "Created backup directory: $BACKUP_DIR"
     fi
@@ -58,13 +58,13 @@ backup_database() {
 restore_database() {
     local backup_file="$1"
     
-    if [ -z "$backup_file" ]; then
+    if [[ -z "$backup_file" ]]; then
         print_error "Please specify backup file to restore"
         print_status "Usage: $0 restore-db /path/to/backup.sql.gz"
         return 1
     fi
     
-    if [ ! -f "$backup_file" ]; then
+    if [[ ! -f "$backup_file" ]]; then
         print_error "Backup file not found: $backup_file"
         return 1
     fi
@@ -140,7 +140,7 @@ backup_volumes() {
 restore_volumes() {
     local backup_pattern="$1"
     
-    if [ -z "$backup_pattern" ]; then
+    if [[ -z "$backup_pattern" ]]; then
         print_error "Please specify backup pattern to restore"
         print_status "Usage: $0 restore-volumes TIMESTAMP"
         print_status "Example: $0 restore-volumes 20240821_143000"
@@ -164,7 +164,7 @@ restore_volumes() {
         for volume in "${volumes[@]}"; do
             local backup_file="$BACKUP_DIR/${volume}_backup_${backup_pattern}.tar.gz"
             
-            if [ -f "$backup_file" ]; then
+            if [[ -f "$backup_file" ]]; then
                 print_status "Restoring volume: $volume"
                 
                 if docker run --rm \
@@ -266,7 +266,7 @@ show_volume_info() {
 list_backups() {
     print_header "Available Backups"
     
-    if [ -d "$BACKUP_DIR" ]; then
+    if [[ -d "$BACKUP_DIR" ]]; then
         print_status "Database backups:"
         find "$BACKUP_DIR" -name "penpot_db_backup_*.sql.gz" | sort -r | while read backup; do
             local size=$(ls -lh "$backup" | awk '{print $5}')

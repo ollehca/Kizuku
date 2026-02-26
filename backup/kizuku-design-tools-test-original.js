@@ -12,10 +12,10 @@
  * - Performance acceptable vs web version
  */
 
-const { spawn } = require('child_process');
-const http = require('http');
-const fs = require('fs');
-const path = require('path');
+const { spawn } = require('node:child_process');
+const http = require('node:http');
+const fs = require('node:fs');
+const path = require('node:path');
 
 
 class KizuDesignToolsTester {
@@ -122,15 +122,19 @@ class KizuDesignToolsTester {
 
           const success = hasKizuStart && noFatalErrors && isRunning;
 
+          let error = null;
+          if (!success) {
+            if (!hasKizuStart) {
+              error = 'Kizuku failed to start';
+            } else if (!noFatalErrors) {
+              error = 'Fatal startup errors detected';
+            } else {
+              error = 'Process died during startup';
+            }
+          }
           resolve({
             success: success,
-            error: !success
-              ? !hasKizuStart
-                ? 'Kizuku failed to start'
-                : !noFatalErrors
-                  ? 'Fatal startup errors detected'
-                  : 'Process died during startup'
-              : null,
+            error,
             details: success ? `Kizuku design interface ready (PID: ${electron.pid})` : null,
           });
         } else {
@@ -146,7 +150,7 @@ class KizuDesignToolsTester {
 
   // Test 2: Drawing Tools Keyboard Shortcut Testing
   async testDrawingToolKeyboardShortcuts() {
-    if (!this.electronProcess || this.electronProcess.killed) {
+    if (!this.electronProcess?.pid || this.electronProcess.killed) {
       return {
         success: false,
         error: 'Kizuku not running - cannot test drawing tool shortcuts',
@@ -247,7 +251,7 @@ class KizuDesignToolsTester {
 
   // Test 4: Zoom Controls Responsiveness Testing
   async testZoomControlsResponsiveness() {
-    if (!this.electronProcess || this.electronProcess.killed) {
+    if (!this.electronProcess?.pid || this.electronProcess.killed) {
       return {
         success: false,
         error: 'Kizuku not running - cannot test zoom controls',
@@ -302,7 +306,7 @@ class KizuDesignToolsTester {
 
   // Test 5: Performance Comparison vs Web
   async testPerformanceVsWeb() {
-    if (!this.electronProcess || this.electronProcess.killed) {
+    if (!this.electronProcess?.pid || this.electronProcess.killed) {
       return {
         success: false,
         error: 'Kizuku not running - cannot test performance',
@@ -515,7 +519,7 @@ class KizuDesignToolsTester {
     // Detailed results
     console.log('📋 Design Tools Test Results:');
     this.testResults.forEach((result, index) => {
-      const icon = result.success ? '✅' : result.critical ? '❌' : '⚠️';
+      let icon = '⚠️'; if (result.success) { icon = '✅'; } else if (result.critical) { icon = '❌'; }
       const status = result.success ? 'PASS' : 'FAIL';
       console.log(`${index + 1}. ${icon} ${status}: ${result.name}`);
       if (result.details) {
@@ -578,7 +582,7 @@ class KizuDesignToolsTester {
       JSON.stringify(
         {
           timestamp: new Date().toISOString(),
-          duration: parseFloat(duration),
+          duration: Number.parseFloat(duration),
           results: this.results,
           testDetails: this.testResults,
           performanceMetrics: this.performanceMetrics,

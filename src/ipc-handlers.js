@@ -3,7 +3,7 @@
  */
 
 const { ipcMain, dialog, app, clipboard, nativeImage } = require('electron');
-const fs = require('fs').promises;
+const fs = require('node:fs').promises;
 const { createLogger } = require('./utils/logger');
 const authStorage = require('./services/auth-storage');
 const { registerBackendIpcHandlers } = require('./services/backend-ipc-handlers');

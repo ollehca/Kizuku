@@ -7,7 +7,7 @@
  */
 
 const { createLogger } = require('../../utils/logger');
-const EventEmitter = require('events');
+const EventEmitter = require('node:events');
 const mockBackend = require('../penpot-mock-backend');
 const styles = require('./kizuku-style-transformer');
 const libExtractor = require('./kizuku-library-extractor');
@@ -190,7 +190,7 @@ class FigmaJSONConverter extends EventEmitter {
    * @returns {string} Unique identifier
    */
   generateId() {
-    const crypto = require('crypto');
+    const crypto = require('node:crypto');
     return crypto.randomUUID();
   }
 
@@ -319,7 +319,7 @@ class FigmaJSONConverter extends EventEmitter {
     if (this.parentStack.length === 0) {
       return { x: 0, y: 0 };
     }
-    return this.parentStack[this.parentStack.length - 1];
+    return this.parentStack.at(-1);
   }
 
   /**

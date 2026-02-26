@@ -6,7 +6,7 @@
  * @module login
  */
 
-const api = window.electronAPI;
+const api = globalThis.electronAPI;
 
 // DOM Elements
 let form;
@@ -291,7 +291,7 @@ function initialize() {
 async function loadSavedUsername() {
   try {
     const status = await api.onboarding.getAuthStatus();
-    if (status.success && status.user && status.user.username) {
+    if (status.success && status.user?.username) {
       usernameInput.value = status.user.username;
       passwordInput.focus();
     }

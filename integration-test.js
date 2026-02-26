@@ -2,8 +2,8 @@
 // Integration test specifically for Kizuku features
 // Tests actual functionality rather than just code structure
 
-const { spawn } = require('child_process');
-const fs = require('fs');
+const { spawn } = require('node:child_process');
+const fs = require('node:fs');
 
 class IntegrationTester {
   constructor() {

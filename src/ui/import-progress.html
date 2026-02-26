@@ -212,7 +212,7 @@
       let countdownSeconds = 5;
 
       // Listen for updates from main process
-      window.electronAPI.onImportProgress((progress) => {
+      globalThis.electronAPI.onImportProgress((progress) => {
         updateProgress(progress);
       });
 
@@ -319,7 +319,7 @@
         }
         // Workspace navigation is handled by file-open-handler.js
         // Just close the progress dialog
-        setTimeout(() => window.close(), 300);
+        setTimeout(() => globalThis.close(), 300);
       }
 
       // Handle action button click

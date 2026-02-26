@@ -14,7 +14,7 @@
  */
 
 // Mock Electron for testing
-const path = require('path');
+const path = require('node:path');
 const mockApp = {
   getPath: () => path.join(__dirname, '../test-data'),
   getVersion: () => '0.1.0',

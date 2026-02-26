@@ -84,7 +84,7 @@ validate_demo_account() {
         -d "{\"email\":\"$DEMO_EMAIL\",\"password\":\"$DEMO_PASSWORD\"}" \
         -o /dev/null 2>/dev/null || echo "000")
     
-    if [ "$response" = "200" ]; then
+    if [[ "$response" = "200" ]]; then
         print_success "Demo account credentials are valid"
         return 0
     else

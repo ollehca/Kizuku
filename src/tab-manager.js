@@ -3,8 +3,8 @@
  */
 
 const { ipcMain, app } = require('electron');
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 
 const KIZUKU_TEAM_ID = '00000000-0000-0000-0000-000000000001';
 
@@ -168,10 +168,10 @@ function handleGetTabs() {
 function handleAddTab(event, fileInfo) {
   const existingTab = findTabById(fileInfo.id);
 
-  if (!existingTab) {
-    createNewTab(fileInfo);
-  } else {
+  if (existingTab) {
     updateExistingTab(existingTab, fileInfo);
+  } else {
+    createNewTab(fileInfo);
   }
 
   console.log(
@@ -217,7 +217,7 @@ function handleRemoveTab(event, tabId) {
   openTabs = openTabs.filter((tab) => tab.id !== tabId);
 
   if (wasActive && openTabs.length > 0) {
-    const newActiveTab = openTabs[openTabs.length - 1];
+    const newActiveTab = openTabs.at(-1);
     newActiveTab.isActive = true;
     navigateToTab(newActiveTab);
   } else if (openTabs.length === 0) {

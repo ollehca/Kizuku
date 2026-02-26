@@ -5,7 +5,7 @@
  */
 
 const userStorage = require('../../src/services/user-storage');
-const fs = require('fs').promises;
+const fs = require('node:fs').promises;
 
 describe('User Storage Service', () => {
   const testUser = {

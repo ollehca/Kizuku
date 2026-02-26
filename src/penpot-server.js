@@ -2,7 +2,7 @@
  * Kizuku server connection utilities
  */
 
-const path = require('path');
+const path = require('node:path');
 const { createLogger } = require('./utils/logger');
 
 const logger = createLogger('KizukuServer');

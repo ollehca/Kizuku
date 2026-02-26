@@ -8,13 +8,13 @@
  * 3. Figma URL (using REST API) - Phase 2
  */
 
-const fs = require('fs').promises;
-const path = require('path');
+const fs = require('node:fs').promises;
+const path = require('node:path');
 const { createLogger } = require('../../utils/logger');
 const { getBackendServiceManager } = require('../backend-service-manager');
 const { getFigmaJSONConverter } = require('./figma-json-converter');
 const { getFigFileParser } = require('./fig-file-parser');
-const EventEmitter = require('events');
+const EventEmitter = require('node:events');
 
 const logger = createLogger('FigmaImporter');
 

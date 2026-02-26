@@ -12,10 +12,10 @@
  * - Performance acceptable vs web version
  */
 
-const { spawn } = require('child_process');
-const http = require('http');
-const fs = require('fs');
-const path = require('path');
+const { spawn } = require('node:child_process');
+const http = require('node:http');
+const fs = require('node:fs');
+const path = require('node:path');
 
 const DesignToolValidators = require('./src/test-utils/design-tool-validators');
 const TestReportGenerator = require('./src/test-utils/test-report-generator');

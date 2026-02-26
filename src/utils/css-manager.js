@@ -34,7 +34,10 @@ function reloadCSS(cssPath) {
     const cssContent = fs.readFileSync(cssPath, 'utf8');
     if (mainWindow && !mainWindow.isDestroyed()) {
       const fileName = path.basename(cssPath);
-      const safeCSS = cssContent.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n');
+      const safeCSS = cssContent
+        .replaceAll('\\', '\\\\')
+        .replaceAll("'", "\\'")
+        .replaceAll('\n', '\\n');
 
       const script = `
         (function() {
@@ -114,7 +117,10 @@ function injectCSSFiles(window) {
     cssFiles.forEach((cssPath) => {
       const cssContent = fs.readFileSync(cssPath, 'utf8');
       const fileName = path.basename(cssPath);
-      const safeCSS = cssContent.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n');
+      const safeCSS = cssContent
+        .replaceAll('\\', '\\\\')
+        .replaceAll("'", "\\'")
+        .replaceAll('\n', '\\n');
 
       const script = `
         (function() {

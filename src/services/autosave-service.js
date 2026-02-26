@@ -6,8 +6,8 @@
  * who have no server backend.
  */
 
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 const { app } = require('electron');
 
 const DEFAULT_INTERVAL_MS = 300000; // 5 minutes

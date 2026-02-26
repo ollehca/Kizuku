@@ -14,10 +14,10 @@
  * - Performance acceptable vs web version
  */
 
-const { spawn } = require('child_process');
-const http = require('http');
-const fs = require('fs');
-const path = require('path');
+const { spawn } = require('node:child_process');
+const http = require('node:http');
+const fs = require('node:fs');
+const path = require('node:path');
 const KizukuTestHelpers = require('./src/test-utils/kizuku-test-helpers');
 const KizukuExtendedTests = require('./src/test-utils/kizuku-extended-tests');
 
@@ -362,7 +362,12 @@ class KizukuFunctionalityTester {
   _printDetailedResults() {
     console.log('📋 Test Results Summary:');
     this.testResults.forEach((result, index) => {
-      const icon = result.success ? '✅' : result.critical ? '❌' : '⚠️';
+      let icon = '⚠️';
+      if (result.success) {
+        icon = '✅';
+      } else if (result.critical) {
+        icon = '❌';
+      }
       const status = result.success ? 'PASS' : 'FAIL';
       console.log(`${index + 1}. ${icon} ${status}: ${result.name}`);
       if (result.details) {
@@ -398,7 +403,7 @@ class KizukuFunctionalityTester {
     const reportPath = path.join(__dirname, 'kizuku-functionality-test-results.json');
     const reportData = {
       timestamp: new Date().toISOString(),
-      duration: parseFloat(duration),
+      duration: Number.parseFloat(duration),
       results: this.results,
       testDetails: this.testResults,
     };

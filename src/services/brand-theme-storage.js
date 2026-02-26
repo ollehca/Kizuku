@@ -3,7 +3,7 @@
  * Manages persistence of brand theme configuration via electron-store.
  */
 
-const fs = require('fs');
+const fs = require('node:fs');
 const { getDefaultTheme } = require('./brand-theme-defaults');
 
 const STORE_KEY = 'kizuku-brand-theme';

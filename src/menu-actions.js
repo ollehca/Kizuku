@@ -75,11 +75,11 @@ async function showOpenProjectDialog(window) {
  * Handle save dialog result
  */
 function handleSaveDialogResult(result, window, logger) {
-  if (!result.canceled) {
+  if (result.canceled) {
+    logger.info('Save project dialog cancelled');
+  } else {
     logger.info('Save location selected', { filePath: result.filePath });
     sendMenuAction(window, 'save-as-project', result.filePath);
-  } else {
-    logger.info('Save project dialog cancelled');
   }
 }
 

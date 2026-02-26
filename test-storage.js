@@ -12,7 +12,7 @@ const mockApp = {
     if (name === 'userData') {
       return './test-data';
     }
-    return './test-data';
+    return './test-default';
   },
   getVersion: () => '0.1.0',
 };
@@ -22,8 +22,8 @@ require.cache[require.resolve('electron')] = {
   exports: { app: mockApp },
 };
 
-const fs = require('fs').promises;
-const path = require('path');
+const fs = require('node:fs').promises;
+const path = require('node:path');
 const licenseStorage = require('./src/services/license-storage');
 const userStorage = require('./src/services/user-storage');
 
@@ -50,8 +50,8 @@ const TEST_USER = {
 async function cleanup() {
   try {
     await fs.rm('./test-data', { recursive: true, force: true });
-  } catch (error) {
-    // Ignore
+  } catch {
+    // Ignore - test cleanup
   }
 }
 

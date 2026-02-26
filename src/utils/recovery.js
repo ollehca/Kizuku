@@ -1,5 +1,5 @@
-const { exec } = require('child_process');
-const path = require('path');
+const { exec } = require('node:child_process');
+const path = require('node:path');
 
 // Use native fetch if available, otherwise use a simple HTTP implementation
 let fetch;
@@ -12,16 +12,42 @@ try {
   }
 } catch {
   // If node-fetch is not available, create a simple fetch implementation
-  const http = require('http');
-  const https = require('https');
-  const { URL } = require('url');
+  const http = require('node:http');
+  const https = require('node:https');
+  const { URL } = require('node:url');
+
+  /**
+   * Build a fetch-like response object from raw data
+   * @param {number} statusCode - HTTP status code
+   * @param {string} data - Response body
+   * @returns {object} Fetch-like response
+   */
+  function buildResponse(statusCode, data) {
+    return {
+      ok: statusCode >= 200 && statusCode < 300,
+      status: statusCode,
+      text: () => Promise.resolve(data),
+      json: () => Promise.resolve(JSON.parse(data)),
+    };
+  }
+
+  /**
+   * Handle incoming HTTP response
+   * @param {object} res - Node HTTP response
+   * @param {Function} resolve - Promise resolve
+   */
+  function handleResponse(res, resolve) {
+    let data = '';
+    res.on('data', (chunk) => (data += chunk));
+    res.on('end', () => resolve(buildResponse(res.statusCode, data)));
+  }
 
   fetch = function (url, options = {}) {
     return new Promise((resolve, reject) => {
       const parsedUrl = new URL(url);
-      const requestModule = parsedUrl.protocol === 'https:' ? https : http;
+      const mod = parsedUrl.protocol === 'https:' ? https : http;
 
-      const req = requestModule.request(
+      const req = mod.request(
         {
           hostname: parsedUrl.hostname,
           port: parsedUrl.port,
@@ -29,18 +55,7 @@ try {
           method: options.method || 'GET',
           headers: options.headers || {},
         },
-        (res) => {
-          let data = '';
-          res.on('data', (chunk) => (data += chunk));
-          res.on('end', () => {
-            resolve({
-              ok: res.statusCode >= 200 && res.statusCode < 300,
-              status: res.statusCode,
-              text: () => Promise.resolve(data),
-              json: () => Promise.resolve(JSON.parse(data)),
-            });
-          });
-        }
+        (res) => handleResponse(res, resolve)
       );
 
       req.on('error', reject);

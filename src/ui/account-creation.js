@@ -6,7 +6,7 @@
  * @module account-creation
  */
 
-const api = window.electronAPI;
+const api = globalThis.electronAPI;
 
 // DOM Elements
 let form;
@@ -132,8 +132,7 @@ function validateForm() {
  */
 function handleUsernameInput() {
   clearError('username-error');
-  usernameInput.classList.remove('error');
-  usernameInput.classList.remove('success');
+  usernameInput.classList.remove('error', 'success');
 }
 
 /**
@@ -154,7 +153,7 @@ function validateUsername() {
     return false;
   }
 
-  if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+  if (!/^\w+$/.test(username)) {
     showError('username-error', 'Username can only contain letters, numbers, and underscores');
     usernameInput.classList.add('error');
     return false;
@@ -169,8 +168,7 @@ function validateUsername() {
  */
 function handleFullnameInput() {
   clearError('fullname-error');
-  fullnameInput.classList.remove('error');
-  fullnameInput.classList.remove('success');
+  fullnameInput.classList.remove('error', 'success');
 }
 
 /**
@@ -194,8 +192,7 @@ function validateFullname() {
  */
 function handleEmailInput() {
   clearError('email-error');
-  emailInput.classList.remove('error');
-  emailInput.classList.remove('success');
+  emailInput.classList.remove('error', 'success');
 }
 
 /**
@@ -224,8 +221,7 @@ function validateEmail() {
  */
 function handlePasswordInput() {
   clearError('password-error');
-  passwordInput.classList.remove('error');
-  passwordInput.classList.remove('success');
+  passwordInput.classList.remove('error', 'success');
 
   // Update password strength indicator
   updatePasswordStrength(passwordInput.value);
@@ -263,8 +259,7 @@ function validatePassword() {
  */
 function handleConfirmPasswordInput() {
   clearError('confirm-password-error');
-  confirmPasswordInput.classList.remove('error');
-  confirmPasswordInput.classList.remove('success');
+  confirmPasswordInput.classList.remove('error', 'success');
 
   // If confirm password has value, validate it matches
   if (confirmPasswordInput.value) {

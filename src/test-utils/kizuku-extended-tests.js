@@ -4,8 +4,8 @@
  * Additional test methods extracted from main test file to keep it under line limits.
  */
 
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 
 class KizukuExtendedTests {
   static async testKizukuAuthenticationIntegration(basePath) {

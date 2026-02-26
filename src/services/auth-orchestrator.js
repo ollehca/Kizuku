@@ -19,7 +19,7 @@ const { validateLicense } = require('./license-code');
 const licenseStorage = require('./license-storage');
 const userStorage = require('./user-storage');
 const authStorage = require('./auth-storage');
-const crypto = require('crypto');
+const crypto = require('node:crypto');
 
 /**
  * Check if license is valid

@@ -4,8 +4,8 @@
  * Tests secure credential storage using Electron's safeStorage.
  */
 
-const fs = require('fs').promises;
-const path = require('path');
+const fs = require('node:fs').promises;
+const path = require('node:path');
 
 // Need to require auth-storage after the mock is set up
 let authStorage;
@@ -61,14 +61,14 @@ describe('Authentication Storage Service', () => {
     test('creates secure directory if not exists', () => {
       authStorage.storeCredentials(testCredentials);
 
-      const dirExists = require('fs').existsSync('./test-data/secure');
+      const dirExists = require('node:fs').existsSync('./test-data/secure');
       expect(dirExists).toBe(true);
     });
 
     test('creates encrypted file', () => {
       authStorage.storeCredentials(testCredentials);
 
-      const fileExists = require('fs').existsSync('./test-data/secure/credentials.enc');
+      const fileExists = require('node:fs').existsSync('./test-data/secure/credentials.enc');
       expect(fileExists).toBe(true);
     });
 
@@ -150,7 +150,7 @@ describe('Authentication Storage Service', () => {
         expiresAt: Date.now() - 1000, // 1 second ago
       };
 
-      const fs = require('fs');
+      const fs = require('node:fs');
       const encrypted = safeStorage.encryptString(JSON.stringify(expiredData));
       fs.writeFileSync('./test-data/secure/credentials.enc', encrypted);
 
@@ -170,7 +170,7 @@ describe('Authentication Storage Service', () => {
         expiresAt: Date.now() - 1000,
       };
 
-      const fs = require('fs');
+      const fs = require('node:fs');
       const encrypted = safeStorage.encryptString(JSON.stringify(expiredData));
       fs.writeFileSync('./test-data/secure/credentials.enc', encrypted);
 
@@ -193,7 +193,7 @@ describe('Authentication Storage Service', () => {
         expiresAt: Date.now() + sixDays,
       };
 
-      const fs = require('fs');
+      const fs = require('node:fs');
       const encrypted = safeStorage.encryptString(JSON.stringify(nearExpiry));
       fs.writeFileSync('./test-data/secure/credentials.enc', encrypted);
 
@@ -223,7 +223,7 @@ describe('Authentication Storage Service', () => {
     });
 
     test('returns null on corrupted data', () => {
-      const fs = require('fs');
+      const fs = require('node:fs');
       fs.mkdirSync('./test-data/secure', { recursive: true });
       fs.writeFileSync('./test-data/secure/credentials.enc', 'corrupted-data');
 
@@ -232,7 +232,7 @@ describe('Authentication Storage Service', () => {
     });
 
     test('clears corrupted data', () => {
-      const fs = require('fs');
+      const fs = require('node:fs');
       fs.mkdirSync('./test-data/secure', { recursive: true });
       fs.writeFileSync('./test-data/secure/credentials.enc', 'corrupted-data');
 
@@ -248,7 +248,7 @@ describe('Authentication Storage Service', () => {
       authStorage.storeCredentials(testCredentials);
       authStorage.clearStoredCredentials();
 
-      const fs = require('fs');
+      const fs = require('node:fs');
       const fileExists = fs.existsSync('./test-data/secure/credentials.enc');
       expect(fileExists).toBe(false);
     });
@@ -291,7 +291,7 @@ describe('Authentication Storage Service', () => {
         expiresAt: Date.now() - 1000,
       };
 
-      const fs = require('fs');
+      const fs = require('node:fs');
       const encrypted = safeStorage.encryptString(JSON.stringify(expiredData));
       fs.writeFileSync('./test-data/secure/credentials.enc', encrypted);
 
@@ -310,7 +310,7 @@ describe('Authentication Storage Service', () => {
         token: null,
       };
 
-      const fs = require('fs');
+      const fs = require('node:fs');
       const encrypted = safeStorage.encryptString(JSON.stringify(noToken));
       fs.writeFileSync('./test-data/secure/credentials.enc', encrypted);
 
@@ -370,7 +370,7 @@ describe('Authentication Storage Service', () => {
     test('file content is encrypted (base64)', () => {
       authStorage.storeCredentials(testCredentials);
 
-      const fs = require('fs');
+      const fs = require('node:fs');
       const fileContent = fs.readFileSync('./test-data/secure/credentials.enc', 'utf8');
 
       // Should be base64 encoded (our mock)

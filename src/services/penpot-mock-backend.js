@@ -4,7 +4,7 @@
  * Auth via license, files on local FS, teams mocked for single-user.
  */
 
-const crypto = require('crypto');
+const crypto = require('node:crypto');
 const userStorage = require('./user-storage');
 const licenseStorage = require('./license-storage');
 const converter = require('./kizuku-to-penpot-converter');

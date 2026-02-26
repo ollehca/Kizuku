@@ -6,7 +6,7 @@
  * @module license-entry
  */
 
-const api = window.electronAPI;
+const api = globalThis.electronAPI;
 
 // DOM Elements
 let form;
@@ -95,8 +95,7 @@ function handleInputChange() {
   // Clear error when user starts typing
   if (code) {
     clearError();
-    input.classList.remove('error');
-    input.classList.remove('success');
+    input.classList.remove('error', 'success');
   }
 
   // Auto-format code (add hyphens)
@@ -179,7 +178,7 @@ function formatLicenseCode(code) {
 
   // Preserve KIZUKU- prefix, only format the hex portion
   const prefix = 'KIZUKU-';
-  const stripped = upper.replace(/[^A-Z0-9]/g, '');
+  const stripped = upper.replaceAll(/[^A-Z0-9]/g, '');
 
   if (!stripped.startsWith('KIZUKU')) {
     return upper;

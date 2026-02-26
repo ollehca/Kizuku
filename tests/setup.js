@@ -39,7 +39,7 @@ jest.mock(
 );
 
 // Global test utilities
-global.testUtils = {
+globalThis.testUtils = {
   /**
    * Wait for a specified time
    */
@@ -88,7 +88,7 @@ jest.mock('../src/services/backend-service-manager', () => ({
 
 // Suppress console output during tests (optional)
 if (process.env.SILENT_TESTS === 'true') {
-  global.console = {
+  globalThis.console = {
     ...console,
     log: jest.fn(),
     debug: jest.fn(),

@@ -5,8 +5,8 @@
  * and keep main test files under the line limit.
  */
 
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 
 class KizukuTestHelpers {
   static checkKizukuStartup(output) {

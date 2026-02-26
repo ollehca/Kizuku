@@ -4,7 +4,7 @@
  * Uses src/ui/import-progress.html as the UI.
  */
 
-const path = require('path');
+const path = require('node:path');
 const { createLogger } = require('../utils/logger');
 
 const logger = createLogger('ImportProgress');
@@ -17,10 +17,10 @@ let instance = null;
  * Shows and controls a modal progress window during file imports.
  */
 class ImportProgressManager {
-  constructor() {
-    this.window = null;
-    this.parentWindow = null;
-  }
+  window = null;
+  parentWindow = null;
+
+  constructor() {}
 
   /**
    * Show progress window for a file import

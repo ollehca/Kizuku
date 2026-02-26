@@ -5,10 +5,10 @@
 
 class BackendClient {
   constructor() {
-    if (!window.electronAPI?.backend) {
+    if (!globalThis.electronAPI?.backend) {
       throw new Error('Backend API not available. Ensure preload script loaded correctly.');
     }
-    this.api = window.electronAPI.backend;
+    this.api = globalThis.electronAPI.backend;
   }
 
   /**
@@ -282,6 +282,6 @@ if (typeof module !== 'undefined' && module.exports) {
 
 // Also expose globally for easy access in renderer
 if (typeof window !== 'undefined') {
-  window.BackendClient = BackendClient;
-  window.getBackendClient = getBackendClient;
+  globalThis.BackendClient = BackendClient;
+  globalThis.getBackendClient = getBackendClient;
 }

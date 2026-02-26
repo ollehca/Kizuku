@@ -119,7 +119,7 @@ function extractLayoutStyleProps(style) {
  * @returns {object} Color and opacity
  */
 function extractFillColor(fills) {
-  if (!fills || !fills.length) {
+  if (!fills?.length) {
     return { color: '#000000', opacity: 1 };
   }
   const solidFill = fills.find((f) => f.type === 'SOLID' && f.visible !== false);
@@ -269,7 +269,7 @@ function splitIntoParagraphs(runs) {
         paragraphs.push([]);
       }
       if (parts[idx].length > 0) {
-        paragraphs[paragraphs.length - 1].push({
+        paragraphs.at(-1).push({
           text: parts[idx],
           style: run.style,
           fills: run.fills,

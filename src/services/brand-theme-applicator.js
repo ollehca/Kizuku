@@ -4,8 +4,8 @@
  * CSS palette files, SCSS variables, workspace injection.
  */
 
-const path = require('path');
-const fs = require('fs');
+const path = require('node:path');
+const fs = require('node:fs');
 const themeStorage = require('./brand-theme-storage');
 const cssGenerator = require('./brand-theme-css-generator');
 

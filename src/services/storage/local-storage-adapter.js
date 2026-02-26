@@ -1,5 +1,5 @@
-const fs = require('fs').promises;
-const path = require('path');
+const fs = require('node:fs').promises;
+const path = require('node:path');
 const { app } = require('electron');
 const StorageAdapter = require('./storage-adapter');
 

@@ -14,7 +14,7 @@ const licenseStorage = require('../../src/services/license-storage');
 const userStorage = require('../../src/services/user-storage');
 const authStorage = require('../../src/services/auth-storage');
 const { generateLicense } = require('../../src/services/license-code');
-const fs = require('fs').promises;
+const fs = require('node:fs').promises;
 
 describe('Complete Authentication Flow - Integration Tests', () => {
   beforeEach(async () => {

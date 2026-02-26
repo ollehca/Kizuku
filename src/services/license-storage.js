@@ -12,9 +12,9 @@
  * @module license-storage
  */
 
-const fs = require('fs').promises;
-const path = require('path');
-const crypto = require('crypto');
+const fs = require('node:fs').promises;
+const path = require('node:path');
+const crypto = require('node:crypto');
 const { app } = require('electron');
 
 // Encryption settings
@@ -83,7 +83,7 @@ function getLicenseFilePath() {
     const testDataPath = path.join(__dirname, '../../test-data/license.dat');
     try {
       // Synchronously check if test-data file exists
-      const fs = require('fs');
+      const fs = require('node:fs');
       if (fs.existsSync(testDataPath)) {
         console.log('📁 Using test-data license file:', testDataPath);
         return testDataPath;

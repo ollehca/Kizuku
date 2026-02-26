@@ -4,7 +4,7 @@
  */
 
 const { BrowserWindow } = require('electron');
-const path = require('path');
+const path = require('node:path');
 const { createLogger } = require('./logger');
 
 const logger = createLogger('DashboardLauncher');
