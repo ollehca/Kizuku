@@ -101,5 +101,14 @@ release/
 
 # Kizuku private files
 CLAUDE.md
-test-data/*.dat
+test-data/
 test-results/
+cookies.txt
+*.backup
+*.bak
+*.docx
+
+# Ad-hoc test/debug scripts (proper tests go in test/)
+test-*.js
+*-test.js
+*-test-results.json

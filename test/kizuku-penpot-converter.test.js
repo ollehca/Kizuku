@@ -91,7 +91,7 @@ function testHardcodedFile() {
  * Test empty project conversion
  */
 function testEmptyProject() {
-  const result = converter.convertKizuToPenpotFile(buildProject([]));
+  const result = converter.convertKizukuToPenpotFile(buildProject([]));
   assert('project id', result.id, 'test-id');
   assert('no pages', result.data.pages.length, 0);
   assert('version', result.version, 22);
@@ -119,7 +119,7 @@ function testRectangleConversion() {
     }],
   }]);
 
-  const result = converter.convertKizuToPenpotFile(project);
+  const result = converter.convertKizukuToPenpotFile(project);
   const pageId = result.data.pages[0];
   const page = result.data['pages-index'][pageId];
   const rect = page.objects['rect-1'];
@@ -155,7 +155,7 @@ function testFrameWithChildren() {
     }],
   }]);
 
-  const result = converter.convertKizuToPenpotFile(project);
+  const result = converter.convertKizukuToPenpotFile(project);
   const pageId = result.data.pages[0];
   const page = result.data['pages-index'][pageId];
 
@@ -190,14 +190,14 @@ function testPathConversion() {
     }],
   }]);
 
-  const result = converter.convertKizuToPenpotFile(project);
+  const result = converter.convertKizukuToPenpotFile(project);
   const pageId = result.data.pages[0];
   const page = result.data['pages-index'][pageId];
   const path = page.objects['path-1'];
 
   assertTrue('path has content', path.content);
-  assertTrue('path has segments', path.content.segments.length > 0);
-  assert('path fill-rule', path.content['fill-rule'], 'evenodd');
+  assertTrue('path has segments', path.content.length > 0);
+  assert('path fill-rule', path['fill-rule'], 'evenodd');
 }
 
 /**
@@ -220,7 +220,7 @@ function testEffectsConversion() {
     }],
   }]);
 
-  const result = converter.convertKizuToPenpotFile(project);
+  const result = converter.convertKizukuToPenpotFile(project);
   const pageId = result.data.pages[0];
   const page = result.data['pages-index'][pageId];
   const rect = page.objects['fx-1'];
@@ -257,7 +257,7 @@ function testLayoutConversion() {
     }],
   }]);
 
-  const result = converter.convertKizuToPenpotFile(project);
+  const result = converter.convertKizukuToPenpotFile(project);
   const pageId = result.data.pages[0];
   const page = result.data['pages-index'][pageId];
   const frame = page.objects['layout-1'];
@@ -290,7 +290,7 @@ function testContainerTypes() {
     }],
   }]);
 
-  const result = converter.convertKizuToPenpotFile(project);
+  const result = converter.convertKizukuToPenpotFile(project);
   const pageId = result.data.pages[0];
   const page = result.data['pages-index'][pageId];
   const child = page.objects['inside-1'];

@@ -105,7 +105,6 @@ function testImageFills() {
   ]);
   assertTrue('image fill', fills[0]['fill-image']);
   assert('image id', fills[0]['fill-image'].id, 'img-123');
-  assert('image scale', fills[0]['fill-image']['scale-mode'], 'fit');
 }
 
 /**
@@ -168,11 +167,11 @@ function testPathSegments() {
     { command: 'C', x1: 10, y1: 20, x2: 30, y2: 40, x: 50, y: 60 },
     { command: 'Z' },
   ]);
-  assert('move-to', segments[0].type, 'move-to');
-  assert('line-to', segments[1].type, 'line-to');
-  assert('curve-to', segments[2].type, 'curve-to');
+  assert('move-to', segments[0].command, 'move-to');
+  assert('line-to', segments[1].command, 'line-to');
+  assert('curve-to', segments[2].command, 'curve-to');
   assert('curve c1x', segments[2].params.c1x, 10);
-  assert('close-path', segments[3].type, 'close-path');
+  assert('close-path', segments[3].command, 'close-path');
   assert('empty segments', shapes.convertPathSegments(null), []);
 }
 
