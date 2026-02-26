@@ -49,7 +49,8 @@ globalThis.testUtils = {
    * Generate random string
    */
   randomString: (length = 10) => {
-    return Math.random().toString(36).substring(2, 2 + length);
+    const crypto = require('node:crypto');
+    return crypto.randomBytes(length).toString('hex').substring(0, length);
   },
 
   /**

@@ -1,5 +1,6 @@
 const fs = require('node:fs').promises;
 const path = require('node:path');
+const crypto = require('node:crypto');
 const { app } = require('electron');
 const { createLogger } = require('../utils/logger');
 
@@ -253,7 +254,7 @@ class ProjectManager {
    * Generate unique ID
    */
   _generateId() {
-    return `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+    return `${Date.now()}-${crypto.randomUUID().substring(0, 9)}`;
   }
 
   /**

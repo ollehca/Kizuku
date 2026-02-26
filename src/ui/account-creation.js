@@ -206,7 +206,7 @@ function validateEmail() {
     return true;
   }
 
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  if (!email.includes('@') || email.startsWith('@') || email.endsWith('@') || email.includes(' ')) {
     showError('email-error', 'Please enter a valid email address');
     emailInput.classList.add('error');
     return false;

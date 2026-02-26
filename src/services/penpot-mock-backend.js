@@ -68,9 +68,10 @@ async function getMockProfile() {
   }
 
   const profileId = crypto
-    .createHash('md5')
+    .createHash('sha256')
     .update(user.username)
     .digest('hex')
+    .substring(0, 32)
     .replace(/(.{8})(.{4})(.{4})(.{4})(.{12})/, '$1-$2-$3-$4-$5');
 
   const now = new Date().toISOString();

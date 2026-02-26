@@ -339,8 +339,13 @@ function showError(message) {
  * Validate email address
  */
 function validateEmail(email) {
-  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return regex.test(email);
+  if (!email || typeof email !== 'string') {
+    return false;
+  }
+  const atIndex = email.indexOf('@');
+  const hasAt = atIndex > 0 && atIndex < email.length - 1;
+  const hasDot = email.indexOf('.', atIndex) > atIndex;
+  return hasAt && hasDot && !email.includes(' ');
 }
 
 /**
