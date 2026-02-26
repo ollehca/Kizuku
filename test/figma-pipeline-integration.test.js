@@ -241,7 +241,7 @@ async function runTests() {
   testKizuPageContent(result);
   testImageAssets(result);
 
-  const penpotFile = penpotConverter.convertKizuToPenpotFile(result.project);
+  const penpotFile = penpotConverter.convertKizukuToPenpotFile(result.project);
   testPenpotFileStructure(penpotFile);
   testPenpotShapes(penpotFile);
   testPenpotMedia(penpotFile);

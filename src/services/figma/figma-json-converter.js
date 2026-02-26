@@ -360,10 +360,12 @@ class FigmaJSONConverter extends EventEmitter {
    * @returns {object} Width and height dimensions
    */
   extractDimensions(nodeSize, absBbox) {
-    return {
-      width: nodeSize?.x || absBbox.width || 0,
-      height: nodeSize?.y || absBbox.height || 0,
-    };
+    const width = nodeSize?.x || absBbox.width || 0;
+    const height = nodeSize?.y || absBbox.height || 0;
+    if (width === 0 || height === 0) {
+      this.addWarning(`Node has zero dimensions (${width}x${height})`);
+    }
+    return { width, height };
   }
 
   /**

@@ -7,11 +7,8 @@
 const crypto = require('node:crypto');
 const geometry = require('./kizuku-penpot-geometry');
 const shapes = require('./kizuku-penpot-shape-builder');
+const testFile = require('./kizuku-penpot-test-file');
 
-const KIZUKU_TEAM_ID = '00000000-0000-0000-0000-000000000001';
-const TEST_FILE_ID = '11111111-1111-1111-1111-111111111111';
-const TEST_PAGE_ID = '22222222-2222-2222-2222-222222222222';
-const TEST_FRAME_ID = '33333333-3333-3333-3333-333333333333';
 const ROOT_FRAME_ID = '00000000-0000-0000-0000-000000000000';
 
 /** Container types that have children in PenPot */
@@ -142,8 +139,14 @@ function attachComponentProps(child, shape) {
   if (child.type === 'bool' && child.boolType) {
     shape['bool-type'] = child.boolType;
   }
+  if (child.type === 'component' || child.type === 'component-set') {
+    shape['component-root'] = true;
+    shape['component-id'] = child.id;
+    shape['component-file'] = 'local';
+  }
   if (child.type === 'instance' && child.componentId) {
     shape['component-id'] = child.componentId;
+    shape['component-file'] = 'local';
   }
 }
 
@@ -308,6 +311,66 @@ function buildRootFrame(rootId, childIds) {
 }
 
 /**
+ * Build PenPot colors map from Kizuku color library
+ * @param {array} colorLibrary - Kizuku color library entries
+ * @returns {object} Colors map keyed by ID
+ */
+function buildColorsMap(colorLibrary) {
+  if (!Array.isArray(colorLibrary) || colorLibrary.length === 0) {
+    return {};
+  }
+  const colors = {};
+  for (const entry of colorLibrary) {
+    if (entry.id && entry.color) {
+      colors[entry.id] = {
+        id: entry.id,
+        name: entry.name || 'Unnamed',
+        color: entry.color,
+        opacity: 1,
+      };
+    }
+  }
+  return colors;
+}
+
+/**
+ * Build a single PenPot typography entry from font properties
+ * @param {object} entry - Kizuku typography entry
+ * @returns {object} PenPot typography object
+ */
+function buildTypographyEntry(entry) {
+  const fontProps = entry.fontProps || {};
+  return {
+    id: entry.id,
+    name: entry.name || 'Unnamed',
+    'font-family': fontProps.fontFamily || 'Arial',
+    'font-size': String(fontProps.fontSize || 16),
+    'font-weight': String(fontProps.fontWeight || 400),
+    'font-style': fontProps.italic ? 'italic' : 'normal',
+    'line-height': String(fontProps.lineHeightPx || '1.2'),
+    'letter-spacing': String(fontProps.letterSpacing || 0),
+  };
+}
+
+/**
+ * Build PenPot typographies map from Kizuku typography library
+ * @param {array} typographyLibrary - Kizuku typography library entries
+ * @returns {object} Typographies map keyed by ID
+ */
+function buildTypographiesMap(typographyLibrary) {
+  if (!Array.isArray(typographyLibrary) || typographyLibrary.length === 0) {
+    return {};
+  }
+  const typographies = {};
+  for (const entry of typographyLibrary) {
+    if (entry.id) {
+      typographies[entry.id] = buildTypographyEntry(entry);
+    }
+  }
+  return typographies;
+}
+
+/**
  * Build PenPot media map from extracted images
  * @param {array} images - Array of { hash, data } image objects
  * @returns {object} Media map keyed by hash
@@ -354,6 +417,8 @@ function convertKizukuToPenpotFile(kizukuProject) {
 
   shapes.setImageAssets([]); // Clear after use
   const media = buildMediaMap(kizukuProject.assets?.images);
+  const colors = buildColorsMap(kizukuProject.data?.colorLibrary);
+  const typographies = buildTypographiesMap(kizukuProject.data?.typographyLibrary);
 
   return {
     id: kizukuProject.metadata.id,
@@ -369,75 +434,8 @@ function convertKizukuToPenpotFile(kizukuProject) {
       'pages-index': pagesIndex,
       options: { 'components-v2': true, 'base-font-size': '16px' },
       media,
-    },
-    'is-shared': false,
-    permissions: ['owner'],
-  };
-}
-
-/**
- * Build test page objects for hardcoded test file
- * @returns {object} Objects map with root frame and test frame
- */
-function buildTestPageObjects() {
-  return {
-    [ROOT_FRAME_ID]: {
-      id: ROOT_FRAME_ID,
-      type: 'frame',
-      name: 'Root Frame',
-      'frame-id': ROOT_FRAME_ID,
-      'parent-id': ROOT_FRAME_ID,
-      x: 0,
-      y: 0,
-      width: 1,
-      height: 1,
-      ...geometry.buildGeometry(0, 0, 1, 1, 0),
-      shapes: [TEST_FRAME_ID],
-    },
-    [TEST_FRAME_ID]: {
-      id: TEST_FRAME_ID,
-      type: 'frame',
-      name: 'Test Frame - Backend Works!',
-      'frame-id': ROOT_FRAME_ID,
-      'parent-id': ROOT_FRAME_ID,
-      x: 100,
-      y: 100,
-      width: 400,
-      height: 300,
-      ...geometry.buildGeometry(100, 100, 400, 300, 0),
-      fills: [{ 'fill-color': '#3388ff', 'fill-opacity': 1 }],
-      shapes: [],
-    },
-  };
-}
-
-/**
- * Creates a minimal valid PenPot file for backend integration testing
- * @returns {object} Hardcoded PenPot file structure
- */
-function createHardcodedTestFile() {
-  const now = new Date().toISOString();
-  return {
-    id: TEST_FILE_ID,
-    name: 'Hardcoded Test File',
-    'project-id': TEST_FILE_ID,
-    'team-id': KIZUKU_TEAM_ID,
-    version: 22,
-    revn: 0,
-    'created-at': now,
-    'modified-at': now,
-    features: ['components/v2'],
-    data: {
-      pages: [TEST_PAGE_ID],
-      'pages-index': {
-        [TEST_PAGE_ID]: {
-          id: TEST_PAGE_ID,
-          name: 'Test Page',
-          options: {},
-          objects: buildTestPageObjects(),
-        },
-      },
-      options: { 'components-v2': true },
+      colors,
+      typographies,
     },
     'is-shared': false,
     permissions: ['owner'],
@@ -446,10 +444,10 @@ function createHardcodedTestFile() {
 
 module.exports = {
   convertKizukuToPenpotFile,
-  createHardcodedTestFile,
+  createHardcodedTestFile: testFile.createHardcodedTestFile,
   flattenChildren,
   convertFillsToPenpot: shapes.convertFillsToPenpot,
   convertStrokesToPenpot: shapes.convertStrokesToPenpot,
   convertPathCommands: (cmds) => shapes.convertPathSegments(cmds),
-  TEST_FILE_ID,
+  TEST_FILE_ID: testFile.TEST_FILE_ID,
 };

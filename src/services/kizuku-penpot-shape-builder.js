@@ -4,6 +4,8 @@
  * Handles fills, strokes, effects, text, paths, layout, and constraints.
  */
 
+const imageBuilder = require('./kizuku-penpot-image-builder');
+
 /**
  * Convert Kizuku solid fill to PenPot fill
  * @param {object} fill - Kizuku fill with type 'color'
@@ -38,6 +40,19 @@ function convertGradientFill(fill) {
 }
 
 /**
+ * Parse opacity from a color string (rgba or hex)
+ * @param {string} colorStr - Color string like "rgba(0,0,0,0.5)" or "#ff0000"
+ * @returns {number} Opacity value between 0 and 1
+ */
+function parseColorOpacity(colorStr) {
+  if (typeof colorStr === 'string' && colorStr.startsWith('rgba(')) {
+    const match = colorStr.match(/rgba\(\s*\d+.*,\s*([\d.]+)\s*\)/);
+    return match ? parseFloat(match[1]) : 1;
+  }
+  return 1;
+}
+
+/**
  * Convert a gradient stop to PenPot format
  * @param {object} stop - Gradient stop { position, color }
  * @returns {object} PenPot gradient stop
@@ -46,116 +61,12 @@ function convertGradientStop(stop) {
   return {
     offset: stop.position,
     color: stop.color,
-    opacity: 1,
+    opacity: parseColorOpacity(stop.color),
   };
 }
 
-/** Module-level image asset lookup */
-let imageAssetMap = new Map();
-
-/**
- * Set image assets for data-uri embedding
- * Stores both full hash and extension-stripped hash for flexible lookup
- * @param {array} images - Array of { hash, data } objects
- */
-function setImageAssets(images) {
-  imageAssetMap = new Map();
-  if (Array.isArray(images)) {
-    for (const img of images) {
-      if (img.hash && img.data) {
-        imageAssetMap.set(img.hash, img);
-        const stripped = img.hash.replace(/\.[^.]+$/, '');
-        if (stripped !== img.hash) {
-          imageAssetMap.set(stripped, img);
-        }
-      }
-    }
-  }
-}
-
-/**
- * Build fill-image object for PenPot (served via mock server)
- * @param {string} imageRef - Image hash reference
- * @returns {object} PenPot fill-image object
- */
-function buildFillImage(imageRef) {
-  const imgData = imageAssetMap.get(imageRef);
-  const dims = resolveImageDimensions(imgData);
-  const mtype = imgData?.mtype || 'image/png';
-  return {
-    id: imageRef || 'unknown',
-    width: dims.width,
-    height: dims.height,
-    mtype,
-    name: imageRef || 'image',
-  };
-}
-
-/**
- * Resolve image dimensions from metadata or buffer headers
- * @param {object} imgData - Image asset data
- * @returns {object} { width, height }
- */
-function resolveImageDimensions(imgData) {
-  if (!imgData) {
-    return { width: 100, height: 100 };
-  }
-  const estimated = estimateImageDimensions(imgData);
-  return {
-    width: estimated.width || imgData.width || 100,
-    height: estimated.height || imgData.height || 100,
-  };
-}
-
-/** Estimate image dimensions from PNG/JPEG header bytes */
-function estimateImageDimensions(imgData) {
-  if (imgData.width && imgData.height) {
-    return { width: imgData.width, height: imgData.height };
-  }
-  try {
-    const buf = Buffer.from(imgData.data, 'base64');
-    if (buf.length < 24) {
-      return {};
-    }
-    if (buf[0] === 0x89 && buf[1] === 0x50) {
-      return { width: buf.readUInt32BE(16), height: buf.readUInt32BE(20) };
-    }
-    if (buf[0] === 0xff && buf[1] === 0xd8) {
-      return parseJpegDimensions(buf);
-    }
-  } catch {
-    /* ignore */
-  }
-  return {};
-}
-
-/** Parse JPEG dimensions from SOF marker */
-function parseJpegDimensions(buf) {
-  let off = 2;
-  while (off < buf.length - 8) {
-    if (buf[off] !== 0xff) {
-      break;
-    }
-    const marker = buf[off + 1];
-    if (marker >= 0xc0 && marker <= 0xcf && marker !== 0xc4 && marker !== 0xcc) {
-      return { height: buf.readUInt16BE(off + 5), width: buf.readUInt16BE(off + 7) };
-    }
-    off += 2 + buf.readUInt16BE(off + 2);
-  }
-  return {};
-}
-
-/**
- * Convert Kizuku image fill to PenPot fill with data-uri
- * @param {object} fill - Kizuku fill with type 'image'
- * @returns {object} PenPot image fill
- */
-function convertImageFill(fill) {
-  return {
-    'fill-image': buildFillImage(fill.imageRef),
-    'fill-opacity': fill.opacity ?? 1,
-  };
-}
+/** Delegate image operations to image builder module */
+const { setImageAssets, convertImageFill } = imageBuilder;
 
 /** Fill type converter dispatch map */
 const FILL_CONVERTERS = {
@@ -205,12 +116,29 @@ function convertLegacyFill(fill) {
  * @returns {object|null} PenPot stroke or null
  */
 function convertSingleStroke(stroke) {
-  if (stroke['stroke-color']) {
+  if (stroke['stroke-color'] || stroke['stroke-color-gradient']) {
     return stroke;
+  }
+  if (stroke.type === 'gradient' && stroke.gradient) {
+    return convertGradientStroke(stroke);
   }
   if (!stroke.color || typeof stroke.color !== 'string') {
     return null;
   }
+  const result = buildColorStroke(stroke);
+  attachStrokeCaps(stroke, result);
+  if (stroke.join) {
+    result['stroke-join'] = stroke.join;
+  }
+  return result;
+}
+
+/**
+ * Build a PenPot color stroke from Kizuku stroke
+ * @param {object} stroke - Kizuku color stroke
+ * @returns {object} PenPot stroke
+ */
+function buildColorStroke(stroke) {
   const result = {
     'stroke-color': stroke.color,
     'stroke-opacity': stroke.opacity ?? 1,
@@ -218,11 +146,42 @@ function convertSingleStroke(stroke) {
     'stroke-alignment': stroke.alignment || 'center',
     'stroke-style': stroke.style || 'solid',
   };
-  attachStrokeCaps(stroke, result);
-  if (stroke.join) {
-    result['stroke-join'] = stroke.join;
+  if (Array.isArray(stroke.dashPattern) && stroke.dashPattern.length > 0) {
+    result['stroke-style'] = 'dashed';
   }
   return result;
+}
+
+/**
+ * Build gradient object for a stroke in PenPot format
+ * @param {object} grad - Kizuku gradient data
+ * @returns {object} PenPot stroke gradient object
+ */
+function buildStrokeGradient(grad) {
+  return {
+    type: grad.type || 'linear',
+    'start-x': grad.startX || 0,
+    'start-y': grad.startY || 0.5,
+    'end-x': grad.endX || 1,
+    'end-y': grad.endY || 0.5,
+    width: grad.width || 1,
+    stops: (grad.stops || []).map(convertGradientStop),
+  };
+}
+
+/**
+ * Convert a gradient stroke to PenPot format
+ * @param {object} stroke - Kizuku gradient stroke
+ * @returns {object} PenPot gradient stroke
+ */
+function convertGradientStroke(stroke) {
+  return {
+    'stroke-color-gradient': buildStrokeGradient(stroke.gradient || {}),
+    'stroke-opacity': stroke.opacity ?? 1,
+    'stroke-width': stroke.width || 1,
+    'stroke-alignment': stroke.alignment || 'center',
+    'stroke-style': stroke.style || 'solid',
+  };
 }
 
 /**
@@ -268,7 +227,7 @@ function convertStrokesToPenpot(strokes, strokeWeight) {
 function convertShadowEffect(effect) {
   return {
     type: effect.type,
-    color: { color: effect.color, opacity: 1 },
+    color: { color: effect.color, opacity: parseColorOpacity(effect.color) },
     offset: { x: effect.offsetX || 0, y: effect.offsetY || 0 },
     blur: effect.blur || 0,
     spread: effect.spread || 0,

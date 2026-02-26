@@ -204,6 +204,9 @@ function formatTextRun(text, style, fills) {
  * @returns {array} Array of { text, styleIndex, style }
  */
 function buildTextRuns(characters, overrides, overrideTable, defaultStyle) {
+  if (!characters || characters.length === 0) {
+    return [{ text: '', styleIndex: 0, style: defaultStyle }];
+  }
   if (!overrides || overrides.length === 0) {
     return [{ text: characters, styleIndex: 0, style: defaultStyle }];
   }
@@ -246,10 +249,11 @@ function groupCharsByStyle(characters, overrides) {
 function resolveRunStyles(runs, overrideTable, defaultStyle) {
   return runs.map((run) => {
     const override = overrideTable?.[run.styleIndex] || {};
+    const mergedStyle = run.styleIndex === 0 ? defaultStyle : { ...defaultStyle, ...override };
     return {
       ...run,
-      style: run.styleIndex === 0 ? defaultStyle : { ...defaultStyle, ...override },
-      fills: override.fills || null,
+      style: mergedStyle,
+      fills: override.fills || mergedStyle.fills || null,
     };
   });
 }

@@ -180,9 +180,9 @@ function resolveStrokeWidth(figmaNode) {
  * @returns {object} Kizuku stroke
  */
 function transformSingleStroke(stroke, figmaNode) {
+  const isGradient = stroke.type && stroke.type.startsWith('GRADIENT_');
   const result = {
-    type: 'color',
-    color: transformColor(stroke.color),
+    type: isGradient ? 'gradient' : 'color',
     opacity: clampOpacity(stroke.opacity),
     width: resolveStrokeWidth(figmaNode),
     alignment: mapStrokeAlign(figmaNode.strokeAlign),
@@ -190,6 +190,14 @@ function transformSingleStroke(stroke, figmaNode) {
     capStart: mapStrokeCap(figmaNode.strokeCap),
     capEnd: mapStrokeCap(figmaNode.strokeCap),
   };
+  if (isGradient) {
+    result.gradient = transformGradient(stroke);
+  } else {
+    result.color = transformColor(stroke.color);
+  }
+  if (Array.isArray(figmaNode.dashPattern) && figmaNode.dashPattern.length > 0) {
+    result.dashPattern = figmaNode.dashPattern;
+  }
   const join = mapStrokeJoin(figmaNode.strokeJoin);
   if (join) {
     result.join = join;
