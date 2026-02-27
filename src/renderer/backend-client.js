@@ -281,7 +281,7 @@ if (typeof module !== 'undefined' && module.exports) {
 }
 
 // Also expose globally for easy access in renderer
-if (typeof window !== 'undefined') {
+if (typeof globalThis !== 'undefined') {
   globalThis.BackendClient = BackendClient;
   globalThis.getBackendClient = getBackendClient;
 }

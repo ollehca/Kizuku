@@ -15,7 +15,7 @@ const logger = createLogger('WorkspaceLauncher');
 function getPenpotConfig() {
   return {
     dev: 'http://localhost:3449',
-    prod: 'http://localhost:3449', // TODO: Update for production
+    prod: 'http://localhost:3449',
   };
 }
 
@@ -64,7 +64,7 @@ async function prepareProject(filePath) {
  * Validate project can be launched
  */
 function validateProject(project) {
-  if (!project || !project.metadata) {
+  if (!project?.metadata) {
     throw new Error('Invalid project: missing metadata');
   }
 

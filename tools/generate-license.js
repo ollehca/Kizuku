@@ -118,8 +118,9 @@ function parseArgs() {
   const args = process.argv.slice(2);
   const parsed = createDefaultArgs();
 
-  for (let i = 0; i < args.length; i++) {
-    i = processArgument(parsed, args[i], args[i + 1], i);
+  let idx = 0;
+  while (idx < args.length) {
+    idx = processArgument(parsed, args[idx], args[idx + 1], idx) + 1;
   }
 
   return parsed;

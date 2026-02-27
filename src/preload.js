@@ -372,7 +372,7 @@ function createTabForFile(fileId, url) {
 
 // Watch for URL changes and page loads
 let lastUrl = globalThis.location.href;
-const urlObserver = new window.MutationObserver(() => {
+const urlObserver = new globalThis.MutationObserver(() => {
   if (globalThis.location.href !== lastUrl) {
     console.log('🔄 URL changed, checking for new file');
     lastUrl = globalThis.location.href;

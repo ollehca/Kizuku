@@ -229,7 +229,9 @@ function retryInjection(fn, name, attempts = 10, delay = 500) {
 }
 
 // Guard to prevent multiple initializations
-if (!globalThis._kizukuBrandingInitialized) {
+if (globalThis._kizukuBrandingInitialized) {
+  console.log('⏭️  Kizuku branding already initialized, skipping');
+} else {
   globalThis._kizukuBrandingInitialized = true;
 
   // Main initialization function
@@ -243,8 +245,6 @@ if (!globalThis._kizukuBrandingInitialized) {
     // Start observing after a short delay
     setTimeout(() => {
       retryInjection(injectKizukuLogo, 'Logo injection');
-      // Don't inject user account - PenPot already has one at the bottom
-      // retryInjection(injectUserAccount, 'User account injection');
       applyBranding();
       setupBrandingObserver();
     }, 1000);
@@ -263,6 +263,4 @@ if (!globalThis._kizukuBrandingInitialized) {
   } else {
     initializeBranding();
   }
-} else {
-  console.log('⏭️  Kizuku branding already initialized, skipping');
 }

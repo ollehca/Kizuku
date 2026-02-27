@@ -3,7 +3,7 @@
  * Manages project creation, loading, and recent projects display
  */
 
-const { getBackendClient } = window;
+const { getBackendClient } = globalThis;
 let backendClient;
 
 // Initialize when DOM is ready

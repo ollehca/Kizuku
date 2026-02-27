@@ -49,7 +49,7 @@ class KizukuExtendedTests {
 
       return {
         success: success,
-        error: !success ? 'Kizuku authentication integration incomplete' : null,
+        error: success ? null : 'Kizuku authentication integration incomplete',
         details: success
           ? `Auth integration: ${authDetails.join(', ')}`
           : `Limited auth features: ${authScore}/4`,
@@ -86,7 +86,7 @@ class KizukuExtendedTests {
 
       return {
         success: success,
-        error: !success ? 'Kizuku performance below acceptable thresholds' : null,
+        error: success ? null : 'Kizuku performance below acceptable thresholds',
         details: success
           ? `Performance: Memory ${Math.round(memoryUsage.heapUsed / 1024 / 1024)}MB, ` +
             `Response ${responseTime}ms`
@@ -142,7 +142,7 @@ class KizukuExtendedTests {
 
       return {
         success: success,
-        error: !success ? 'Kizuku recovery system incomplete' : null,
+        error: success ? null : 'Kizuku recovery system incomplete',
         details: success
           ? `Recovery system: ${recoveryFeatures.join(', ')}`
           : `Limited recovery features: ${recoveryScore}/4`,

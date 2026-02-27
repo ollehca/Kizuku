@@ -46,8 +46,8 @@ function convertGradientFill(fill) {
  */
 function parseColorOpacity(colorStr) {
   if (typeof colorStr === 'string' && colorStr.startsWith('rgba(')) {
-    const match = colorStr.match(/rgba\(\s*\d+.*,\s*([\d.]+)\s*\)/);
-    return match ? parseFloat(match[1]) : 1;
+    const match = /rgba\(\s*\d+.*,\s*([\d.]+)\s*\)/.exec(colorStr);
+    return match ? Number.parseFloat(match[1]) : 1;
   }
   return 1;
 }

@@ -242,12 +242,15 @@ function createSessionInfoItem(window) {
         ? `Logged in as: ${sessionInfo.email}`
         : 'No active session';
 
-      const detail = sessionInfo.hasSession
-        ? `Remember Me: ${sessionInfo.rememberMe ? 'Yes' : 'No'}\n` +
+      let detail = 'Please log in to view session information.';
+      if (sessionInfo.hasSession) {
+        const remember = sessionInfo.rememberMe ? 'Yes' : 'No';
+        detail =
+          `Remember Me: ${remember}\n` +
           `Days Remaining: ${sessionInfo.daysRemaining}\n` +
           `Expires: ${sessionInfo.expiresAt}\n` +
-          `Stored: ${sessionInfo.storedAt}`
-        : 'Please log in to view session information.';
+          `Stored: ${sessionInfo.storedAt}`;
+      }
 
       dialog.showMessageBox(window, {
         type: 'info',

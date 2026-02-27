@@ -252,15 +252,15 @@ function testFileStructure() {
   const pageId = file.data?.pages?.[0];
   const page = file.data?.['pages-index']?.[pageId];
 
-  if (!page) {
-    errors.push('First page not found in pages-index');
-  } else {
+  if (page) {
     if (!page.objects) {
       errors.push('Page missing objects');
     }
     if (!page.objects?.[ROOT_FRAME_ID]) {
       errors.push('Page missing root frame (uuid/zero)');
     }
+  } else {
+    errors.push('First page not found in pages-index');
   }
 
   if (errors.length > 0) {
@@ -318,15 +318,16 @@ async function runTests() {
 
 // Run if called directly
 if (require.main === module) {
-  runTests()
-    .then(results => {
+  (async () => {
+    try {
+      const results = await runTests();
       const allPassed = Object.values(results).every(r => r.success);
       process.exit(allPassed ? 0 : 1);
-    })
-    .catch(error => {
+    } catch (error) {
       console.error('Fatal error:', error);
       process.exit(1);
-    });
+    }
+  })();
 }
 
 module.exports = {

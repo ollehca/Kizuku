@@ -275,11 +275,11 @@ function testKizuPageContent(result) {
 
   const frame = page.children.find((c) => c.type === 'frame');
   assertTrue('frame found', frame);
-  assertTrue('frame has children', frame && frame.children && frame.children.length > 0);
+  assertTrue('frame has children', frame?.children?.length > 0);
 
   const text = page.children.find((c) => c.type === 'text');
   assertTrue('text found', text);
-  assertTrue('text has content', text && text.content);
+  assertTrue('text has content', text?.content);
 }
 
 /**
@@ -363,6 +363,7 @@ function testPenpotHierarchy(penpotFile) {
   }
 }
 
-runTests().then((failures) => {
+(async () => {
+  const failures = await runTests();
   process.exit(failures > 0 ? 1 : 0);
-});
+})();

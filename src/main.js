@@ -557,12 +557,8 @@ function showConnectionError() {
 
 function getAppIcon() {
   // Return appropriate icon path based on platform
-  const iconName =
-    process.platform === 'win32'
-      ? 'icon.ico'
-      : process.platform === 'darwin'
-        ? 'icon.icns'
-        : 'icon.png';
+  const iconMap = { win32: 'icon.ico', darwin: 'icon.icns' };
+  const iconName = iconMap[process.platform] || 'icon.png';
   return path.join(__dirname, '../assets', iconName);
 }
 
@@ -618,14 +614,7 @@ app.whenReady().then(async () => {
   initializeTabManager(store, mainWindow);
   registerTabHandlers();
 
-  // Start health monitoring in development mode (temporarily disabled to prevent crashes)
-  // TODO: Re-enable when health monitoring is stable
-  // if (isDev) {
-  //   console.log('🔄 Starting automated health monitoring...');
-  //   recovery.startHealthMonitoring(120000); // Check every 2 minutes
-  //   // Add recovery menu items to help menu
-  //   addRecoveryMenuItems(mainWindow);
-  // }
+  // Health monitoring disabled until stable (see recovery.js)
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

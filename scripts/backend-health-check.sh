@@ -9,13 +9,14 @@ BACKEND_URL="http://localhost:6060"
 FRONTEND_URL="http://localhost:3449"
 MAX_RETRIES=30
 RETRY_INTERVAL=5
+HTTP_CODE_FORMAT='%{http_code}'
 
 echo "🔍 Checking PenPot backend health..."
 
 # Function to check if backend is responding with valid routes
 check_backend_health() {
     # Test a basic endpoint that should exist
-    local response=$(curl -s -w "%{http_code}" -X POST "$BACKEND_URL/api/rpc/query/profile" \
+    local response=$(curl -s -w "$HTTP_CODE_FORMAT" -X POST "$BACKEND_URL/api/rpc/query/profile" \
         -H "Content-Type: application/json" \
         -d "{}" || echo "000")
 
@@ -26,11 +27,12 @@ check_backend_health() {
     else
         return 1
     fi
+    return 0
 }
 
 # Function to check if frontend proxy is working
 check_frontend_proxy() {
-    local response=$(curl -s -w "%{http_code}" -X POST "$FRONTEND_URL/api/rpc/query/profile" \
+    local response=$(curl -s -w "$HTTP_CODE_FORMAT" -X POST "$FRONTEND_URL/api/rpc/query/profile" \
         -H "Content-Type: application/json" \
         -d "{}" || echo "000")
 
@@ -40,6 +42,7 @@ check_frontend_proxy() {
     else
         return 1
     fi
+    return 0
 }
 
 # Function to restart backend if needed
@@ -49,12 +52,14 @@ restart_backend() {
     sleep 5
     echo "⏳ Waiting for backend to restart..."
     sleep 10
+    return 0
 }
 
 # Function to restart nginx
 restart_nginx() {
     echo "🔄 Restarting nginx proxy..."
     docker exec penpot-devenv-main service nginx restart
+    return 0
 }
 
 # Main health check loop
@@ -92,6 +97,6 @@ done
 
 echo "💥 Health check failed after $MAX_RETRIES attempts"
 echo "🔍 Final diagnosis:"
-echo "   Backend port 6060: $(curl -s -w "%{http_code}" $BACKEND_URL/ || echo "unreachable")"
-echo "   Frontend port 3449: $(curl -s -w "%{http_code}" $FRONTEND_URL/ || echo "unreachable")"
+echo "   Backend port 6060: $(curl -s -w "$HTTP_CODE_FORMAT" $BACKEND_URL/ || echo "unreachable")"
+echo "   Frontend port 3449: $(curl -s -w "$HTTP_CODE_FORMAT" $FRONTEND_URL/ || echo "unreachable")"
 exit 1

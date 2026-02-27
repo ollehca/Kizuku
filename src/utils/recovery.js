@@ -1,72 +1,75 @@
 const { exec } = require('node:child_process');
 const path = require('node:path');
+const http = require('node:http');
+const https = require('node:https');
+const { URL } = require('node:url');
 
-// Use native fetch if available, otherwise use a simple HTTP implementation
-let fetch;
-try {
-  // Try to use global fetch (Node.js 18+)
-  fetch = globalThis.fetch;
-  if (!fetch) {
-    // Fallback to require if global fetch is not available
-    fetch = require('node-fetch');
-  }
-} catch {
-  // If node-fetch is not available, create a simple fetch implementation
-  const http = require('node:http');
-  const https = require('node:https');
-  const { URL } = require('node:url');
-
-  /**
-   * Build a fetch-like response object from raw data
-   * @param {number} statusCode - HTTP status code
-   * @param {string} data - Response body
-   * @returns {object} Fetch-like response
-   */
-  function buildResponse(statusCode, data) {
-    return {
-      ok: statusCode >= 200 && statusCode < 300,
-      status: statusCode,
-      text: () => Promise.resolve(data),
-      json: () => Promise.resolve(JSON.parse(data)),
-    };
-  }
-
-  /**
-   * Handle incoming HTTP response
-   * @param {object} res - Node HTTP response
-   * @param {Function} resolve - Promise resolve
-   */
-  function handleResponse(res, resolve) {
-    let data = '';
-    res.on('data', (chunk) => (data += chunk));
-    res.on('end', () => resolve(buildResponse(res.statusCode, data)));
-  }
-
-  fetch = function (url, options = {}) {
-    return new Promise((resolve, reject) => {
-      const parsedUrl = new URL(url);
-      const mod = parsedUrl.protocol === 'https:' ? https : http;
-
-      const req = mod.request(
-        {
-          hostname: parsedUrl.hostname,
-          port: parsedUrl.port,
-          path: parsedUrl.pathname + parsedUrl.search,
-          method: options.method || 'GET',
-          headers: options.headers || {},
-        },
-        (res) => handleResponse(res, resolve)
-      );
-
-      req.on('error', reject);
-
-      if (options.body) {
-        req.write(options.body);
-      }
-
-      req.end();
-    });
+/**
+ * Build a fetch-like response object from raw data
+ * @param {number} statusCode - HTTP status code
+ * @param {string} data - Response body
+ * @returns {object} Fetch-like response
+ */
+function buildResponse(statusCode, data) {
+  return {
+    ok: statusCode >= 200 && statusCode < 300,
+    status: statusCode,
+    text: () => Promise.resolve(data),
+    json: () => Promise.resolve(JSON.parse(data)),
   };
+}
+
+/**
+ * Handle incoming HTTP response
+ * @param {object} res - Node HTTP response
+ * @param {Function} resolve - Promise resolve
+ */
+function handleResponse(res, resolve) {
+  let data = '';
+  res.on('data', (chunk) => (data += chunk));
+  res.on('end', () => resolve(buildResponse(res.statusCode, data)));
+}
+
+/**
+ * Simple fetch implementation using Node http/https
+ * @param {string} url - URL to fetch
+ * @param {object} options - Fetch options
+ * @returns {Promise<object>} Fetch-like response
+ */
+function simpleFetch(url, options = {}) {
+  return new Promise((resolve, reject) => {
+    const parsedUrl = new URL(url);
+    const mod = parsedUrl.protocol === 'https:' ? https : http;
+
+    const req = mod.request(
+      {
+        hostname: parsedUrl.hostname,
+        port: parsedUrl.port,
+        path: parsedUrl.pathname + parsedUrl.search,
+        method: options.method || 'GET',
+        headers: options.headers || {},
+      },
+      (res) => handleResponse(res, resolve)
+    );
+
+    req.on('error', reject);
+
+    if (options.body) {
+      req.write(options.body);
+    }
+
+    req.end();
+  });
+}
+
+// Use native fetch if available, otherwise use simple implementation
+let fetch = globalThis.fetch;
+if (!fetch) {
+  try {
+    fetch = require('node-fetch');
+  } catch {
+    fetch = simpleFetch;
+  }
 }
 
 // Recovery and health monitoring utilities for Kizuku

@@ -155,6 +155,7 @@ body {
   border: 1px solid var(--color-border);
   border-radius: 12px;
   padding: 2rem;
+  animation: fadeIn 0.5s ease;
 }
 
 /* Form */
@@ -474,8 +475,4 @@ label {
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-.card {
-  animation: fadeIn 0.5s ease;
 }

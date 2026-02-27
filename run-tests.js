@@ -30,8 +30,8 @@ for (const file of testFiles) {
     });
     const passMatch = output.match(/(\d+) passed/);
     const failMatch = output.match(/(\d+) failed/);
-    const passed = passMatch ? parseInt(passMatch[1], 10) : 0;
-    const failed = failMatch ? parseInt(failMatch[1], 10) : 0;
+    const passed = passMatch ? Number.parseInt(passMatch[1], 10) : 0;
+    const failed = failMatch ? Number.parseInt(failMatch[1], 10) : 0;
     totalPassed += passed;
     totalFailed += failed;
     const icon = failed > 0 ? 'FAIL' : 'PASS';

@@ -46,7 +46,7 @@ wait_for_service() {
 
     print_status "Waiting for $service_name to be ready..."
     
-    while [ $attempt -le $max_attempts ]; do
+    while [[ $attempt -le $max_attempts ]]; do
         if curl -f -s "$url" > /dev/null 2>&1; then
             print_success "$service_name is ready!"
             return 0
@@ -73,6 +73,7 @@ check_containers() {
             return 1
         fi
     done
+    return 0
 }
 
 # Function to ensure frontend assets are built
@@ -103,6 +104,7 @@ ensure_frontend_assets() {
         docker exec -d penpot-devenv-main bash -c "cd /home/penpot/penpot/frontend && yarn watch"
         sleep 10
     fi
+    return 0
 }
 
 # Function to create persistent demo account
@@ -140,6 +142,7 @@ EOF"
     
     # Try to create the demo account (ignore if already exists)
     docker exec penpot-devenv-main bash -c "cd /home/penpot/penpot/backend && timeout 30 clojure -M:dev /tmp/create-demo.clj 2>/dev/null || echo 'Demo account setup attempted (may already exist)'"
+    return 0
 }
 
 # Main execution
@@ -195,6 +198,7 @@ main() {
         print_error "Health check failed. Please check the logs."
         exit 1
     fi
+    return 0
 }
 
 # Run main function

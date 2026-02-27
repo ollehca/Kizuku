@@ -13,11 +13,11 @@ BLUE='\033[0;34m'
 PURPLE='\033[0;35m'
 NC='\033[0m'
 
-print_header() { echo -e "${PURPLE}📦 $1${NC}"; }
-print_status() { echo -e "${BLUE}ℹ️  $1${NC}"; }
-print_success() { echo -e "${GREEN}✅ $1${NC}"; }
-print_warning() { echo -e "${YELLOW}⚠️  $1${NC}"; }
-print_error() { echo -e "${RED}❌ $1${NC}"; }
+print_header() { local msg="$1"; echo -e "${PURPLE}📦 ${msg}${NC}"; return 0; }
+print_status() { local msg="$1"; echo -e "${BLUE}ℹ️  ${msg}${NC}"; return 0; }
+print_success() { local msg="$1"; echo -e "${GREEN}✅ ${msg}${NC}"; return 0; }
+print_warning() { local msg="$1"; echo -e "${YELLOW}⚠️  ${msg}${NC}"; return 0; }
+print_error() { local msg="$1"; echo -e "${RED}❌ ${msg}${NC}"; return 0; }
 
 # Backup directory
 BACKUP_DIR="/Users/Achello/Documents/Projects/Kizuku/backups"
@@ -29,6 +29,7 @@ ensure_backup_dir() {
         mkdir -p "$BACKUP_DIR"
         print_success "Created backup directory: $BACKUP_DIR"
     fi
+    return 0
 }
 
 # Function to backup database
@@ -52,6 +53,7 @@ backup_database() {
         print_error "Database backup failed"
         return 1
     fi
+    return 0
 }
 
 # Function to restore database
@@ -92,7 +94,7 @@ restore_database() {
             print_success "Database restored successfully"
             
             # Clean up temporary file if we decompressed
-            if [[ "$backup_file" == *.gz ]] && [ -f "$restore_file" ]; then
+            if [[ "$backup_file" == *.gz ]] && [[ -f "$restore_file" ]]; then
                 rm -f "$restore_file"
             fi
         else
@@ -102,6 +104,7 @@ restore_database() {
     else
         print_status "Database restore cancelled"
     fi
+    return 0
 }
 
 # Function to backup volumes
@@ -134,6 +137,7 @@ backup_volumes() {
     # Cleanup old volume backups
     find "$BACKUP_DIR" -name "*_backup_*.tar.gz" -type f | sort -r | tail -n +21 | xargs rm -f
     print_status "Old volume backups cleaned up (keeping last 20)"
+    return 0
 }
 
 # Function to restore volumes
@@ -182,6 +186,7 @@ restore_volumes() {
     else
         print_status "Volume restore cancelled"
     fi
+    return 0
 }
 
 # Function to clean up development environment
@@ -201,6 +206,7 @@ cleanup_environment() {
     docker builder prune -f
     
     print_success "Cleanup completed"
+    return 0
 }
 
 # Function to reset development environment
@@ -236,6 +242,7 @@ reset_environment() {
     else
         print_status "Reset cancelled"
     fi
+    return 0
 }
 
 # Function to show volume information
@@ -260,6 +267,7 @@ show_volume_info() {
             print_warning "$volume: Not found"
         fi
     done
+    return 0
 }
 
 # Function to list available backups
@@ -281,22 +289,25 @@ list_backups() {
     else
         print_warning "No backup directory found: $BACKUP_DIR"
     fi
+    return 0
 }
 
 # Main function
 main() {
-    case "${1:-help}" in
+    local command="${1:-help}"
+    local argument="$2"
+    case "$command" in
         "backup-db")
             backup_database
             ;;
         "restore-db")
-            restore_database "$2"
+            restore_database "$argument"
             ;;
         "backup-volumes")
             backup_volumes
             ;;
         "restore-volumes")
-            restore_volumes "$2"
+            restore_volumes "$argument"
             ;;
         "backup-all")
             backup_database
@@ -339,6 +350,7 @@ main() {
             echo "  $0 restore-volumes 20240821_143000"
             ;;
     esac
+    return 0
 }
 
 main "$@"

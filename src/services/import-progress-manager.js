@@ -20,8 +20,6 @@ class ImportProgressManager {
   window = null;
   parentWindow = null;
 
-  constructor() {}
-
   /**
    * Show progress window for a file import
    * @param {string} fileName - Name of file being imported

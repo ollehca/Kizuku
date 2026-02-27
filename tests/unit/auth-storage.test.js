@@ -33,7 +33,7 @@ describe('Authentication Storage Service', () => {
     try {
       await fs.rm('./test-data/secure', { recursive: true, force: true });
     } catch (error) {
-      // Ignore
+      // Expected: secure directory may not exist yet
     }
   });
 
@@ -43,7 +43,7 @@ describe('Authentication Storage Service', () => {
       authStorage.clearStoredCredentials();
       await fs.rm('./test-data/secure', { recursive: true, force: true });
     } catch (error) {
-      // Ignore
+      // Expected: cleanup may fail if directory was not created
     }
   });
 
@@ -211,7 +211,6 @@ describe('Authentication Storage Service', () => {
     test('does not extend session for non-remember-me users', () => {
       authStorage.storeCredentials(testCredentials);
 
-      const { safeStorage } = require('electron');
       const stored = authStorage.getStoredCredentials();
       const originalExpiry = stored.expiresAt;
 

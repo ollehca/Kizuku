@@ -180,7 +180,7 @@ function resolveStrokeWidth(figmaNode) {
  * @returns {object} Kizuku stroke
  */
 function transformSingleStroke(stroke, figmaNode) {
-  const isGradient = stroke.type && stroke.type.startsWith('GRADIENT_');
+  const isGradient = stroke.type?.startsWith('GRADIENT_');
   const result = {
     type: isGradient ? 'gradient' : 'color',
     opacity: clampOpacity(stroke.opacity),

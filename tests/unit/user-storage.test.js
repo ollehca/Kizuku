@@ -22,7 +22,7 @@ describe('User Storage Service', () => {
     try {
       await fs.rm('./test-data', { recursive: true, force: true });
     } catch (error) {
-      // Ignore
+      // Expected: test-data directory may not exist yet
     }
   });
 
@@ -30,7 +30,7 @@ describe('User Storage Service', () => {
     try {
       await fs.rm('./test-data', { recursive: true, force: true });
     } catch (error) {
-      // Ignore
+      // Expected: cleanup may fail if directory was not created
     }
   });
 

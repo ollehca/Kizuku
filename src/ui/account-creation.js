@@ -309,7 +309,7 @@ function updatePasswordStrength(password) {
     password.length >= 8,
     /[a-z]/.test(password),
     /[A-Z]/.test(password),
-    /[0-9]/.test(password),
+    /\d/.test(password),
     /[^a-zA-Z0-9]/.test(password),
   ];
 

@@ -12,10 +12,10 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-print_status() { echo -e "${BLUE}ℹ️  $1${NC}"; }
-print_success() { echo -e "${GREEN}✅ $1${NC}"; }
-print_warning() { echo -e "${YELLOW}⚠️  $1${NC}"; }
-print_error() { echo -e "${RED}❌ $1${NC}"; }
+print_status() { local msg="$1"; echo -e "${BLUE}ℹ️  ${msg}${NC}"; return 0; }
+print_success() { local msg="$1"; echo -e "${GREEN}✅ ${msg}${NC}"; return 0; }
+print_warning() { local msg="$1"; echo -e "${YELLOW}⚠️  ${msg}${NC}"; return 0; }
+print_error() { local msg="$1"; echo -e "${RED}❌ ${msg}${NC}"; return 0; }
 
 # Demo account credentials
 DEMO_EMAIL="demo@penpot.local"
@@ -72,6 +72,7 @@ EOF"
     else
         print_warning "Demo account creation may have failed, but might already exist"
     fi
+    return 0
 }
 
 # Function to validate demo account
@@ -91,6 +92,7 @@ validate_demo_account() {
         print_error "Demo account validation failed (HTTP: $response)"
         return 1
     fi
+    return 0
 }
 
 # Function to reset demo account password
@@ -120,6 +122,7 @@ EOF"
     else
         print_error "Failed to reset demo account password"
     fi
+    return 0
 }
 
 # Function to list all demo accounts
@@ -146,6 +149,7 @@ list_demo_accounts() {
 EOF"
     
     docker exec penpot-devenv-main bash -c "cd /home/penpot/penpot/backend && timeout 30 clojure -M:dev -i /tmp/list-demo-accounts.clj"
+    return 0
 }
 
 # Function to clean up old demo accounts
@@ -168,11 +172,13 @@ EOF"
     else
         print_warning "Cleanup may have failed"
     fi
+    return 0
 }
 
 # Main function
 main() {
-    case "${1:-help}" in
+    local command="${1:-help}"
+    case "$command" in
         "create")
             create_demo_account
             ;;
@@ -210,6 +216,7 @@ main() {
             echo "  Password: $DEMO_PASSWORD"
             ;;
     esac
+    return 0
 }
 
 main "$@"

@@ -25,7 +25,7 @@ describe('Cross-Platform Path Handling', () => {
   describe('Path Normalization', () => {
     test('handles windows-style paths', () => {
       // Note: path.join behavior depends on actual OS, not process.platform
-      const basePath = 'C:\\Users\\TestUser\\AppData\\Local\\Kizuku';
+      const basePath = String.raw`C:\Users\TestUser\AppData\Local\Kizuku`;
       const assetsPath = path.join(basePath, 'assets');
       const dbPath = path.join(basePath, 'database');
 
@@ -65,7 +65,7 @@ describe('Cross-Platform Path Handling', () => {
     test('creates consistent category paths', () => {
       const basePath =
         process.platform === 'win32'
-          ? 'C:\\Users\\TestUser\\AppData\\Kizuku\\assets'
+          ? String.raw`C:\Users\TestUser\AppData\Kizuku\assets`
           : '/Users/TestUser/Library/Kizuku/assets';
 
       const categories = {
@@ -127,7 +127,7 @@ describe('Cross-Platform Path Handling', () => {
     });
 
     test('handles spaces in paths correctly', () => {
-      const pathWithSpaces = path.join('C:\\Program Files', 'Kizuku', 'database');
+      const pathWithSpaces = path.join(String.raw`C:\Program Files`, 'Kizuku', 'database');
       expect(pathWithSpaces).toContain('Kizuku');
 
       const unixPathWithSpaces = path.join('/Applications/Kizuku App', 'database');
@@ -161,7 +161,7 @@ describe('Cross-Platform Path Handling', () => {
 
   describe('File Extension Handling', () => {
     test('extracts extensions correctly cross-platform', () => {
-      const windowsPath = 'C:\\Users\\test\\image.png';
+      const windowsPath = String.raw`C:\Users\test\image.png`;
       const unixPath = '/home/test/image.png';
 
       expect(path.extname(windowsPath)).toBe('.png');

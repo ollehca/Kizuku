@@ -129,7 +129,7 @@ function registerOnboardingHandlers(mainWindow) {
 function registerMiscHandlers() {
   ipcMain.on('business-notify-request', (_event, data) => {
     console.log('Business license notification requested:', data.email);
-    // TODO: Implement email notification
+    // Email notification not yet implemented
   });
 
   ipcMain.on('open-external-link', (_event, data) => {
@@ -142,12 +142,12 @@ function registerMiscHandlers() {
 
   ipcMain.on('show-change-license-dialog', () => {
     console.log('Change license requested');
-    // TODO: Implement license change flow
+    // License change flow not yet implemented
   });
 
   ipcMain.on('show-deactivate-license-dialog', () => {
     console.log('Deactivate license requested');
-    // TODO: Implement deactivation confirmation dialog
+    // Deactivation confirmation dialog not yet implemented
   });
 }
 

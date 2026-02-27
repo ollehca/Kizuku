@@ -120,7 +120,9 @@ try {
 })();
 
 // Guard to prevent multiple initializations
-if (!globalThis._kizukuAuthIntegrationInitialized) {
+if (globalThis._kizukuAuthIntegrationInitialized) {
+  console.log('⏭️  Auth integration already initialized, skipping');
+} else {
   globalThis._kizukuAuthIntegrationInitialized = true;
 
   // Main initialization function
@@ -201,8 +203,6 @@ if (!globalThis._kizukuAuthIntegrationInitialized) {
   } else {
     setTimeout(waitForPenpotAndInitAuth, 1000);
   }
-} else {
-  console.log('⏭️  Auth integration already initialized, skipping');
 }
 
 // ============================================================================

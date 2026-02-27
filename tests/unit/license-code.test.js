@@ -82,7 +82,7 @@ describe('License Code System', () => {
       expect(validateLicense(code).valid).toBe(true);
 
       // Without hyphens - should fail (missing KIZUKU- prefix after replace)
-      const noHyphens = code.replace(/-/g, '');
+      const noHyphens = code.replaceAll('-', '');
       expect(validateLicense(noHyphens).valid).toBe(false);
 
       // Lowercase

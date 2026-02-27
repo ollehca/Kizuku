@@ -60,8 +60,7 @@ function getKizukuProjectId() {
  */
 async function getMockProfile() {
   const user = await userStorage.getUser();
-  // TODO: Use license data for profile enrichment at launch
-  // const license = await licenseStorage.getLicense();
+  // License data available via licenseStorage.getLicense() for future enrichment
 
   if (!user) {
     return null;

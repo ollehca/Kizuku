@@ -338,6 +338,7 @@ label {
   border: 1px solid var(--color-border);
   border-radius: 12px;
   padding: 1.5rem;
+  animation-delay: 0.1s;
 }
 
 .help-section h3 {
@@ -445,8 +446,4 @@ label {
 .card,
 .help-section {
   animation: fadeIn 0.5s ease;
-}
-
-.help-section {
-  animation-delay: 0.1s;
 }

@@ -238,7 +238,8 @@ function updateImportButton() {
   const validFiles = selectedFiles.filter((f) => f.status === 'valid');
 
   importBtn.disabled = validFiles.length === 0 || importing;
-  importBtn.textContent = `Import ${validFiles.length > 0 ? `(${validFiles.length})` : 'Files'}`;
+  const countLabel = validFiles.length > 0 ? `(${validFiles.length})` : 'Files';
+  importBtn.textContent = `Import ${countLabel}`;
 }
 
 /**
