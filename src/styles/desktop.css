@@ -179,5 +179,9 @@ body.has-desktop-tabs .main_ui_dashboard__header,
 body.has-desktop-tabs .main_ui_workspace__header {
   top: 40px;
 }
+body.has-desktop-tabs .main_ui_settings__dashboard {
+  margin-top: 40px !important;
+  height: calc(100vh - 40px) !important;
+}
 
 /*# sourceMappingURL=desktop.css.map */

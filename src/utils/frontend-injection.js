@@ -10,6 +10,7 @@ const fs = require('node:fs');
 const injectionState = {
   auth: false,
   branding: false,
+  guidelines: false,
 };
 
 /**
@@ -100,11 +101,48 @@ function injectKizukuBranding(window) {
 }
 
 /**
+ * Inject brand guidelines panel script into the renderer (dev-only).
+ * @param {BrowserWindow} window - The Electron BrowserWindow instance
+ */
+function injectBrandGuidelinesPanel(window) {
+  const { app } = require('electron');
+  if (app.isPackaged) {
+    return;
+  }
+
+  if (injectionState.guidelines) {
+    console.log('⏭️  Guidelines panel already injected, skipping');
+    return;
+  }
+
+  const panelPath = path.join(__dirname, '../frontend-integration', 'brand-guidelines-panel.js');
+
+  try {
+    const panelScript = fs.readFileSync(panelPath, 'utf8');
+    const errHandler = "catch(e){console.error('Guidelines panel error:',e)}";
+    const wrapped = `try{${panelScript}}${errHandler}`;
+
+    window.webContents
+      .executeJavaScript(wrapped)
+      .then(() => {
+        console.log('✅ Brand guidelines panel injected');
+        injectionState.guidelines = true;
+      })
+      .catch((error) => {
+        console.error('Failed to execute guidelines panel script:', error);
+      });
+  } catch (error) {
+    console.error('Failed to load guidelines panel script:', error);
+  }
+}
+
+/**
  * Reset injection state (useful for testing)
  */
 function resetInjectionState() {
   injectionState.auth = false;
   injectionState.branding = false;
+  injectionState.guidelines = false;
 }
 
 /**
@@ -118,6 +156,7 @@ function getInjectionState() {
 module.exports = {
   injectAuthIntegration,
   injectKizukuBranding,
+  injectBrandGuidelinesPanel,
   resetInjectionState,
   getInjectionState,
 };

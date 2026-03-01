@@ -14,7 +14,11 @@ const { setupDragAndDrop } = require('./utils/drag-drop-handler');
 const themeStorage = require('./services/brand-theme-storage');
 const themeApplicator = require('./services/brand-theme-applicator');
 const { registerAuthIPCHandlers } = require('./services/auth-ipc-handlers');
-const { injectAuthIntegration, injectKizukuBranding } = require('./utils/frontend-injection');
+const {
+  injectAuthIntegration,
+  injectKizukuBranding,
+  injectBrandGuidelinesPanel,
+} = require('./utils/frontend-injection');
 const { injectFetchInterceptor, setupSessionRedirect } = require('./utils/fetch-interceptor');
 const rendererScripts = require('./utils/renderer-scripts');
 const { startMockServer } = require('./services/mock-server');
@@ -397,6 +401,7 @@ function injectCustomizations(window) {
     attemptAutoLogin(window);
     injectAuthIntegration(window);
     injectKizukuBranding(window);
+    injectBrandGuidelinesPanel(window);
   }, 2000);
 }
 

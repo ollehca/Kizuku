@@ -8,6 +8,53 @@
 
 console.log('🎨 Kizuku branding integration loaded');
 
+/**
+ * Build a palette SVG icon for the guidelines button.
+ * @returns {string} SVG markup string
+ */
+function buildPaletteIconSVG() {
+  return [
+    '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">',
+    '  <path d="M12 2C6.49 2 2 6.49 2 12s4.49 10 10 10a2.5 2.5 0 0 0 ',
+    '2.5-2.5c0-.61-.23-1.21-.64-1.67a.528.528 0 0 1 .12-.74c.18-.14.4-.',
+    '21.64-.21H16c3.31 0 6-2.69 6-6 0-4.96-4.49-9-10-9zM6.5 13a1.5 ',
+    '1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm3-4a1.5 1.5 0 1 1 0-3 1.5 1.5 ',
+    '0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm3 4a1.5 1.5 ',
+    '0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/>',
+    '</svg>',
+  ].join('');
+}
+
+/**
+ * Inject the guidelines toggle button after the Kizuku logo.
+ * @returns {boolean} True if injection succeeded
+ */
+function injectGuidelinesButton() {
+  const logo = document.getElementById('kizuku-logo-container');
+  if (!logo) {
+    return false;
+  }
+
+  if (document.getElementById('kizuku-guidelines-btn')) {
+    return true;
+  }
+
+  const btn = document.createElement('button');
+  btn.id = 'kizuku-guidelines-btn';
+  btn.className = 'kizuku-guidelines-btn';
+  btn.title = 'Brand Guidelines';
+  btn.innerHTML = buildPaletteIconSVG();
+  btn.addEventListener('click', () => {
+    if (typeof globalThis._kizukuToggleGuidelines === 'function') {
+      globalThis._kizukuToggleGuidelines();
+    }
+  });
+
+  logo.insertAdjacentElement('afterend', btn);
+  console.log('✅ Guidelines button injected');
+  return true;
+}
+
 // Create and inject logo into sidebar
 function injectKizukuLogo() {
   // Find the sidebar using multiple selectors
@@ -199,6 +246,10 @@ function setupBrandingObserver() {
       }
     }
     replaceYourPenpot();
+    // Re-inject guidelines button if logo exists but button was removed
+    if (!document.getElementById('kizuku-guidelines-btn')) {
+      injectGuidelinesButton();
+    }
   });
 
   // Start observing
@@ -245,6 +296,7 @@ if (globalThis._kizukuBrandingInitialized) {
     // Start observing after a short delay
     setTimeout(() => {
       retryInjection(injectKizukuLogo, 'Logo injection');
+      retryInjection(injectGuidelinesButton, 'Guidelines button');
       applyBranding();
       setupBrandingObserver();
     }, 1000);

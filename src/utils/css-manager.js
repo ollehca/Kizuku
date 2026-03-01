@@ -72,6 +72,9 @@ function setupCSSHotReloading() {
       css: path.join(__dirname, '..', 'styles', 'kizuku-branding.css'),
     },
     {
+      css: path.join(__dirname, '..', 'styles', 'brand-guidelines-panel.css'),
+    },
+    {
       css: path.join(__dirname, '..', 'styles', 'loading.css'),
     },
   ];
@@ -107,6 +110,7 @@ function injectCSSFiles(window) {
     path.join(__dirname, '..', 'styles', 'desktop.css'),
     path.join(__dirname, '..', 'styles', 'loading.css'),
     path.join(__dirname, '..', 'styles', 'kizuku-branding.css'),
+    path.join(__dirname, '..', 'styles', 'brand-guidelines-panel.css'),
   ];
 
   try {
