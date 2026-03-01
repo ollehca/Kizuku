@@ -25,12 +25,31 @@ const IV_LENGTH = 16; // 128 bits
 const AUTH_TAG_LENGTH = 16; // 128 bits
 
 /**
+ * Get the effective userData path for key derivation.
+ * In dev mode with test-data files, uses the test-data directory
+ * to match the key used by the demo setup script.
+ * @returns {string} Effective userData path
+ */
+function getEffectiveUserDataPath() {
+  const isDev = !app.isPackaged;
+  if (isDev) {
+    const testDir = path.join(__dirname, '../../test-data');
+    const fsSync = require('node:fs');
+    if (fsSync.existsSync(path.join(testDir, 'license.dat'))) {
+      return testDir;
+    }
+  }
+  return app.getPath('userData');
+}
+
+/**
  * Derive encryption key from machine-specific data
  * @returns {Buffer} Derived encryption key
  */
 function getDerivedKey() {
   const salt = 'kizuku-license-storage-v1';
-  const machineKey = `${os.hostname()}-${os.userInfo().username}-${app.getPath('userData')}`;
+  const userDataPath = getEffectiveUserDataPath();
+  const machineKey = `${os.hostname()}-${os.userInfo().username}-${userDataPath}`;
   return crypto.pbkdf2Sync(salt, machineKey, 100000, KEY_LENGTH, 'sha256');
 }
 

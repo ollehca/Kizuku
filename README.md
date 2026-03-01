@@ -1,4 +1,4 @@
-# Kizuku 築
+# Kizuku 築く
 
 **The desktop design tool that sets your files free.**
 

@@ -45,7 +45,7 @@
   },
   "build": {
     "appId": "com.kizuku.app",
-    "productName": "Kizuku 築",
+    "productName": "Kizuku 築く",
     "directories": {
       "output": "dist"
     },

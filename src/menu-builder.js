@@ -213,12 +213,12 @@ function createHelpMenu(window) {
     role: 'help',
     submenu: [
       {
-        label: 'About Kizuku 築',
+        label: 'About Kizuku 築く',
         click: () => {
           dialog.showMessageBox(window, {
             type: 'info',
-            title: 'About Kizuku 築',
-            message: 'Kizuku 築',
+            title: 'About Kizuku 築く',
+            message: 'Kizuku 築く',
             detail: `Version: ${app.getVersion()}\nProfessional offline design tool`,
           });
         },

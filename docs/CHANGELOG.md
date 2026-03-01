@@ -37,7 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - SEMVER versioning strategy and changelog
 
 ### Changed
-- Rebranded from PenPot Desktop to Kizuku 築
+- Rebranded from PenPot Desktop to Kizuku 築く
 - Improved ESLint configuration (complexity ≤5, lines ≤20)
 - Enhanced code quality with Prettier formatting
 
