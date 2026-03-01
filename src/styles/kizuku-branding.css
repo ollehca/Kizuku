@@ -53,8 +53,8 @@
   flex-shrink: 0;
 }
 
-/* Reduce excessive 80px padding-top to 10px */
-.main_ui_dashboard__dashboard {
+/* Reduce excessive default padding-top; tab bar offset handled in desktop.css */
+body:not(.has-desktop-tabs) .main_ui_dashboard__dashboard {
   padding-top: 10px;
 }
 
