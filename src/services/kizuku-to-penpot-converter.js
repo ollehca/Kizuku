@@ -1,12 +1,8 @@
-/**
- * Kizuku to PenPot Format Converter
- * Converts Kizuku's nested project format to PenPot's flat file structure.
- * Delegates property conversion to shape-builder and geometry modules.
- */
-
+/** Converts Kizuku nested format to PenPot flat file structure. */
 const crypto = require('node:crypto');
 const geometry = require('./kizuku-penpot-geometry');
 const shapes = require('./kizuku-penpot-shape-builder');
+const images = require('./kizuku-penpot-image-builder');
 const testFile = require('./kizuku-penpot-test-file');
 
 const ROOT_FRAME_ID = '00000000-0000-0000-0000-000000000000';
@@ -21,11 +17,7 @@ const CONTAINER_TYPES = new Set([
   'instance',
 ]);
 
-/**
- * Map Kizuku type to PenPot type
- * @param {string} kizukuType - Kizuku node type
- * @returns {string} PenPot shape type
- */
+/** Map Kizuku type to PenPot type */
 function mapShapeType(kizukuType) {
   const typeMap = {
     component: 'frame',
@@ -35,22 +27,7 @@ function mapShapeType(kizukuType) {
   return typeMap[kizukuType] || kizukuType;
 }
 
-/**
- * Build a PenPot shape object from a Kizuku child node
- * @param {object} child - Kizuku child node
- * @param {string} childId - Shape ID
- * @param {string} shapeFrameId - Containing frame ID
- * @param {string} shapeParentId - Parent ID
- * @param {object} absPos - Absolute page position { x, y }
- * @returns {object} PenPot shape object
- */
-/**
- * Resolve absolute page position for a PenPot shape
- * PenPot flat structure requires all shapes use absolute coords
- * @param {object} child - Kizuku node
- * @param {object} absPos - Absolute page position
- * @returns {object} { x, y } absolute position for PenPot shape
- */
+/** Resolve absolute page position for a PenPot shape */
 function resolveShapePosition(child, absPos) {
   if (absPos) {
     return { x: absPos.x, y: absPos.y };
@@ -58,12 +35,24 @@ function resolveShapePosition(child, absPos) {
   return { x: child.x || 0, y: child.y || 0 };
 }
 
+/** Maps component ID → ordered tree of child PenPot IDs for shape-ref */
+const componentChildMap = new Map();
+
+/** Attach mask and flip flags to shape */
+function attachMaskFlip(child, shape) {
+  if (child.isMaskedGroup) {
+    shape['masked-group'] = true;
+  }
+  if (child.flipH || child.flipV) {
+    shape.flip = { x: child.flipH || false, y: child.flipV || false };
+  }
+}
+
+/** Build a PenPot shape from a Kizuku child node */
 function buildShape(child, childId, shapeFrameId, shapeParentId, absPos) {
   const { x: geoX, y: geoY } = resolveShapePosition(child, absPos);
   const width = child.width || 100;
   const height = child.height || 100;
-  const rotation = child.rotation || 0;
-
   const shape = {
     id: childId,
     type: mapShapeType(child.type || 'rect'),
@@ -74,13 +63,14 @@ function buildShape(child, childId, shapeFrameId, shapeParentId, absPos) {
     y: geoY,
     width,
     height,
-    ...geometry.buildGeometry(geoX, geoY, width, height, rotation),
+    ...geometry.buildAffineGeometry(geoX, geoY, width, height, child),
     ...shapes.extractDisplayProps(child),
     fills: shapes.convertFillsToPenpot(child.fills),
     strokes: shapes.convertStrokesToPenpot(child.strokes, child.strokeWeight),
     shapes: [],
   };
 
+  attachMaskFlip(child, shape);
   attachTypeSpecificProps(child, shape, absPos);
   attachEffectProps(child, shape);
   attachLayoutProps(child, shape);
@@ -88,27 +78,23 @@ function buildShape(child, childId, shapeFrameId, shapeParentId, absPos) {
   return shape;
 }
 
-/**
- * Attach type-specific properties to shape
- * @param {object} child - Kizuku node
- * @param {object} shape - PenPot shape to extend
- * @param {object} absPos - Absolute page position { x, y }
- */
+/** Attach type-specific properties to shape */
 function attachTypeSpecificProps(child, shape, absPos) {
   attachPathProps(child, shape, absPos);
   attachTextProps(child, shape);
   attachComponentProps(child, shape);
-  attachRectProps(child, shape);
+  if (child.type === 'rect') {
+    Object.assign(shape, shapes.convertCornerRadius(child));
+  }
   attachClipProps(child, shape);
-  attachConstraintProps(child, shape);
+  if (child.constraints) {
+    Object.assign(shape, shapes.convertConstraints(child.constraints));
+  }
+  attachStyleTokens(child, shape);
+  attachExportSettings(child, shape);
 }
 
-/**
- * Attach path-specific properties with absolute position offset
- * @param {object} child - Kizuku node
- * @param {object} shape - PenPot shape to extend
- * @param {object} absPos - Absolute page position { x, y }
- */
+/** Attach path-specific properties with absolute position offset */
 function attachPathProps(child, shape, absPos) {
   if (child.type === 'path' && child.commands) {
     shape.content = shapes.convertPathContent(child, absPos);
@@ -118,11 +104,7 @@ function attachPathProps(child, shape, absPos) {
   }
 }
 
-/**
- * Attach text-specific properties
- * @param {object} child - Kizuku node
- * @param {object} shape - PenPot shape to extend
- */
+/** Attach text-specific properties */
 function attachTextProps(child, shape) {
   if (child.type === 'text' && child.content) {
     shape.content = child.content;
@@ -130,11 +112,7 @@ function attachTextProps(child, shape) {
   }
 }
 
-/**
- * Attach component-specific properties
- * @param {object} child - Kizuku node
- * @param {object} shape - PenPot shape to extend
- */
+/** Attach component-specific properties */
 function attachComponentProps(child, shape) {
   if (child.type === 'bool' && child.boolType) {
     shape['bool-type'] = child.boolType;
@@ -147,26 +125,46 @@ function attachComponentProps(child, shape) {
   if (child.type === 'instance' && child.componentId) {
     shape['component-id'] = child.componentId;
     shape['component-file'] = 'local';
+    shape['shape-ref'] = child.componentId;
+  }
+  if (child.swappedComponentId) {
+    shape['component-id'] = child.swappedComponentId;
+  }
+  attachVariantAttrs(child, shape);
+  attachTouchedSet(child, shape);
+  if (child.mainInstance) {
+    shape['main-instance'] = true;
   }
 }
 
-/**
- * Attach rectangle-specific properties
- * @param {object} child - Kizuku node
- * @param {object} shape - PenPot shape to extend
- */
-function attachRectProps(child, shape) {
-  if (child.type === 'rect') {
-    Object.assign(shape, shapes.convertCornerRadius(child));
+/** Attach variant attributes to PenPot shape */
+function attachVariantAttrs(child, shape) {
+  if (child.isVariantContainer) {
+    shape['is-variant-container'] = true;
+  }
+  if (child.variantId) {
+    shape['variant-id'] = child.variantId;
+  }
+  if (child.variantName) {
+    shape['variant-name'] = child.variantName;
+  }
+  if (child.variantProperties) {
+    shape['variant-properties'] = child.variantProperties;
   }
 }
 
-/**
- * Attach clip content properties
- * Frames with no fills default to show-content to avoid black bg
- * @param {object} child - Kizuku node
- * @param {object} shape - PenPot shape to extend
- */
+/** Attach touched set from override tracking */
+function attachTouchedSet(child, shape) {
+  if (!child.touched) {
+    return;
+  }
+  const touchedArray = child.touched instanceof Set ? Array.from(child.touched) : child.touched;
+  if (touchedArray.length > 0) {
+    shape.touched = new Set(touchedArray);
+  }
+}
+
+/** Attach clip content properties */
 function attachClipProps(child, shape) {
   if (child.clipContent === true) {
     shape['show-content'] = false;
@@ -175,22 +173,51 @@ function attachClipProps(child, shape) {
   }
 }
 
-/**
- * Attach constraint properties
- * @param {object} child - Kizuku node
- * @param {object} shape - PenPot shape to extend
- */
-function attachConstraintProps(child, shape) {
-  if (child.constraints) {
-    Object.assign(shape, shapes.convertConstraints(child.constraints));
+/** Figma style ref keys to PenPot token key mapping */
+const STYLE_TOKEN_MAP = [
+  [['fill', 'fills'], 'fill'],
+  [['stroke', 'strokes'], 'stroke'],
+  [['text'], 'font-family'],
+  [['effect'], 'shadow'],
+];
+
+/** Build token map from Figma style refs */
+function buildTokenMap(refs) {
+  const tokens = {};
+  for (const [srcKeys, dstKey] of STYLE_TOKEN_MAP) {
+    const val = srcKeys.find((key) => refs[key]);
+    if (val) {
+      tokens[dstKey] = refs[val];
+    }
+  }
+  return tokens;
+}
+
+/** Map Figma style refs to PenPot applied-tokens */
+function attachStyleTokens(child, shape) {
+  const refs = child.styleRefs;
+  if (!refs || typeof refs !== 'object') {
+    return;
+  }
+  const tokens = buildTokenMap(refs);
+  if (Object.keys(tokens).length > 0) {
+    shape['applied-tokens'] = tokens;
   }
 }
 
-/**
- * Attach effect properties (shadows, blur) to shape
- * @param {object} child - Kizuku node
- * @param {object} shape - PenPot shape to extend
- */
+/** Attach export settings to PenPot shape */
+function attachExportSettings(child, shape) {
+  if (!Array.isArray(child.exportSettings) || child.exportSettings.length === 0) {
+    return;
+  }
+  shape.exports = child.exportSettings.map((exp) => ({
+    type: (exp.format || 'png').toLowerCase(),
+    suffix: exp.suffix || '',
+    scale: exp.constraint?.value || 1,
+  }));
+}
+
+/** Attach effect properties (shadows, blur) to shape */
 function attachEffectProps(child, shape) {
   if (!child.effects || child.effects.length === 0) {
     return;
@@ -204,11 +231,7 @@ function attachEffectProps(child, shape) {
   }
 }
 
-/**
- * Attach layout properties to shape
- * @param {object} child - Kizuku node
- * @param {object} shape - PenPot shape to extend
- */
+/** Attach layout properties to shape */
 function attachLayoutProps(child, shape) {
   if (child.layout) {
     const layoutProps = shapes.convertLayoutToPenpot(child.layout);
@@ -220,46 +243,85 @@ function attachLayoutProps(child, shape) {
   }
 }
 
+/** Build recursive tree of child IDs for component shape-ref mapping */
+function collectChildTree(childIds, objects) {
+  return childIds.map((cid) => {
+    const sub = objects[cid]?.shapes || [];
+    return { id: cid, sub: collectChildTree(sub, objects) };
+  });
+}
+
+/** Apply shape-ref from component child tree to instance children */
+function applyShapeRefs(childIds, objects, refTree) {
+  if (!refTree) {
+    return;
+  }
+  const len = Math.min(childIds.length, refTree.length);
+  for (let idx = 0; idx < len; idx++) {
+    const obj = objects[childIds[idx]];
+    if (obj) {
+      obj['shape-ref'] = refTree[idx].id;
+      applyShapeRefs(obj.shapes || [], objects, refTree[idx].sub);
+    }
+  }
+}
+
 /**
  * Recursively flatten children into PenPot's flat objects structure
- * @param {array} children - Nested child objects
- * @param {object} objects - Flat objects map to populate
- * @param {string} frameId - Containing frame ID
- * @param {string} parentId - Direct parent ID
- * @param {object} absPos - Accumulated absolute position { x, y }
+ * @param {array} children - Child nodes to flatten
+ * @param {object} objects - Flat objects accumulator
+ * @param {object} ctx - Context { frameId, parentId, absPos, parentTransform }
  * @returns {array} Array of child IDs
  */
-function flattenChildren(children, objects, frameId, parentId, absPos) {
+function flattenChildren(children, objects, ctx) {
   const childIds = [];
-  const origin = absPos || { x: 0, y: 0 };
+  const origin = ctx.absPos || { x: 0, y: 0 };
 
   children.forEach((child) => {
     const childId = child.id || crypto.randomUUID();
     childIds.push(childId);
 
     const isContainer = CONTAINER_TYPES.has(child.type);
-    const childFrameId = isContainer ? childId : frameId;
-    const childAbs = {
-      x: origin.x + (child.x || 0),
-      y: origin.y + (child.y || 0),
-    };
+    const childFrameId = isContainer ? childId : ctx.frameId;
+    const childAbs = geometry.transformChildPosition(
+      origin,
+      child.x || 0,
+      child.y || 0,
+      ctx.parentTransform
+    );
 
-    objects[childId] = buildShape(child, childId, childFrameId, parentId, childAbs);
+    objects[childId] = buildShape(child, childId, childFrameId, ctx.parentId, childAbs);
 
     if (child.children && child.children.length > 0) {
-      const nested = flattenChildren(child.children, objects, childFrameId, childId, childAbs);
+      const nested = flattenChildren(child.children, objects, {
+        frameId: childFrameId,
+        parentId: childId,
+        absPos: childAbs,
+        parentTransform: child.relativeTransform,
+      });
       objects[childId].shapes = nested;
     }
+
+    registerOrApplyShapeRefs(child, childId, objects);
   });
 
   return childIds;
 }
 
-/**
- * Build a PenPot page from a Kizuku page
- * @param {object} page - Kizuku page object
- * @returns {object} { pageId, pageData }
- */
+/** Register component child tree or apply shape-refs for instances */
+function registerOrApplyShapeRefs(child, childId, objects) {
+  const childType = child.type;
+  if (childType === 'component' || childType === 'component-set') {
+    const tree = collectChildTree(objects[childId].shapes || [], objects);
+    componentChildMap.set(childId, tree);
+  }
+  if (childType === 'instance' && child.componentId) {
+    const refTree = componentChildMap.get(child.componentId);
+    applyShapeRefs(objects[childId].shapes || [], objects, refTree);
+  }
+}
+
+/** Build a PenPot page from a Kizuku page */
 function buildPenpotPage(page) {
   const pageId = page.id || crypto.randomUUID();
   const pageObjects = {};
@@ -267,7 +329,10 @@ function buildPenpotPage(page) {
 
   let childIds = [];
   if (page.children && page.children.length > 0) {
-    childIds = flattenChildren(page.children, pageObjects, rootUuid, rootUuid);
+    childIds = flattenChildren(page.children, pageObjects, {
+      frameId: rootUuid,
+      parentId: rootUuid,
+    });
   }
 
   pageObjects[rootUuid] = buildRootFrame(rootUuid, childIds);
@@ -282,12 +347,7 @@ function buildPenpotPage(page) {
   };
 }
 
-/**
- * Build the root frame object for a page
- * @param {string} rootId - Root frame ID
- * @param {array} childIds - Direct child IDs
- * @returns {object} PenPot root frame
- */
+/** Build the root frame object for a page */
 function buildRootFrame(rootId, childIds) {
   return {
     id: rootId,
@@ -310,11 +370,26 @@ function buildRootFrame(rootId, childIds) {
   };
 }
 
-/**
- * Build PenPot colors map from Kizuku color library
- * @param {array} colorLibrary - Kizuku color library entries
- * @returns {object} Colors map keyed by ID
- */
+/** Scan pages for component shapes and build PenPot components map */
+function buildComponentsMap(pagesArray, pagesIndex) {
+  const components = {};
+  for (const pageId of pagesArray) {
+    const objects = pagesIndex[pageId]?.objects || {};
+    for (const shape of Object.values(objects)) {
+      if (shape['component-root'] && shape['component-id']) {
+        components[shape['component-id']] = {
+          id: shape['component-id'],
+          name: shape.name || 'Component',
+          path: '',
+          'main-instance-page': pageId,
+          'main-instance-id': shape.id,
+        };
+      }
+    }
+  }
+  return components;
+}
+/** Build PenPot colors map from Kizuku color library */
 function buildColorsMap(colorLibrary) {
   if (!Array.isArray(colorLibrary) || colorLibrary.length === 0) {
     return {};
@@ -332,12 +407,7 @@ function buildColorsMap(colorLibrary) {
   }
   return colors;
 }
-
-/**
- * Build a single PenPot typography entry from font properties
- * @param {object} entry - Kizuku typography entry
- * @returns {object} PenPot typography object
- */
+/** Build a single PenPot typography entry */
 function buildTypographyEntry(entry) {
   const fontProps = entry.fontProps || {};
   return {
@@ -352,11 +422,7 @@ function buildTypographyEntry(entry) {
   };
 }
 
-/**
- * Build PenPot typographies map from Kizuku typography library
- * @param {array} typographyLibrary - Kizuku typography library entries
- * @returns {object} Typographies map keyed by ID
- */
+/** Build PenPot typographies map from Kizuku typography library */
 function buildTypographiesMap(typographyLibrary) {
   if (!Array.isArray(typographyLibrary) || typographyLibrary.length === 0) {
     return {};
@@ -369,37 +435,7 @@ function buildTypographiesMap(typographyLibrary) {
   }
   return typographies;
 }
-
-/**
- * Build PenPot media map from extracted images
- * @param {array} images - Array of { hash, data } image objects
- * @returns {object} Media map keyed by hash
- */
-function buildMediaMap(images) {
-  if (!Array.isArray(images) || images.length === 0) {
-    return {};
-  }
-  const media = {};
-  for (const img of images) {
-    if (img.hash && img.data) {
-      media[img.hash] = {
-        id: img.hash,
-        name: img.name || img.hash,
-        mtype: img.mtype || 'image/png',
-        width: img.width || 0,
-        height: img.height || 0,
-        data: img.data,
-      };
-    }
-  }
-  return media;
-}
-
-/**
- * Convert Kizuku project format to PenPot file format
- * @param {object} kizukuProject - Kizuku project structure
- * @returns {object} PenPot file structure
- */
+/** Convert Kizuku project format to PenPot file format */
 function convertKizukuToPenpotFile(kizukuProject) {
   const pagesArray = [];
   const pagesIndex = {};
@@ -416,9 +452,10 @@ function convertKizukuToPenpotFile(kizukuProject) {
   }
 
   shapes.setImageAssets([]); // Clear after use
-  const media = buildMediaMap(kizukuProject.assets?.images);
+  const media = images.buildMediaMap(kizukuProject.assets?.images);
   const colors = buildColorsMap(kizukuProject.data?.colorLibrary);
   const typographies = buildTypographiesMap(kizukuProject.data?.typographyLibrary);
+  const components = buildComponentsMap(pagesArray, pagesIndex);
 
   return {
     id: kizukuProject.metadata.id,
@@ -436,6 +473,7 @@ function convertKizukuToPenpotFile(kizukuProject) {
       media,
       colors,
       typographies,
+      components,
     },
     'is-shared': false,
     permissions: ['owner'],

@@ -1,9 +1,6 @@
 /**
  * Figma JSON to PenPot Converter
- * Converts Figma REST API JSON into PenPot-compatible format
- *
- * Architecture:
- * - Figma JSON → Node Transformers → PenPot Library → .penpot file
+ * Figma JSON → Node Transformers → PenPot Library → .penpot file
  */
 
 const { createLogger } = require('../../utils/logger');
@@ -13,6 +10,8 @@ const styles = require('./kizuku-style-transformer');
 const libExtractor = require('./kizuku-library-extractor');
 const nodes = require('./kizuku-node-transformer');
 const layoutTransformer = require('./kizuku-layout-transformer');
+const { extractRotationDegrees } = require('./kizuku-transform-decomposer');
+const { groupChildrenWithMasks } = require('./kizuku-mask-transformer');
 
 const logger = createLogger('FigmaJSONConverter');
 
@@ -49,10 +48,10 @@ class FigmaJSONConverter extends EventEmitter {
   }
 
   /**
-   * Convert Figma document JSON to .kizuku format
+   * Convert Figma document JSON to .kiz format
    * @param {object} figmaDocument - Figma document from REST API
    * @param {object} metadata - Optional metadata for the project
-   * @returns {Promise<object>} .kizuku project structure
+   * @returns {Promise<object>} .kiz project structure
    */
   async convert(figmaDocument, metadata = {}) {
     logger.info('Starting conversion', {
@@ -81,10 +80,10 @@ class FigmaJSONConverter extends EventEmitter {
   }
 
   /**
-   * Transform Figma document to .kizuku project format
+   * Transform Figma document to .kiz project format
    * @param {object} figmaDoc - Figma document object
    * @param {object} metadata - Optional metadata
-   * @returns {Promise<object>} .kizuku project
+   * @returns {Promise<object>} .kiz project
    */
   async transformToKizukuProject(figmaDoc, metadata = {}) {
     const teamId = await this.resolveTeamId();
@@ -94,6 +93,7 @@ class FigmaJSONConverter extends EventEmitter {
     libExtractor.extractComponents(figmaDoc, project.data.components, getUuid);
     libExtractor.extractColorLibrary(figmaDoc, project.data.colorLibrary, getUuid);
     libExtractor.extractTypographyLibrary(figmaDoc, project.data.typographyLibrary, getUuid);
+    libExtractor.extractEffectLibrary(figmaDoc, project.data.effectLibrary, getUuid);
     this.attachExtractedImages(figmaDoc, project);
     return project;
   }
@@ -151,6 +151,7 @@ class FigmaJSONConverter extends EventEmitter {
         components: [],
         colorLibrary: [],
         typographyLibrary: [],
+        effectLibrary: [],
       },
       assets: { images: [], fonts: [], media: [] },
       history: { enabled: true, maxEntries: 100, entries: [] },
@@ -228,7 +229,6 @@ class FigmaJSONConverter extends EventEmitter {
         return null;
       }
       const result = await handler(figmaNode);
-      this.stats.convertedNodes++;
       return result;
     } catch (error) {
       this.addError(`Failed to transform node: ${error.message}`, figmaNode);
@@ -266,7 +266,7 @@ class FigmaJSONConverter extends EventEmitter {
     if (absParent) {
       this.parentStack.pop();
     }
-    return results;
+    return groupChildrenWithMasks(results);
   }
 
   /**
@@ -307,19 +307,35 @@ class FigmaJSONConverter extends EventEmitter {
       clipContent: figmaNode.clipsContent ?? null,
       locked: figmaNode.locked ?? false,
       hidden: figmaNode.visible === false,
+      isMask: figmaNode.isMask === true,
+      styleRefs: this.mapStyleRefs(figmaNode.styles),
+      exportSettings: figmaNode.exportSettings || null,
       ...this.transformLayoutProps(figmaNode),
     };
   }
 
-  /**
-   * Get the current parent position from the stack
-   * @returns {object} Parent position { x, y }
-   */
+  /** Get the current parent position from the stack */
   getParentPosition() {
     if (this.parentStack.length === 0) {
       return { x: 0, y: 0 };
     }
     return this.parentStack.at(-1);
+  }
+
+  /**
+   * Map style references to UUIDs for library cross-referencing
+   * @param {object} rawStyles - Figma style refs { fill: id, stroke: id }
+   * @returns {object|null} Mapped style refs with UUIDs
+   */
+  mapStyleRefs(rawStyles) {
+    if (!rawStyles || typeof rawStyles !== 'object') {
+      return null;
+    }
+    const mapped = {};
+    for (const [key, styleId] of Object.entries(rawStyles)) {
+      mapped[key] = this.getOrCreateUuid(styleId);
+    }
+    return mapped;
   }
 
   /**
@@ -336,12 +352,7 @@ class FigmaJSONConverter extends EventEmitter {
     return this.buildGeometryResult(figmaNode, coords, dimensions);
   }
 
-  /**
-   * Calculate relative coordinates from absolute bbox and parent
-   * @param {object} absBbox - Absolute bounding box
-   * @param {object} parent - Parent position
-   * @returns {object} Relative x, y coordinates
-   */
+  /** Calculate relative coordinates from absolute bbox and parent */
   calculateRelativeCoords(absBbox, parent) {
     if (this.coordsRelative) {
       // .fig binary: coords are already relative to parent
@@ -353,12 +364,7 @@ class FigmaJSONConverter extends EventEmitter {
     };
   }
 
-  /**
-   * Extract width and height dimensions from node size or bbox
-   * @param {object} nodeSize - Node size object
-   * @param {object} absBbox - Absolute bounding box fallback
-   * @returns {object} Width and height dimensions
-   */
+  /** Extract width and height dimensions from node size or bbox */
   extractDimensions(nodeSize, absBbox) {
     const width = nodeSize?.x || absBbox.width || 0;
     const height = nodeSize?.y || absBbox.height || 0;
@@ -376,15 +382,24 @@ class FigmaJSONConverter extends EventEmitter {
    * @returns {object} Complete geometry result
    */
   buildGeometryResult(figmaNode, coords, dimensions) {
+    const rotation =
+      figmaNode.rotation ||
+      (figmaNode.relativeTransform ? extractRotationDegrees(figmaNode.relativeTransform) : 0);
     const result = {
       ...coords,
       ...dimensions,
       visible: figmaNode.visible !== false,
       opacity: figmaNode.opacity ?? 1,
-      rotation: figmaNode.rotation || 0,
+      rotation,
     };
     if (figmaNode.relativeTransform) {
       result.relativeTransform = figmaNode.relativeTransform;
+    }
+    if (figmaNode.flipH) {
+      result.flipH = true;
+    }
+    if (figmaNode.flipV) {
+      result.flipV = true;
     }
     return result;
   }
@@ -402,11 +417,7 @@ class FigmaJSONConverter extends EventEmitter {
     return result;
   }
 
-  /**
-   * Add warning to stats
-   * @param {string} message - Warning message
-   * @param {object} node - Related Figma node
-   */
+  /** Add warning to stats */
   addWarning(message, node = null) {
     this.stats.warnings.push({
       message,
@@ -416,11 +427,7 @@ class FigmaJSONConverter extends EventEmitter {
     this.emit('warning', { message, node });
   }
 
-  /**
-   * Add error to stats
-   * @param {string} message - Error message
-   * @param {object} node - Related Figma node
-   */
+  /** Add error to stats */
   addError(message, node = null) {
     this.stats.errors.push({
       message,
@@ -461,10 +468,7 @@ class FigmaJSONConverter extends EventEmitter {
     this.dispatch = nodes.buildDispatch(this);
   }
 
-  /**
-   * Get conversion statistics
-   * @returns {object} Stats object
-   */
+  /** Get conversion statistics */
   getStats() {
     return {
       ...this.stats,
@@ -472,14 +476,9 @@ class FigmaJSONConverter extends EventEmitter {
     };
   }
 }
-
 // Singleton instance
 let instance = null;
-
-/**
- * Get FigmaJSONConverter instance
- * @returns {FigmaJSONConverter} Singleton instance
- */
+/** @returns {FigmaJSONConverter} Singleton instance */
 function getFigmaJSONConverter() {
   if (!instance) {
     instance = new FigmaJSONConverter();

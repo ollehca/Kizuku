@@ -50,22 +50,30 @@ function transformSingleFill(fill, onWarning, unsupported) {
   const opacity = clampOpacity(fill.opacity);
   switch (fill.type) {
     case 'SOLID':
-      return {
-        type: 'color',
-        color: transformColor(fill.color),
-        opacity,
-      };
+      return attachFillBlendMode(
+        {
+          type: 'color',
+          color: transformColor(fill.color),
+          opacity,
+        },
+        fill
+      );
     case 'GRADIENT_LINEAR':
     case 'GRADIENT_RADIAL':
     case 'GRADIENT_ANGULAR':
     case 'GRADIENT_DIAMOND':
-      return {
-        type: 'gradient',
-        gradient: transformGradient(fill),
-        opacity,
-      };
+      return attachFillBlendMode(
+        {
+          type: 'gradient',
+          gradient: transformGradient(fill),
+          opacity,
+        },
+        fill
+      );
     case 'IMAGE':
-      return transformImageFill(fill);
+      return attachFillBlendMode(transformImageFill(fill), fill);
+    case 'PATTERN':
+      return attachFillBlendMode(transformPatternFill(fill), fill);
     default:
       onWarning(`Unsupported fill type: ${fill.type}`);
       unsupported.add(`fill-${fill.type}`);
@@ -80,12 +88,37 @@ function transformSingleFill(fill, onWarning, unsupported) {
  */
 function transformImageFill(fill) {
   const ref = fill.imageRef || fill.imageHash || null;
-  return {
+  const result = {
     type: 'image',
     imageRef: ref ? String(ref) : null,
     scaleMode: fill.scaleMode || 'FILL',
     opacity: clampOpacity(fill.opacity),
   };
+  if (fill.imageTransform) {
+    result.imageTransform = fill.imageTransform;
+  }
+  attachTilingProps(result, fill);
+  return result;
+}
+
+/**
+ * Attach tiling offset properties when scale mode is TILE
+ * @param {object} result - Image fill result
+ * @param {object} fill - Source Figma fill
+ */
+function attachTilingProps(result, fill) {
+  if (fill.scaleMode !== 'TILE') {
+    return;
+  }
+  if (fill.scalingFactor !== undefined) {
+    result.tileScale = fill.scalingFactor;
+  }
+  if (fill.tileOffsetX !== undefined) {
+    result.tileOffsetX = fill.tileOffsetX;
+  }
+  if (fill.tileOffsetY !== undefined) {
+    result.tileOffsetY = fill.tileOffsetY;
+  }
 }
 
 /**
@@ -187,21 +220,17 @@ function transformSingleStroke(stroke, figmaNode) {
     width: resolveStrokeWidth(figmaNode),
     alignment: mapStrokeAlign(figmaNode.strokeAlign),
     style: mapDashPattern(figmaNode.dashPattern),
-    capStart: mapStrokeCap(figmaNode.strokeCap),
-    capEnd: mapStrokeCap(figmaNode.strokeCap),
+    capStart: mapStrokeCap(figmaNode.strokeCapStart || figmaNode.strokeCap),
+    capEnd: mapStrokeCap(figmaNode.strokeCapEnd || figmaNode.strokeCap),
   };
   if (isGradient) {
     result.gradient = transformGradient(stroke);
   } else {
     result.color = transformColor(stroke.color);
   }
-  if (Array.isArray(figmaNode.dashPattern) && figmaNode.dashPattern.length > 0) {
-    result.dashPattern = figmaNode.dashPattern;
-  }
-  const join = mapStrokeJoin(figmaNode.strokeJoin);
-  if (join) {
-    result.join = join;
-  }
+  attachStrokeDashAndJoin(result, figmaNode);
+  attachIndividualStrokes(result, figmaNode);
+  attachStrokeMiter(result, figmaNode);
   return result;
 }
 
@@ -226,13 +255,19 @@ function transformStrokes(figmaStrokes, figmaNode) {
  * @returns {object} Kizuku shadow effect
  */
 function transformShadowEffect(effect, shadowType) {
+  const color = transformColor(effect.color);
+  const colorAlpha = effect.color?.a ?? 1;
+  const effectOpacity = effect.opacity ?? 1;
+  const opacity = colorAlpha * effectOpacity;
   return {
     type: shadowType,
-    color: transformColor(effect.color),
+    color,
+    opacity,
     offsetX: effect.offset?.x || 0,
     offsetY: effect.offset?.y || 0,
     blur: effect.radius || 0,
     spread: effect.spread || 0,
+    hidden: false,
   };
 }
 
@@ -241,7 +276,7 @@ const EFFECT_TYPE_MAP = {
   DROP_SHADOW: 'drop-shadow',
   INNER_SHADOW: 'inner-shadow',
   LAYER_BLUR: 'blur',
-  BACKGROUND_BLUR: 'blur',
+  BACKGROUND_BLUR: 'background-blur',
 };
 
 /**
@@ -256,8 +291,8 @@ function transformSingleEffect(effect, onWarning) {
     onWarning(`Unsupported effect type: ${effect.type}`);
     return null;
   }
-  if (kizukuType === 'blur') {
-    return { type: 'blur', value: effect.radius || 0 };
+  if (kizukuType === 'blur' || kizukuType === 'background-blur') {
+    return { type: kizukuType, value: effect.radius || 0, hidden: false };
   }
   return transformShadowEffect(effect, kizukuType);
 }
@@ -273,8 +308,13 @@ function transformEffects(figmaEffects, onWarning) {
     return [];
   }
   return figmaEffects
-    .filter((e) => e.visible !== false)
-    .map((e) => transformSingleEffect(e, onWarning))
+    .map((eff) => {
+      const result = transformSingleEffect(eff, onWarning);
+      if (result && eff.visible === false) {
+        result.hidden = true;
+      }
+      return result;
+    })
     .filter(Boolean);
 }
 
@@ -299,18 +339,21 @@ function buildDefaultGradientPosition() {
 }
 
 /**
- * Build gradient position from matrix rows
- * @param {array} row0 - First row of transform matrix
- * @param {array} row1 - Second row of transform matrix
+ * Build gradient position by applying affine transform to
+ * default gradient endpoints (0,0.5) and (1,0.5).
+ * @param {array} row0 - First row [a, b, tx]
+ * @param {array} row1 - Second row [c, d, ty]
  * @returns {object} Gradient position
  */
 function buildGradientPosition(row0, row1) {
+  const [a, b, tx] = [row0[0] || 0, row0[1] || 0, row0[2] || 0];
+  const [c, d, ty] = [row1[0] || 0, row1[1] || 0, row1[2] || 0];
   return {
-    startX: row0[2] || 0,
-    startY: row1[2] || 0,
-    endX: (row0[0] || 0) + (row0[2] || 0),
-    endY: (row1[0] || 0) + (row1[2] || 0),
-    width: Math.hypot(row0[1] || 0, row1[1] || 0) || 1,
+    startX: b * 0.5 + tx,
+    startY: d * 0.5 + ty,
+    endX: a + b * 0.5 + tx,
+    endY: c + d * 0.5 + ty,
+    width: Math.hypot(b, d) || 1,
   };
 }
 
@@ -361,6 +404,8 @@ function transformBlendMode(figmaBlendMode, onWarning, unsupported) {
     SATURATION: 'saturation',
     COLOR: 'color',
     LUMINOSITY: 'luminosity',
+    LINEAR_DODGE: 'lighter',
+    LINEAR_BURN: 'darken',
   };
   const mode = map[figmaBlendMode];
   if (!mode) {
@@ -369,6 +414,79 @@ function transformBlendMode(figmaBlendMode, onWarning, unsupported) {
     return 'normal';
   }
   return mode;
+}
+
+/**
+ * Attach dash pattern array and stroke join to result
+ * @param {object} result - Stroke result to extend
+ * @param {object} figmaNode - Source Figma node
+ */
+function attachStrokeDashAndJoin(result, figmaNode) {
+  if (Array.isArray(figmaNode.dashPattern) && figmaNode.dashPattern.length > 0) {
+    result.dashPattern = figmaNode.dashPattern;
+  }
+  const join = mapStrokeJoin(figmaNode.strokeJoin);
+  if (join) {
+    result.join = join;
+  }
+}
+
+/**
+ * Attach individual per-side stroke weights if present
+ * @param {object} result - Stroke result to extend
+ * @param {object} figmaNode - Source Figma node
+ */
+function attachIndividualStrokes(result, figmaNode) {
+  const weights = figmaNode.individualStrokeWeights;
+  if (!weights) {
+    return;
+  }
+  result.individualWeights = {
+    top: weights.top || 0,
+    right: weights.right || 0,
+    bottom: weights.bottom || 0,
+    left: weights.left || 0,
+  };
+}
+
+/**
+ * Attach per-fill blend mode if non-default
+ * @param {object} result - Fill result object
+ * @param {object} fill - Source Figma fill
+ * @returns {object} Fill with blendMode attached
+ */
+function attachFillBlendMode(result, fill) {
+  if (fill.blendMode && fill.blendMode !== 'NORMAL' && fill.blendMode !== 'PASS_THROUGH') {
+    result.blendMode = fill.blendMode.toLowerCase().replace(/_/g, '-');
+  }
+  return result;
+}
+
+/**
+ * Transform a PATTERN fill to Kizuku tile-image format
+ * @param {object} fill - Figma pattern fill
+ * @returns {object} Kizuku image fill with tile mode
+ */
+function transformPatternFill(fill) {
+  const ref = fill.imageRef || fill.imageHash || null;
+  return {
+    type: 'image',
+    imageRef: ref ? String(ref) : null,
+    scaleMode: 'TILE',
+    opacity: clampOpacity(fill.opacity),
+    tileScale: fill.scalingFactor || fill.tileScale || 1,
+  };
+}
+
+/**
+ * Attach stroke miter limit from Figma node
+ * @param {object} result - Stroke result to extend
+ * @param {object} figmaNode - Source Figma node
+ */
+function attachStrokeMiter(result, figmaNode) {
+  if (figmaNode.strokeMiterAngle !== undefined) {
+    result.miterLimit = figmaNode.strokeMiterAngle;
+  }
 }
 
 module.exports = {

@@ -8,7 +8,7 @@ const {
   convertStrokesToPenpot,
   convertPathCommands,
   flattenChildren,
-  convertKizuToPenpotFile,
+  convertKizukuToPenpotFile,
 } = require('../../../src/services/kizuku-to-penpot-converter');
 
 describe('convertFillsToPenpot', () => {
@@ -87,12 +87,17 @@ describe('convertPathCommands', () => {
   });
 
   test('converts C (cubic bezier) command', () => {
-    const commands = [{
-      command: 'C',
-      x1: 10, y1: 20,
-      x2: 30, y2: 40,
-      x: 50, y: 60,
-    }];
+    const commands = [
+      {
+        command: 'C',
+        x1: 10,
+        y1: 20,
+        x2: 30,
+        y2: 40,
+        x: 50,
+        y: 60,
+      },
+    ];
     expect(convertPathCommands(commands)).toBe('C 10 20 30 40 50 60');
   });
 
@@ -115,23 +120,31 @@ describe('convertPathCommands', () => {
 describe('flattenChildren', () => {
   test('returns empty array for no children', () => {
     const objects = {};
-    const ids = flattenChildren([], objects, 'root', 'root');
+    const ids = flattenChildren([], objects, {
+      frameId: 'root',
+      parentId: 'root',
+    });
     expect(ids).toEqual([]);
     expect(Object.keys(objects)).toHaveLength(0);
   });
 
   test('flattens single child into objects map', () => {
-    const children = [{
-      id: 'child-1',
-      type: 'rect',
-      name: 'Rectangle',
-      x: 10,
-      y: 20,
-      width: 100,
-      height: 50,
-    }];
+    const children = [
+      {
+        id: 'child-1',
+        type: 'rect',
+        name: 'Rectangle',
+        x: 10,
+        y: 20,
+        width: 100,
+        height: 50,
+      },
+    ];
     const objects = {};
-    const ids = flattenChildren(children, objects, 'frame-1', 'parent-1');
+    const ids = flattenChildren(children, objects, {
+      frameId: 'frame-1',
+      parentId: 'parent-1',
+    });
 
     expect(ids).toEqual(['child-1']);
     expect(objects['child-1']).toBeDefined();
@@ -140,20 +153,33 @@ describe('flattenChildren', () => {
   });
 
   test('handles nested children recursively', () => {
-    const children = [{
-      id: 'frame-nested',
-      type: 'frame',
-      name: 'Nested Frame',
-      x: 0, y: 0, width: 200, height: 200,
-      children: [{
-        id: 'inner-rect',
-        type: 'rect',
-        name: 'Inner',
-        x: 10, y: 10, width: 50, height: 50,
-      }],
-    }];
+    const children = [
+      {
+        id: 'frame-nested',
+        type: 'frame',
+        name: 'Nested Frame',
+        x: 0,
+        y: 0,
+        width: 200,
+        height: 200,
+        children: [
+          {
+            id: 'inner-rect',
+            type: 'rect',
+            name: 'Inner',
+            x: 10,
+            y: 10,
+            width: 50,
+            height: 50,
+          },
+        ],
+      },
+    ];
     const objects = {};
-    flattenChildren(children, objects, 'root', 'root');
+    flattenChildren(children, objects, {
+      frameId: 'root',
+      parentId: 'root',
+    });
 
     expect(objects['frame-nested']).toBeDefined();
     expect(objects['inner-rect']).toBeDefined();
@@ -164,24 +190,32 @@ describe('flattenChildren', () => {
   });
 
   test('handles path nodes with commands', () => {
-    const children = [{
-      id: 'path-1',
-      type: 'path',
-      name: 'Path',
-      x: 0, y: 0, width: 100, height: 100,
-      commands: [
-        { command: 'M', x: 0, y: 0 },
-        { command: 'L', x: 100, y: 0 },
-      ],
-    }];
+    const children = [
+      {
+        id: 'path-1',
+        type: 'path',
+        name: 'Path',
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 100,
+        commands: [
+          { command: 'M', x: 0, y: 0 },
+          { command: 'L', x: 100, y: 0 },
+        ],
+      },
+    ];
     const objects = {};
-    flattenChildren(children, objects, 'root', 'root');
+    flattenChildren(children, objects, {
+      frameId: 'root',
+      parentId: 'root',
+    });
 
     expect(objects['path-1'].content).toBe('M 0 0 L 100 0');
   });
 });
 
-describe('convertKizuToPenpotFile', () => {
+describe('convertKizukuToPenpotFile', () => {
   test('converts minimal kizuku project to penpot file', () => {
     const kizukuProject = {
       metadata: {
@@ -191,15 +225,17 @@ describe('convertKizuToPenpotFile', () => {
         modified: '2024-01-01T00:00:00Z',
       },
       data: {
-        pages: [{
-          id: 'page-1',
-          name: 'Page 1',
-          children: [],
-        }],
+        pages: [
+          {
+            id: 'page-1',
+            name: 'Page 1',
+            children: [],
+          },
+        ],
       },
     };
 
-    const result = convertKizuToPenpotFile(kizukuProject);
+    const result = convertKizukuToPenpotFile(kizukuProject);
     expect(result.id).toBe('test-id-123');
     expect(result.name).toBe('Test Project');
     expect(result.version).toBe(22);
@@ -216,7 +252,7 @@ describe('convertKizuToPenpotFile', () => {
       },
     };
 
-    const result = convertKizuToPenpotFile(kizukuProject);
+    const result = convertKizukuToPenpotFile(kizukuProject);
     const rootId = '00000000-0000-0000-0000-000000000000';
     const pageObjs = result.data['pages-index']['p1'].objects;
     expect(pageObjs[rootId]).toBeDefined();

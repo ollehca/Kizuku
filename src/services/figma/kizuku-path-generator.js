@@ -162,7 +162,7 @@ function buildCommandWithContext(cmd, nums, ctx) {
     V: () => ({ command: 'L', x: ctx.lastX, y: nums[0] || 0 }),
     C: () => buildCubic(nums),
     S: () => buildSmoothCubic(nums, ctx),
-    Q: () => buildQuadratic(nums),
+    Q: () => buildQuadratic(nums, ctx),
     T: () => buildSmoothQuad(nums, ctx),
     A: () => buildArc(nums, ctx),
     Z: () => ({ command: 'Z' }),
@@ -299,10 +299,19 @@ function buildSmoothCubic(nums, ctx) {
 /**
  * Build quadratic bezier as cubic approximation
  * @param {array} nums - [cx, cy, x, y]
+ * @param {object} ctx - Parsing context with lastX, lastY
  * @returns {object} Cubic bezier command
  */
-function buildQuadratic(nums) {
-  return buildCubic([nums[0], nums[1], nums[0], nums[1], nums[2], nums[3]]);
+function buildQuadratic(nums, ctx) {
+  const qx = nums[0];
+  const qy = nums[1];
+  const endX = nums[2];
+  const endY = nums[3];
+  const c1x = ctx.lastX + (2 / 3) * (qx - ctx.lastX);
+  const c1y = ctx.lastY + (2 / 3) * (qy - ctx.lastY);
+  const c2x = endX + (2 / 3) * (qx - endX);
+  const c2y = endY + (2 / 3) * (qy - endY);
+  return buildCubic([c1x, c1y, c2x, c2y, endX, endY]);
 }
 
 /**
@@ -314,7 +323,13 @@ function buildQuadratic(nums) {
 function buildSmoothQuad(nums, ctx) {
   const qx = 2 * ctx.lastX - (ctx.lastQx || ctx.lastX);
   const qy = 2 * ctx.lastY - (ctx.lastQy || ctx.lastY);
-  return buildCubic([qx, qy, qx, qy, nums[0], nums[1]]);
+  const endX = nums[0];
+  const endY = nums[1];
+  const c1x = ctx.lastX + (2 / 3) * (qx - ctx.lastX);
+  const c1y = ctx.lastY + (2 / 3) * (qy - ctx.lastY);
+  const c2x = endX + (2 / 3) * (qx - endX);
+  const c2y = endY + (2 / 3) * (qy - endY);
+  return buildCubic([c1x, c1y, c2x, c2y, endX, endY]);
 }
 
 /**
@@ -405,9 +420,86 @@ function round(num) {
   return Math.round(num * 100) / 100;
 }
 
+/**
+ * Generate ellipse arc path for partial ellipses (pie/ring)
+ * @param {number} width - Ellipse width
+ * @param {number} height - Ellipse height
+ * @param {object} arcData - { startAngle, endAngle, innerRadius }
+ * @returns {array} Path command objects
+ */
+function generateEllipseArcPath(width, height, arcData) {
+  const cx = width / 2;
+  const cy = height / 2;
+  const rx = width / 2;
+  const ry = height / 2;
+  const start = arcData.startAngle || 0;
+  const end = arcData.endAngle || Math.PI * 2;
+  const inner = arcData.innerRadius || 0;
+
+  const outerStart = ellipsePoint(cx, cy, rx, ry, start);
+  const outerEnd = ellipsePoint(cx, cy, rx, ry, end);
+  const sweep = end - start;
+  const large = Math.abs(sweep) > Math.PI ? 1 : 0;
+  const commands = [{ command: 'M', x: outerStart.x, y: outerStart.y }];
+
+  const arcs = arcToBezier({
+    lastX: outerStart.x,
+    lastY: outerStart.y,
+    arcRx: rx,
+    arcRy: ry,
+    xRot: 0,
+    largeArc: large,
+    sweep: 1,
+    endX: outerEnd.x,
+    endY: outerEnd.y,
+  });
+  commands.push(...arcs);
+
+  if (inner > 0) {
+    const irx = rx * inner;
+    const iry = ry * inner;
+    const innerEnd = ellipsePoint(cx, cy, irx, iry, end);
+    const innerStart = ellipsePoint(cx, cy, irx, iry, start);
+    commands.push({ command: 'L', x: innerEnd.x, y: innerEnd.y });
+    const innerArcs = arcToBezier({
+      lastX: innerEnd.x,
+      lastY: innerEnd.y,
+      arcRx: irx,
+      arcRy: iry,
+      xRot: 0,
+      largeArc: large,
+      sweep: 0,
+      endX: innerStart.x,
+      endY: innerStart.y,
+    });
+    commands.push(...innerArcs);
+  } else {
+    commands.push({ command: 'L', x: cx, y: cy });
+  }
+  commands.push({ command: 'Z' });
+  return commands;
+}
+
+/**
+ * Calculate point on ellipse at given angle
+ * @param {number} cx - Center X
+ * @param {number} cy - Center Y
+ * @param {number} rx - Radius X
+ * @param {number} ry - Radius Y
+ * @param {number} angle - Angle in radians
+ * @returns {object} { x, y }
+ */
+function ellipsePoint(cx, cy, rx, ry, angle) {
+  return {
+    x: round(cx + rx * Math.cos(angle)),
+    y: round(cy + ry * Math.sin(angle)),
+  };
+}
+
 module.exports = {
   generateStarPath,
   generatePolygonPath,
   parseSvgPathString,
   parseVectorGeometry,
+  generateEllipseArcPath,
 };

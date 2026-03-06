@@ -1,7 +1,6 @@
 /**
  * Fig Node Property Handlers
  * Maps Figma node types to property extraction functions.
- * Used by FigFileParser to decompose high-complexity switch blocks.
  */
 
 /**
@@ -112,6 +111,20 @@ function extractUnitValue(val, fontSize) {
 }
 
 /**
+ * Extract lineHeight unit info from binary value
+ * @param {object} style - Target style
+ * @param {object|number} lineHeight - Raw lineHeight value
+ */
+function extractLineHeightUnit(style, lineHeight) {
+  if (typeof lineHeight === 'object' && lineHeight.units) {
+    style.lineHeightUnit = lineHeight.units === 'PERCENT' ? 'FONT_SIZE_%' : 'PIXELS';
+    if (lineHeight.units === 'PERCENT') {
+      style.lineHeightPercent = lineHeight.value;
+    }
+  }
+}
+
+/**
  * Build a Figma REST API style object from binary fields
  * @param {object} figNode - Source .fig node
  * @returns {object} Figma-compatible style object
@@ -130,12 +143,20 @@ function buildStyleFromBinary(figNode) {
   }
   if (figNode.lineHeight) {
     style.lineHeightPx = extractUnitValue(figNode.lineHeight, figNode.fontSize);
+    extractLineHeightUnit(style, figNode.lineHeight);
   }
   if (figNode.letterSpacing) {
     style.letterSpacing = extractUnitValue(figNode.letterSpacing, figNode.fontSize);
   }
+  copyIfDefined(style, figNode, 'paragraphSpacing');
+  copyIfDefined(style, figNode, 'paragraphIndent');
   copyIfPresent(style, figNode, 'textAlignHorizontal');
   copyIfPresent(style, figNode, 'textAlignVertical');
+  copyIfPresent(style, figNode, 'textDecoration');
+  copyIfPresent(style, figNode, 'textCase');
+  copyIfPresent(style, figNode, 'listType');
+  copyIfPresent(style, figNode, 'hyperlink');
+  copyIfPresent(style, figNode, 'openTypeFeatures');
   return style;
 }
 
@@ -208,6 +229,8 @@ function addFrameProperties(node, figNode) {
 function addInstanceProperties(node, figNode) {
   copyIfPresent(node, figNode, 'componentId');
   copyIfPresent(node, figNode, 'componentProperties');
+  copyIfPresent(node, figNode, 'overrides');
+  copyIfPresent(node, figNode, 'componentPropertyReferences');
   addFrameProperties(node, figNode);
 }
 
@@ -268,6 +291,17 @@ function addLineProperties(node, figNode) {
 }
 
 /**
+ * Add table-specific properties (rows, columns + frame layout)
+ * @param {object} node - Target node
+ * @param {object} figNode - Source .fig node
+ */
+function addTableProperties(node, figNode) {
+  addFrameProperties(node, figNode);
+  copyIfDefined(node, figNode, 'numRows');
+  copyIfDefined(node, figNode, 'numColumns');
+}
+
+/**
  * Dispatch map: Figma type -> property handler for raw .fig nodes
  */
 const typePropertyHandlers = {
@@ -286,6 +320,7 @@ const typePropertyHandlers = {
   REGULAR_POLYGON: addPolygonProperties,
   LINE: addLineProperties,
   SECTION: addFrameProperties,
+  TABLE: addTableProperties,
 };
 
 /**
@@ -299,6 +334,7 @@ function addTypeSpecificProperties(node, figNode) {
     handler(node, figNode);
   }
   addLayoutChildProps(node, figNode);
+  copyIfPresent(node, figNode, 'isMask');
 }
 
 /**
@@ -313,12 +349,17 @@ function addStylingProperties(converted, node) {
   copyIfPresent(converted, node, 'strokeAlign');
   copyIfPresent(converted, node, 'dashPattern');
   copyIfPresent(converted, node, 'strokeCap');
+  copyIfPresent(converted, node, 'strokeCapStart');
+  copyIfPresent(converted, node, 'strokeCapEnd');
   copyIfPresent(converted, node, 'strokeJoin');
   copyIfPresent(converted, node, 'individualStrokeWeights');
   copyIfPresent(converted, node, 'effects');
   copyIfDefined(converted, node, 'opacity');
   copyIfPresent(converted, node, 'blendMode');
   copyIfDefined(converted, node, 'locked');
+  copyIfPresent(converted, node, 'isMask');
+  copyIfPresent(converted, node, 'exportSettings');
+  copyIfPresent(converted, node, 'styles');
 }
 
 /**
@@ -363,6 +404,7 @@ function addConvertedFrameProps(converted, node, convertChildren) {
   ]);
   copyIfPresent(converted, node, 'layoutWrap');
   copyIfDefined(converted, node, 'counterAxisSpacing');
+  copyIfPresent(converted, node, 'counterAxisAlignContent');
 }
 
 /**
@@ -376,6 +418,8 @@ function addConvertedInstanceProps(converted, node, convertChildren) {
     converted.children = convertChildren(node.children);
   }
   copyIfPresent(converted, node, 'componentId');
+  copyIfPresent(converted, node, 'overrides');
+  copyIfPresent(converted, node, 'componentPropertyReferences');
 }
 
 /**
@@ -390,11 +434,7 @@ function convertPaints(figPaints) {
   return figPaints.map(convertSinglePaint);
 }
 
-/**
- * Convert a single .fig paint to Figma paint format
- * @param {object} paint - .fig paint object
- * @returns {object} Figma-compatible paint
- */
+/** Convert a single .fig paint to Figma paint format */
 function convertSinglePaint(paint) {
   const converted = {
     type: paint.type || 'SOLID',
@@ -404,6 +444,11 @@ function convertSinglePaint(paint) {
   copyIfDefined(converted, paint, 'opacity');
   copyIfPresent(converted, paint, 'gradientStops');
   copyIfPresent(converted, paint, 'gradientTransform');
+  copyIfDefined(converted, paint, 'blendMode');
+  copyIfPresent(converted, paint, 'imageTransform');
+  copyIfDefined(converted, paint, 'tileOffsetX');
+  copyIfDefined(converted, paint, 'tileOffsetY');
+  copyIfDefined(converted, paint, 'scalingFactor');
   extractImageRef(paint, converted);
   return converted;
 }

@@ -13,6 +13,7 @@ const {
   convertPaints,
 } = require('./fig-node-properties');
 const { resolveFillGeometryBlobs } = require('./fig-blob-decoder');
+const transformDecomposer = require('./kizuku-transform-decomposer');
 
 const logger = createLogger('FigFileParser');
 
@@ -46,8 +47,6 @@ class FigFileParser {
 
   /** Extract .fig file from ZIP container */
   async extractFromZip(buffer) {
-    logger.info('Extracting .fig file from ZIP container');
-
     try {
       const zip = new AdmZip(buffer);
       const zipEntries = zip.getEntries();
@@ -60,46 +59,31 @@ class FigFileParser {
       };
 
       for (const entry of zipEntries) {
-        const entryName = entry.entryName;
-
-        if (entryName === 'canvas.fig') {
-          // Extract the actual binary .fig file
-          extracted.canvasBuffer = entry.getData();
-          logger.info('Extracted canvas.fig', { size: extracted.canvasBuffer.length });
-        } else if (entryName === 'meta.json') {
-          // Extract metadata
-          const metaData = entry.getData().toString('utf8');
-          extracted.metadata = JSON.parse(metaData);
-          logger.info('Extracted meta.json', extracted.metadata);
-        } else if (entryName === 'thumbnail.png') {
-          // Extract thumbnail
-          extracted.thumbnail = entry.getData();
-          logger.info('Extracted thumbnail.png', { size: extracted.thumbnail.length });
-        } else if (entryName.startsWith('images/') && !entry.isDirectory) {
-          // Extract embedded images
-          const imageHash = entryName.replace('images/', '');
-          extracted.images.push({
-            hash: imageHash,
-            data: entry.getData(),
-          });
-          logger.info('Extracted image', { hash: imageHash });
-        }
+        this.classifyZipEntry(entry, extracted);
       }
 
       if (!extracted.canvasBuffer) {
         throw new Error('ZIP archive does not contain canvas.fig');
       }
 
-      logger.info('ZIP extraction complete', {
-        hasMetadata: !!extracted.metadata,
-        hasThumbnail: !!extracted.thumbnail,
-        imageCount: extracted.images.length,
-      });
-
       return extracted;
     } catch (error) {
       logger.error('Failed to extract ZIP archive', error);
       throw new Error(`Failed to extract ZIP archive: ${error.message}`);
+    }
+  }
+
+  /** Classify and store a single ZIP entry */
+  classifyZipEntry(entry, extracted) {
+    const name = entry.entryName;
+    if (name === 'canvas.fig') {
+      extracted.canvasBuffer = entry.getData();
+    } else if (name === 'meta.json') {
+      extracted.metadata = JSON.parse(entry.getData().toString('utf8'));
+    } else if (name === 'thumbnail.png') {
+      extracted.thumbnail = entry.getData();
+    } else if (name.startsWith('images/') && !entry.isDirectory) {
+      extracted.images.push({ hash: name.replace('images/', ''), data: entry.getData() });
     }
   }
 
@@ -173,33 +157,21 @@ class FigFileParser {
 
   /** Convert parsed .fig data to Figma JSON structure */
   convertToFigmaJSON(parsedData) {
-    logger.info('Converting parsed .fig data to Figma JSON structure');
-
     const { header, version, data } = parsedData;
-
-    // .fig files use a delta/change-based format with nodeChanges array
     if (!data.nodeChanges || !Array.isArray(data.nodeChanges)) {
-      logger.warn('No nodeChanges found in .fig data, returning empty structure');
       return this.createEmptyFigmaJSON(header, version);
     }
-
     logger.info(`Processing ${data.nodeChanges.length} node changes`);
-
-    // Build tree from nodeChanges
-    const { document, components, componentSets } = this.buildTreeFromNodeChanges(
-      data.nodeChanges,
-      data.blobs || []
-    );
-
+    const result = this.buildTreeFromNodeChanges(data.nodeChanges, data.blobs || []);
     const figmaJSON = {
-      name: document.name || 'Untitled',
+      name: result.document.name || 'Untitled',
       version: version.toString(),
-      document: document,
-      components: components,
-      componentSets: componentSets,
-      styles: {}, // Styles are extracted separately
+      document: result.document,
+      components: result.components,
+      componentSets: result.componentSets,
+      styles: result.styles,
       schemaVersion: version,
-      _coordsRelative: true, // .fig binary uses relative transforms
+      _coordsRelative: true,
       _meta: {
         sourceFormat: header,
         parsedVersion: version,
@@ -207,13 +179,7 @@ class FigFileParser {
         totalBlobs: (data.blobs || []).length,
       },
     };
-
-    logger.info('Conversion complete', {
-      documentChildren: figmaJSON.document?.children?.length || 0,
-      componentsCount: Object.keys(figmaJSON.components || {}).length,
-      totalNodes: data.nodeChanges.length,
-    });
-
+    logger.info('Conversion complete', { totalNodes: data.nodeChanges.length });
     return figmaJSON;
   }
 
@@ -231,55 +197,42 @@ class FigFileParser {
     };
   }
 
-  /**
-   * Build tree structure from nodeChanges array
-   * @param {array} nodeChanges - Array of node change objects
-   * @param {array} blobs - Array of blob data
-   * @returns {object} { document, components, componentSets }
-   */
+  /** Build tree structure from nodeChanges array */
   buildTreeFromNodeChanges(nodeChanges, blobs) {
-    logger.info('Building tree from nodeChanges');
-
     const indexed = this.indexNodeChanges(nodeChanges, blobs);
     this.linkChildrenToParents(nodeChanges, indexed);
-
-    logger.info('Tree built successfully', {
-      totalNodes: indexed.nodesByIndex.length,
-      rootChildren: indexed.nodesByIndex[0]?.children?.length || 0,
-      components: Object.keys(indexed.components).length,
-    });
-
     return {
       document: indexed.nodesByIndex[0],
       components: indexed.components,
       componentSets: indexed.componentSets,
+      styles: indexed.styles,
     };
   }
 
-  /** Index all node changes by guid and collect components */
+  /** Index all node changes by guid, collect components and styles */
   indexNodeChanges(nodeChanges, blobs) {
     const nodesByGuid = new Map();
     const nodesByIndex = [];
     const components = {};
     const componentSets = {};
+    const styles = {};
 
     for (let idx = 0; idx < nodeChanges.length; idx++) {
       const change = nodeChanges[idx];
       const node = this.convertFigNode(change, idx, blobs);
-
       nodesByIndex[idx] = node;
       const guidKey = this.guidToString(change.guid);
       nodesByGuid.set(guidKey, { node, parentIndex: change.parentIndex });
-
       if (change.type === 'COMPONENT') {
         components[node.id] = node;
       }
       if (change.type === 'COMPONENT_SET') {
         componentSets[node.id] = node;
       }
+      this.collectStyleNode(change, node, styles);
     }
 
-    return { nodesByGuid, nodesByIndex, components, componentSets };
+    return { nodesByGuid, nodesByIndex, components, componentSets, styles };
   }
 
   /** Link child nodes to their parents, orphans go to first canvas */
@@ -378,6 +331,47 @@ class FigFileParser {
     if (figNode.effects?.length > 0) {
       node.effects = figNode.effects;
     }
+    this.addMiscCommonProps(node, figNode);
+  }
+
+  /** Copy blendMode, constraints, locked, clipsContent, exportSettings */
+  addMiscCommonProps(node, figNode) {
+    if (figNode.blendMode) {
+      node.blendMode = figNode.blendMode;
+    }
+    if (figNode.constraints) {
+      node.constraints = figNode.constraints;
+    }
+    if (figNode.locked) {
+      node.locked = true;
+    }
+    if (figNode.clipsContent !== undefined) {
+      node.clipsContent = figNode.clipsContent;
+    }
+    if (figNode.exportSettings?.length > 0) {
+      node.exportSettings = figNode.exportSettings;
+    }
+    this.addStyleRefs(node, figNode);
+  }
+
+  /** Extract style reference IDs from binary inherit*StyleID fields */
+  addStyleRefs(node, figNode) {
+    const styles = {};
+    const keys = [
+      ['inheritFillStyleID', 'fill'],
+      ['inheritStrokeStyleID', 'stroke'],
+      ['inheritTextStyleID', 'text'],
+      ['inheritEffectStyleID', 'effect'],
+    ];
+    for (const [src, dst] of keys) {
+      const guid = figNode[src];
+      if (guid) {
+        styles[dst] = this.guidToNodeId(guid, 0);
+      }
+    }
+    if (Object.keys(styles).length > 0) {
+      node.styles = styles;
+    }
   }
 
   /** Add stroke properties if present */
@@ -403,6 +397,12 @@ class FigFileParser {
     if (figNode.strokeCap) {
       node.strokeCap = figNode.strokeCap;
     }
+    if (figNode.strokeCapStart) {
+      node.strokeCapStart = figNode.strokeCapStart;
+    }
+    if (figNode.strokeCapEnd) {
+      node.strokeCapEnd = figNode.strokeCapEnd;
+    }
     if (figNode.strokeJoin) {
       node.strokeJoin = figNode.strokeJoin;
     }
@@ -420,11 +420,11 @@ class FigFileParser {
       ROUNDED_RECTANGLE: 'RECTANGLE',
       SYMBOL: 'COMPONENT',
       BRUSH: 'SLICE',
-      SECTION: 'FRAME',
+      SECTION: 'SECTION',
       STICKY: 'FRAME',
       SHAPE_WITH_TEXT: 'FRAME',
       CONNECTOR: 'LINE',
-      TABLE: 'FRAME',
+      TABLE: 'TABLE',
       TABLE_CELL: 'FRAME',
       WIDGET: 'FRAME',
     };
@@ -444,40 +444,27 @@ class FigFileParser {
     return `${guid.sessionID}:${guid.localID}`;
   }
 
-  /** Add transform and bounds to node */
-  addTransformAndBounds(node, figNode) {
-    if (figNode.size) {
-      const pos = this.extractPosition(figNode.transform);
-      node.absoluteBoundingBox = {
-        x: pos.x,
-        y: pos.y,
-        width: figNode.size.x || 0,
-        height: figNode.size.y || 0,
+  /** Collect style definition node into the styles registry */
+  collectStyleNode(change, node, styles) {
+    const styleTypeMap = {
+      PAINT_STYLE: 'FILL',
+      TEXT_STYLE: 'TEXT',
+      EFFECT_STYLE: 'EFFECT',
+      GRID_STYLE: 'GRID',
+    };
+    const styleType = styleTypeMap[change.type];
+    if (styleType) {
+      styles[node.id] = {
+        name: node.name,
+        styleType,
+        description: '',
       };
-    }
-    if (figNode.transform) {
-      node.relativeTransform = figNode.transform;
     }
   }
 
-  /** Extract x,y position from .fig transform */
-  extractPosition(transform) {
-    if (!transform) {
-      return { x: 0, y: 0 };
-    }
-    if (Array.isArray(transform)) {
-      return {
-        x: transform[0]?.[2] || 0,
-        y: transform[1]?.[2] || 0,
-      };
-    }
-    if (transform.m02 !== undefined) {
-      return { x: transform.m02, y: transform.m12 };
-    }
-    if (transform.tx !== undefined) {
-      return { x: transform.tx, y: transform.ty };
-    }
-    return { x: 0, y: 0 };
+  /** Add transform, bounds, rotation, and flip to node */
+  addTransformAndBounds(node, figNode) {
+    transformDecomposer.addTransformAndBounds(node, figNode);
   }
 
   /** Delegate paint conversion */

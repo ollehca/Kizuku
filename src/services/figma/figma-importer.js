@@ -68,14 +68,14 @@ class FigmaImporter extends EventEmitter {
 
       const ext = path.extname(filePath).toLowerCase();
 
-      if (ext === '.kizuku') {
+      if (ext === '.kiz' || ext === '.kizuku') {
         return await this.importFromKizukuFile(filePath, options);
       } else if (ext === '.json') {
         return await this.importFromFigmaJSON(filePath, options);
       } else if (ext === '.fig') {
         return await this.importFromFigFile(filePath, options);
       } else {
-        throw new Error(`Unsupported file type: ${ext}. Supported: .kizuku, .json, .fig`);
+        throw new Error(`Unsupported file type: ${ext}. Supported: .kiz, .json, .fig`);
       }
     } catch (error) {
       this.status = ImportStatus.ERROR;
@@ -87,13 +87,13 @@ class FigmaImporter extends EventEmitter {
   }
 
   /**
-   * Import from .kizuku file
-   * @param {string} filePath - Path to .kizuku file
+   * Import from .kiz file
+   * @param {string} filePath - Path to .kiz file
    * @param {object} options - Import options
    * @returns {Promise<object>} Import result
    */
   async importFromKizukuFile(filePath, _options = {}) {
-    logger.info('Importing from .kizuku file', { filePath });
+    logger.info('Importing from .kiz file', { filePath });
 
     try {
       this.status = ImportStatus.PARSING;
@@ -145,7 +145,7 @@ class FigmaImporter extends EventEmitter {
       this.emit('status-update', 'Parsing binary .fig format...');
       const figmaData = await parser.parse(filePath);
 
-      // Now convert the Figma JSON to .kizuku format
+      // Now convert the Figma JSON to .kiz format
       // (reuse the existing conversion logic)
       return await this.convertAndSaveFigmaData(figmaData, filePath, options);
     } catch (error) {
@@ -194,7 +194,7 @@ class FigmaImporter extends EventEmitter {
   }
 
   /**
-   * Convert Figma data and save as .kizuku project
+   * Convert Figma data and save as .kiz project
    * Shared logic for both .json and .fig imports
    * @param {object} figmaData - Figma document data
    * @param {string} originalPath - Original file path
@@ -205,7 +205,7 @@ class FigmaImporter extends EventEmitter {
     this.status = ImportStatus.CONVERTING;
     this.emit('status-change', this.status);
 
-    // Convert Figma JSON to .kizuku format
+    // Convert Figma JSON to .kiz format
     const converter = getFigmaJSONConverter();
 
     // Set up progress tracking
@@ -225,7 +225,7 @@ class FigmaImporter extends EventEmitter {
     this.status = ImportStatus.IMPORTING;
     this.emit('status-change', this.status);
 
-    // Save converted project as .kizuku file
+    // Save converted project as .kiz file
     const kizukuPath = await this.saveConvertedProject(conversionResult.project, originalPath);
 
     // Update progress
@@ -257,10 +257,10 @@ class FigmaImporter extends EventEmitter {
   }
 
   /**
-   * Save converted project to .kizuku file
+   * Save converted project to .kiz file
    * @param {object} project - Kizuku project object
    * @param {string} originalPath - Original file path
-   * @returns {Promise<string>} Path to saved .kizuku file
+   * @returns {Promise<string>} Path to saved .kiz file
    */
   async saveConvertedProject(project, originalPath) {
     let projectsDir;
@@ -288,11 +288,11 @@ class FigmaImporter extends EventEmitter {
     // Ensure projects directory exists
     await fs.mkdir(projectsDir, { recursive: true });
 
-    // Generate .kizuku filename
+    // Generate .kiz filename
     const baseName = path.basename(originalPath, path.extname(originalPath));
-    const kizukuPath = path.join(projectsDir, `${baseName}-imported.kizuku`);
+    const kizukuPath = path.join(projectsDir, `${baseName}-imported.kiz`);
 
-    // Write .kizuku file
+    // Write .kiz file
     const json = JSON.stringify(project, null, 2);
     await fs.writeFile(kizukuPath, json, 'utf-8');
 
@@ -328,7 +328,7 @@ class FigmaImporter extends EventEmitter {
 
       // Check extension
       const ext = path.extname(filePath).toLowerCase();
-      const validExtensions = ['.kizuku', '.json', '.fig'];
+      const validExtensions = ['.kiz', '.kizuku', '.json', '.fig'];
 
       if (!validExtensions.includes(ext)) {
         throw new Error(`Invalid file type: ${ext}. Expected: ${validExtensions.join(', ')}`);

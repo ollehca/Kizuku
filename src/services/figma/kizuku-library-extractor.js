@@ -92,11 +92,33 @@ function walkTree(node, visitor) {
  */
 function extractColorFromNode(node) {
   const fills = node.fills || [];
-  const solidFill = fills.find((f) => f.type === 'SOLID' && f.visible !== false);
-  if (solidFill?.color) {
-    return transformColor(solidFill.color);
+  const visibleFill = fills.find((f) => f.visible !== false);
+  if (!visibleFill) {
+    return null;
+  }
+  if (visibleFill.type === 'SOLID' && visibleFill.color) {
+    return transformColor(visibleFill.color);
+  }
+  if (visibleFill.type?.startsWith('GRADIENT_')) {
+    return extractGradientColor(visibleFill);
   }
   return null;
+}
+
+/**
+ * Extract gradient info from a gradient fill
+ * @param {object} fill - Gradient fill
+ * @returns {object} Gradient style data
+ */
+function extractGradientColor(fill) {
+  return {
+    type: 'gradient',
+    gradientType: fill.type,
+    stops: (fill.gradientStops || []).map((stop) => ({
+      color: transformColor(stop.color),
+      position: stop.position || 0,
+    })),
+  };
 }
 
 /**
@@ -210,10 +232,61 @@ function extractTypographyLibrary(figmaDoc, target, getUuid) {
   logger.info('Extracted typography', { count: target.length });
 }
 
+/**
+ * Extract effect library from Figma document
+ * @param {object} figmaDoc - Figma document
+ * @param {array} target - Target effects array
+ * @param {Function} getUuid - UUID generator function
+ */
+function extractEffectLibrary(figmaDoc, target, getUuid) {
+  if (!figmaDoc.styles) {
+    return;
+  }
+  for (const [styleId, style] of Object.entries(figmaDoc.styles)) {
+    if (style.styleType !== 'EFFECT') {
+      continue;
+    }
+    const entry = {
+      id: getUuid(styleId),
+      name: style.name,
+      description: style.description || '',
+      effects: null,
+    };
+    const refs = collectStyleReferences(figmaDoc, styleId, 'EFFECT');
+    if (refs.length > 0 && refs[0].effects) {
+      entry.effects = refs[0].effects;
+    }
+    target.push(entry);
+  }
+  logger.info('Extracted effects', { count: target.length });
+}
+
+/**
+ * Collect all style references in a single tree walk (O(N)).
+ * Returns a map of styleId -> [nodes]
+ * @param {object} rootNode - Document root
+ * @returns {Map<string, array>} Map of style ID to referencing nodes
+ */
+function collectAllStyleReferences(rootNode) {
+  const refMap = new Map();
+  walkTree(rootNode, (node) => {
+    const styles = node.styles || {};
+    for (const val of Object.values(styles)) {
+      if (!refMap.has(val)) {
+        refMap.set(val, []);
+      }
+      refMap.get(val).push(node);
+    }
+  });
+  return refMap;
+}
+
 module.exports = {
   extractComponents,
   extractColorLibrary,
   extractTypographyLibrary,
+  extractEffectLibrary,
   findNodeById,
   collectStyleReferences,
+  collectAllStyleReferences,
 };

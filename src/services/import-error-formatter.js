@@ -51,10 +51,10 @@ const ERROR_PATTERNS = [
   {
     pattern: /Invalid file type|Unsupported file type/i,
     title: 'Wrong File Type',
-    message: 'Kizuku supports .fig, .kizuku, and .json files.',
+    message: 'Kizuku supports .fig, .kiz, and .json files.',
     suggestions: [
       'Drag a .fig file exported from Figma',
-      'Or use a previously saved .kizuku project file',
+      'Or use a previously saved .kiz project file',
     ],
   },
   {

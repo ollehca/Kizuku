@@ -6,11 +6,7 @@
 
 const imageBuilder = require('./kizuku-penpot-image-builder');
 
-/**
- * Convert Kizuku solid fill to PenPot fill
- * @param {object} fill - Kizuku fill with type 'color'
- * @returns {object} PenPot fill
- */
+/** Convert Kizuku solid fill to PenPot fill */
 function convertSolidFill(fill) {
   return {
     'fill-color': fill.color,
@@ -18,11 +14,7 @@ function convertSolidFill(fill) {
   };
 }
 
-/**
- * Convert Kizuku gradient fill to PenPot fill
- * @param {object} fill - Kizuku fill with type 'gradient'
- * @returns {object} PenPot gradient fill
- */
+/** Convert Kizuku gradient fill to PenPot fill */
 function convertGradientFill(fill) {
   const grad = fill.gradient || {};
   return {
@@ -39,11 +31,7 @@ function convertGradientFill(fill) {
   };
 }
 
-/**
- * Parse opacity from a color string (rgba or hex)
- * @param {string} colorStr - Color string like "rgba(0,0,0,0.5)" or "#ff0000"
- * @returns {number} Opacity value between 0 and 1
- */
+/** Parse opacity from a color string (rgba or hex) */
 function parseColorOpacity(colorStr) {
   if (typeof colorStr === 'string' && colorStr.startsWith('rgba(')) {
     const match = /rgba\(\s*\d+.*,\s*([\d.]+)\s*\)/.exec(colorStr);
@@ -52,11 +40,7 @@ function parseColorOpacity(colorStr) {
   return 1;
 }
 
-/**
- * Convert a gradient stop to PenPot format
- * @param {object} stop - Gradient stop { position, color }
- * @returns {object} PenPot gradient stop
- */
+/** Convert a gradient stop to PenPot format */
 function convertGradientStop(stop) {
   return {
     offset: stop.position,
@@ -75,11 +59,7 @@ const FILL_CONVERTERS = {
   image: convertImageFill,
 };
 
-/**
- * Convert Kizuku fills array to PenPot fills
- * @param {array} fills - Kizuku fills
- * @returns {array} PenPot fills
- */
+/** Convert Kizuku fills array to PenPot fills */
 function convertFillsToPenpot(fills) {
   if (!fills || !Array.isArray(fills)) {
     return [];
@@ -90,16 +70,21 @@ function convertFillsToPenpot(fills) {
         return fill;
       }
       const converter = FILL_CONVERTERS[fill.type];
-      return converter ? converter(fill) : convertLegacyFill(fill);
+      const result = converter ? converter(fill) : convertLegacyFill(fill);
+      return result ? attachPenpotFillBlend(result, fill) : null;
     })
     .filter(Boolean);
 }
 
-/**
- * Convert legacy fill format (plain color string)
- * @param {object} fill - Fill with color string property
- * @returns {object|null} PenPot fill or null
- */
+/** Attach per-fill blend mode to PenPot fill output */
+function attachPenpotFillBlend(result, fill) {
+  if (fill.blendMode) {
+    result['fill-blend-mode'] = fill.blendMode;
+  }
+  return result;
+}
+
+/** Convert legacy fill format (plain color string) */
 function convertLegacyFill(fill) {
   if (fill.color && typeof fill.color === 'string') {
     return {
@@ -110,11 +95,7 @@ function convertLegacyFill(fill) {
   return null;
 }
 
-/**
- * Convert a single Kizuku stroke to PenPot stroke
- * @param {object} stroke - Kizuku stroke
- * @returns {object|null} PenPot stroke or null
- */
+/** Convert a single Kizuku stroke to PenPot stroke */
 function convertSingleStroke(stroke) {
   if (stroke['stroke-color'] || stroke['stroke-color-gradient']) {
     return stroke;
@@ -130,14 +111,13 @@ function convertSingleStroke(stroke) {
   if (stroke.join) {
     result['stroke-join'] = stroke.join;
   }
+  if (stroke.miterLimit !== undefined) {
+    result['stroke-miter-limit'] = stroke.miterLimit;
+  }
   return result;
 }
 
-/**
- * Build a PenPot color stroke from Kizuku stroke
- * @param {object} stroke - Kizuku color stroke
- * @returns {object} PenPot stroke
- */
+/** Build a PenPot color stroke from Kizuku stroke */
 function buildColorStroke(stroke) {
   const result = {
     'stroke-color': stroke.color,
@@ -152,11 +132,7 @@ function buildColorStroke(stroke) {
   return result;
 }
 
-/**
- * Build gradient object for a stroke in PenPot format
- * @param {object} grad - Kizuku gradient data
- * @returns {object} PenPot stroke gradient object
- */
+/** Build gradient object for a stroke in PenPot format */
 function buildStrokeGradient(grad) {
   return {
     type: grad.type || 'linear',
@@ -169,11 +145,7 @@ function buildStrokeGradient(grad) {
   };
 }
 
-/**
- * Convert a gradient stroke to PenPot format
- * @param {object} stroke - Kizuku gradient stroke
- * @returns {object} PenPot gradient stroke
- */
+/** Convert a gradient stroke to PenPot format */
 function convertGradientStroke(stroke) {
   return {
     'stroke-color-gradient': buildStrokeGradient(stroke.gradient || {}),
@@ -184,11 +156,7 @@ function convertGradientStroke(stroke) {
   };
 }
 
-/**
- * Attach stroke cap markers to result
- * @param {object} stroke - Kizuku stroke with cap properties
- * @param {object} result - PenPot stroke to extend
- */
+/** Attach stroke cap markers to result */
 function attachStrokeCaps(stroke, result) {
   if (stroke.capStart) {
     result['stroke-cap-start'] = stroke.capStart;
@@ -198,12 +166,7 @@ function attachStrokeCaps(stroke, result) {
   }
 }
 
-/**
- * Convert Kizuku strokes array to PenPot strokes
- * @param {array} strokes - Kizuku strokes
- * @param {number} strokeWeight - Default stroke weight
- * @returns {array} PenPot strokes
- */
+/** Convert Kizuku strokes array to PenPot strokes */
 function convertStrokesToPenpot(strokes, strokeWeight) {
   if (!strokes || !Array.isArray(strokes)) {
     return [];
@@ -219,27 +182,20 @@ function convertStrokesToPenpot(strokes, strokeWeight) {
     .filter(Boolean);
 }
 
-/**
- * Convert a shadow effect to PenPot format
- * @param {object} effect - Kizuku shadow effect
- * @returns {object} PenPot shadow
- */
+/** Convert a shadow effect to PenPot format */
 function convertShadowEffect(effect) {
+  const opacity = effect.opacity ?? parseColorOpacity(effect.color);
   return {
     type: effect.type,
-    color: { color: effect.color, opacity: parseColorOpacity(effect.color) },
+    color: { color: effect.color, opacity },
     offset: { x: effect.offsetX || 0, y: effect.offsetY || 0 },
     blur: effect.blur || 0,
     spread: effect.spread || 0,
-    hidden: false,
+    hidden: effect.hidden || false,
   };
 }
 
-/**
- * Convert effects array to PenPot shadow and blur arrays
- * @param {array} effects - Kizuku effects
- * @returns {object} { shadow, blur } arrays for PenPot
- */
+/** Convert effects array to PenPot shadow and blur arrays */
 function convertEffectsToPenpot(effects) {
   if (!effects || !Array.isArray(effects)) {
     return { shadow: [], blur: null };
@@ -249,7 +205,9 @@ function convertEffectsToPenpot(effects) {
 
   for (const effect of effects) {
     if (effect.type === 'blur') {
-      blur = { type: 'layer-blur', value: effect.value || 0, hidden: false };
+      blur = { type: 'layer-blur', value: effect.value || 0, hidden: effect.hidden || false };
+    } else if (effect.type === 'background-blur') {
+      blur = { type: 'background-blur', value: effect.value || 0, hidden: effect.hidden || false };
     } else {
       shadows.push(convertShadowEffect(effect));
     }
@@ -258,12 +216,7 @@ function convertEffectsToPenpot(effects) {
   return { shadow: shadows, blur };
 }
 
-/**
- * Convert path commands to PenPot path segments
- * @param {array} commands - Kizuku path command objects
- * @param {object} offset - Position offset { x, y }
- * @returns {array} PenPot path segments
- */
+/** Convert path commands to PenPot path segments */
 function convertPathSegments(commands, offset) {
   if (!commands || !Array.isArray(commands)) {
     return [];
@@ -280,12 +233,7 @@ const SEGMENT_TYPE_MAP = {
   Z: 'close-path',
 };
 
-/**
- * Convert a single path command to PenPot segment
- * @param {object} cmd - Path command { command, x, y, ... }
- * @param {object} off - Position offset { x, y }
- * @returns {object|null} PenPot segment or null
- */
+/** Convert a single path command to PenPot segment */
 function convertSingleSegment(cmd, off) {
   const command = SEGMENT_TYPE_MAP[cmd.command];
   if (!command) {
@@ -303,12 +251,7 @@ function convertSingleSegment(cmd, off) {
   };
 }
 
-/**
- * Convert a cubic bezier command to PenPot curve segment
- * @param {object} cmd - Cubic bezier command
- * @param {object} off - Position offset { x, y }
- * @returns {object} PenPot curve-to segment
- */
+/** Convert a cubic bezier command to PenPot curve segment */
 function convertCurveSegment(cmd, off) {
   return {
     command: 'curve-to',
@@ -323,22 +266,13 @@ function convertCurveSegment(cmd, off) {
   };
 }
 
-/**
- * Build PenPot path content from Kizuku node
- * @param {object} node - Kizuku path node with commands
- * @param {object} absPos - Absolute page position { x, y }
- * @returns {Array} PenPot content segments in absolute coords
- */
+/** Build PenPot path content from Kizuku node */
 function convertPathContent(node, absPos) {
   const offset = absPos || { x: node.x || 0, y: node.y || 0 };
   return convertPathSegments(node.commands, offset);
 }
 
-/**
- * Convert Kizuku corner radii to PenPot per-corner format
- * @param {object} node - Kizuku node with cornerRadii
- * @returns {object} PenPot corner radius properties
- */
+/** Convert Kizuku corner radii to PenPot per-corner format */
 function convertCornerRadius(node) {
   const radii = node.cornerRadii;
   if (!radii) {
@@ -387,21 +321,64 @@ function convertConstraints(constraints) {
   };
 }
 
-/** Convert Kizuku layout properties to PenPot flex properties */
+/** Convert Kizuku layout properties to PenPot layout properties */
 function convertLayoutToPenpot(layout) {
   if (!layout) {
     return {};
   }
-  return {
-    layout: layout.layout || 'flex',
+  if (layout.layout === 'grid') {
+    return convertGridLayoutToPenpot(layout);
+  }
+  return convertFlexLayoutToPenpot(layout);
+}
+
+/** Convert flex layout to PenPot format */
+function convertFlexLayoutToPenpot(layout) {
+  const result = {
+    layout: 'flex',
     'layout-flex-dir': layout.layoutFlexDir || 'row',
     'layout-gap': layout.layoutGap || { rowGap: 0, columnGap: 0 },
-    'layout-padding': layout.layoutPadding || { p1: 0, p2: 0, p3: 0, p4: 0 },
+    'layout-padding': layout.layoutPadding || buildEmptyPadding(),
     'layout-justify-content': layout.layoutJustifyContent || 'start',
     'layout-align-items': layout.layoutAlignItems || 'start',
     'layout-wrap-type': layout.layoutWrapType || 'nowrap',
     'layout-align-content': layout.layoutAlignContent || 'start',
   };
+  attachContainerMinMax(layout, result);
+  return result;
+}
+
+/** Attach container min/max to PenPot layout result */
+function attachContainerMinMax(layout, result) {
+  const props = [
+    ['layoutContainerMinW', 'layout-container-min-w'],
+    ['layoutContainerMaxW', 'layout-container-max-w'],
+    ['layoutContainerMinH', 'layout-container-min-h'],
+    ['layoutContainerMaxH', 'layout-container-max-h'],
+  ];
+  for (const [src, dst] of props) {
+    if (layout[src] !== null && layout[src] !== undefined) {
+      result[dst] = layout[src];
+    }
+  }
+}
+
+/** Convert grid layout to PenPot format */
+function convertGridLayoutToPenpot(layout) {
+  return {
+    layout: 'grid',
+    'layout-grid-dir': layout.layoutGridDir || 'row',
+    'layout-grid-rows': layout.layoutGridRows || [],
+    'layout-grid-columns': layout.layoutGridColumns || [],
+    'layout-grid-cells': layout.layoutGridCells || {},
+    'layout-gap': layout.layoutGap || { rowGap: 0, columnGap: 0 },
+    'layout-padding': layout.layoutPadding || buildEmptyPadding(),
+  };
+}
+
+/** Build empty padding object */
+function buildEmptyPadding() {
+  return { p1: 0, p2: 0, p3: 0, p4: 0 };
 }
 
 /** Convert Kizuku layout child properties to PenPot format */
@@ -419,20 +396,30 @@ function convertLayoutChildToPenpot(layoutChild) {
 
 /** Attach optional layout child min/max/absolute properties */
 function attachLayoutChildExtras(child, result) {
-  if (child.layoutItemMinW !== null && child.layoutItemMinW !== undefined) {
-    result['layout-item-min-w'] = child.layoutItemMinW;
+  attachMinMaxDimensions(child, result);
+  if (child.layoutItemGrow !== null && child.layoutItemGrow !== undefined) {
+    result['layout-item-grow'] = child.layoutItemGrow;
   }
-  if (child.layoutItemMaxW !== null && child.layoutItemMaxW !== undefined) {
-    result['layout-item-max-w'] = child.layoutItemMaxW;
-  }
-  if (child.layoutItemMinH !== null && child.layoutItemMinH !== undefined) {
-    result['layout-item-min-h'] = child.layoutItemMinH;
-  }
-  if (child.layoutItemMaxH !== null && child.layoutItemMaxH !== undefined) {
-    result['layout-item-max-h'] = child.layoutItemMaxH;
+  if (child.layoutItemShrink !== null && child.layoutItemShrink !== undefined) {
+    result['layout-item-shrink'] = child.layoutItemShrink;
   }
   if (child.layoutItemAbsolute) {
     result['layout-item-absolute'] = true;
+  }
+}
+
+/** Attach min/max dimension constraints */
+function attachMinMaxDimensions(child, result) {
+  const props = [
+    ['layoutItemMinW', 'layout-item-min-w'],
+    ['layoutItemMaxW', 'layout-item-max-w'],
+    ['layoutItemMinH', 'layout-item-min-h'],
+    ['layoutItemMaxH', 'layout-item-max-h'],
+  ];
+  for (const [src, dst] of props) {
+    if (child[src] !== null && child[src] !== undefined) {
+      result[dst] = child[src];
+    }
   }
 }
 

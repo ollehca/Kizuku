@@ -8,26 +8,7 @@ const { buildParagraphSet } = require('./kizuku-text-formatter');
 const { transformColor } = require('./kizuku-style-transformer');
 const pathGen = require('./kizuku-path-generator');
 const layoutTransformer = require('./kizuku-layout-transformer');
-
-/**
- * Transform auto layout properties
- * @param {object} figmaNode - Figma node with auto layout
- * @returns {object} PenPot layout properties
- */
-function transformAutoLayout(figmaNode) {
-  return {
-    mode: figmaNode.layoutMode === 'HORIZONTAL' ? 'row' : 'column',
-    gap: figmaNode.itemSpacing || 0,
-    padding: {
-      top: figmaNode.paddingTop || 0,
-      right: figmaNode.paddingRight || 0,
-      bottom: figmaNode.paddingBottom || 0,
-      left: figmaNode.paddingLeft || 0,
-    },
-    align: figmaNode.primaryAxisAlignItems || 'MIN',
-    justify: figmaNode.counterAxisAlignItems || 'MIN',
-  };
-}
+const overrides = require('./kizuku-override-resolver');
 
 /**
  * Transform constraints
@@ -79,14 +60,17 @@ function transformBooleanType(figmaOp) {
 }
 
 /**
- * Transform line to path commands
+ * Transform line to path commands using bounding box diagonal
  * @param {object} figmaLine - Figma line node
  * @returns {array} Path commands
  */
 function transformLineToPath(figmaLine) {
+  const bbox = figmaLine.absoluteBoundingBox || {};
+  const width = bbox.width || 0;
+  const height = bbox.height || 0;
   return [
     { command: 'M', x: 0, y: 0 },
-    { command: 'L', x: figmaLine.absoluteBoundingBox?.width || 0, y: 0 },
+    { command: 'L', x: width, y: height },
   ];
 }
 
@@ -140,11 +124,36 @@ function transformRectangle(converter, figmaNode) {
  */
 function transformEllipse(converter, figmaNode) {
   converter.stats.convertedNodes++;
+  if (figmaNode.arcData) {
+    return buildEllipseArcPath(converter, figmaNode);
+  }
   return {
     id: converter.getOrCreateUuid(figmaNode.id),
     name: figmaNode.name,
     type: 'circle',
     ...converter.transformCommonProperties(figmaNode),
+  };
+}
+
+/**
+ * Build path from ellipse with arcData (pie/donut)
+ * @param {object} converter - Converter instance
+ * @param {object} figmaNode - Ellipse node with arcData
+ * @returns {object} PenPot path node
+ */
+function buildEllipseArcPath(converter, figmaNode) {
+  const bbox = figmaNode.absoluteBoundingBox || {};
+  const commands = pathGen.generateEllipseArcPath(
+    bbox.width || 100,
+    bbox.height || 100,
+    figmaNode.arcData
+  );
+  return {
+    id: converter.getOrCreateUuid(figmaNode.id),
+    name: figmaNode.name,
+    type: 'path',
+    ...converter.transformCommonProperties(figmaNode),
+    content: commands,
   };
 }
 
@@ -194,10 +203,13 @@ function transformVector(converter, figmaNode) {
 
 /** Dispatch map for vector type to path generator */
 const VECTOR_GENERATORS = {
-  LINE: (node) => ({
-    commands: transformLineToPath(node),
-    fillRule: 'nonzero',
-  }),
+  LINE: (node) => {
+    const parsed = pathGen.parseVectorGeometry(node);
+    if (parsed.commands && parsed.commands.length > 0) {
+      return parsed;
+    }
+    return { commands: transformLineToPath(node), fillRule: 'nonzero' };
+  },
   STAR: (node) => {
     const parsed = pathGen.parseVectorGeometry(node);
     if (parsed.commands && parsed.commands.length > 0) {
@@ -272,29 +284,49 @@ async function transformBoolean(converter, figmaNode) {
   };
 }
 
-/**
- * Transform component node
- * @param {object} converter - FigmaJSONConverter instance
- * @param {object} figmaNode - Figma component
- * @returns {Promise<object>} PenPot component
- */
+/** Transform component node with variant support */
 async function transformComponent(converter, figmaNode) {
   converter.stats.convertedNodes++;
-  return {
+  const comp = {
     id: converter.getOrCreateUuid(figmaNode.id),
     name: figmaNode.name,
     type: 'component',
+    mainInstance: true,
     ...converter.transformCommonProperties(figmaNode),
     children: await converter.transformChildren(figmaNode.children, figmaNode.absoluteBoundingBox),
   };
+  attachVariantProps(comp, figmaNode, converter);
+  return comp;
 }
 
-/**
- * Transform component instance node with children
- * @param {object} converter - FigmaJSONConverter instance
- * @param {object} figmaNode - Figma instance
- * @returns {Promise<object>} PenPot instance
- */
+/** Attach variant properties if component is part of a set */
+function attachVariantProps(comp, figmaNode, converter) {
+  if (!figmaNode._parentIsComponentSet) {
+    return;
+  }
+  comp.variantId = converter.getOrCreateUuid(figmaNode._componentSetId || figmaNode.id);
+  comp.variantName = figmaNode.name;
+  comp.variantProperties = parseVariantName(figmaNode.name);
+}
+
+/** Parse "Size=Large, State=Hover" into [{name, value}] */
+function parseVariantName(name) {
+  if (!name || !name.includes('=')) {
+    return [];
+  }
+  return name
+    .split(',')
+    .map((part) => {
+      const [key, ...rest] = part.split('=');
+      return {
+        name: (key || '').trim(),
+        value: rest.join('=').trim(),
+      };
+    })
+    .filter((p) => p.name);
+}
+
+/** Transform component instance with overrides and touched tracking */
 async function transformInstance(converter, figmaNode) {
   converter.stats.convertedNodes++;
   const instance = {
@@ -310,24 +342,38 @@ async function transformInstance(converter, figmaNode) {
       figmaNode.absoluteBoundingBox
     );
   }
+  const idMapper = (fid) => converter.getOrCreateUuid(fid);
+  const touched = overrides.resolveOverrides(instance, figmaNode, idMapper);
+  overrides.resolveComponentProperties(instance, figmaNode);
+  if (touched && touched.size > 0) {
+    instance.touched = touched;
+  }
   return instance;
 }
 
-/**
- * Transform component set node
- * @param {object} converter - FigmaJSONConverter instance
- * @param {object} figmaNode - Figma component set
- * @returns {Promise<object>} PenPot component set
- */
+/** Transform component set node (variant container) */
 async function transformComponentSet(converter, figmaNode) {
   converter.stats.convertedNodes++;
+  markChildrenAsVariants(figmaNode);
   return {
     id: converter.getOrCreateUuid(figmaNode.id),
     name: figmaNode.name,
     type: 'component-set',
+    isVariantContainer: true,
     ...converter.transformCommonProperties(figmaNode),
     children: await converter.transformChildren(figmaNode.children, figmaNode.absoluteBoundingBox),
   };
+}
+
+/** Mark component children as belonging to a variant set */
+function markChildrenAsVariants(figmaNode) {
+  if (!figmaNode.children) {
+    return;
+  }
+  for (const child of figmaNode.children) {
+    child._parentIsComponentSet = true;
+    child._componentSetId = figmaNode.id;
+  }
 }
 
 /**
@@ -347,7 +393,9 @@ async function transformFrame(converter, figmaNode) {
 
   applyFrameFillDefaults(frame, figmaNode);
 
-  if (layoutTransformer.hasLayout(figmaNode)) {
+  if (layoutTransformer.isTableLayout(figmaNode)) {
+    frame.layout = layoutTransformer.transformGridLayout(figmaNode, frame.children);
+  } else if (layoutTransformer.hasLayout(figmaNode)) {
     frame.layout = layoutTransformer.transformLayout(figmaNode);
   }
 
@@ -382,6 +430,34 @@ function applyFrameFillDefaults(frame, figmaNode) {
 }
 
 /**
+ * Transform mask group node (generated by mask transformer)
+ * @param {object} converter - FigmaJSONConverter instance
+ * @param {object} maskNode - Kizuku MASK_GROUP node
+ * @returns {Promise<object>} PenPot masked group
+ */
+async function transformMaskGroup(converter, maskNode) {
+  const allChildren = [maskNode.maskChild, ...maskNode.children];
+  const converted = [];
+  for (const child of allChildren) {
+    const result = await converter.transformNode(child);
+    if (result) {
+      converted.push(result);
+    }
+  }
+  converter.stats.convertedNodes++;
+  const coords = { x: maskNode.x, y: maskNode.y };
+  const dims = { width: maskNode.width, height: maskNode.height };
+  return {
+    id: converter.getOrCreateUuid(maskNode.id),
+    name: maskNode.name || 'Mask Group',
+    type: 'group',
+    isMaskedGroup: true,
+    ...converter.buildGeometryResult(maskNode, coords, dims),
+    children: converted,
+  };
+}
+
+/**
  * Build node type dispatch map bound to a converter instance
  * @param {object} converter - FigmaJSONConverter instance
  * @returns {object} Dispatch map of type -> handler
@@ -404,12 +480,14 @@ function buildDispatch(converter) {
     COMPONENT_SET: (n) => transformComponentSet(converter, n),
     SYMBOL: (n) => transformComponent(converter, n),
     SLICE: (n) => transformFrame(converter, n),
+    SECTION: (n) => transformFrame(converter, n),
+    TABLE: (n) => transformFrame(converter, n),
+    MASK_GROUP: (n) => transformMaskGroup(converter, n),
   };
 }
 
 module.exports = {
   buildDispatch,
-  transformAutoLayout,
   transformConstraints,
   transformTextAlign,
   transformBooleanType,

@@ -37,6 +37,8 @@ function runTests() {
   testTransformLayoutChild();
   testHasLayout();
   testNoLayout();
+  testContainerMinMax();
+  testGridCellsUseConvertedIds();
   console.log(`\n  ${passed} passed, ${failed} failed`);
   return failed;
 }
@@ -75,7 +77,7 @@ function testTransformLayout() {
   const result = layout.transformLayout(node);
   assert('layout type', result.layout, 'flex');
   assert('flex dir', result.layoutFlexDir, 'row');
-  assert('gap row', result.layoutGap.rowGap, 16);
+  assert('gap column', result.layoutGap.columnGap, 16);
   assert('padding top', result.layoutPadding.p1, 8);
   assert('padding right', result.layoutPadding.p2, 12);
   assert('justify content', result.layoutJustifyContent, 'center');
@@ -120,6 +122,51 @@ function testHasLayout() {
 function testNoLayout() {
   assert('no layout mode', layout.transformLayout({}), null);
   assert('layout NONE', layout.transformLayout({ layoutMode: 'NONE' }), null);
+}
+
+/**
+ * Test container min/max width/height attached to layout result
+ */
+function testContainerMinMax() {
+  const node = {
+    layoutMode: 'VERTICAL',
+    primaryAxisAlignItems: 'MIN',
+    counterAxisAlignItems: 'MIN',
+    minWidth: 200,
+    maxWidth: 800,
+    minHeight: 100,
+    maxHeight: 600,
+  };
+  const result = layout.transformLayout(node);
+  assert('container minW', result.layoutContainerMinW, 200);
+  assert('container maxW', result.layoutContainerMaxW, 800);
+  assert('container minH', result.layoutContainerMinH, 100);
+  assert('container maxH', result.layoutContainerMaxH, 600);
+
+  const noMinMax = layout.transformLayout({
+    layoutMode: 'HORIZONTAL',
+    primaryAxisAlignItems: 'MIN',
+    counterAxisAlignItems: 'MIN',
+  });
+  assert('no container minW', noMinMax.layoutContainerMinW, undefined);
+  assert('no container maxW', noMinMax.layoutContainerMaxW, undefined);
+}
+
+/**
+ * Test that grid cells reference converted children IDs, not raw Figma IDs
+ */
+function testGridCellsUseConvertedIds() {
+  const tableNode = { numRows: 1, numColumns: 2 };
+  const convertedChildren = [
+    { id: 'uuid-aaa-111', name: 'Cell 1' },
+    { id: 'uuid-bbb-222', name: 'Cell 2' },
+  ];
+  const result = layout.transformGridLayout(tableNode, convertedChildren);
+  const cells = Object.values(result.layoutGridCells);
+  assert('grid cell count', cells.length, 2);
+  assert('cell 1 shape ref', cells[0].shapes[0], 'uuid-aaa-111');
+  assert('cell 2 shape ref', cells[1].shapes[0], 'uuid-bbb-222');
+  assert('cell ids are UUIDs', cells[0].id.includes('-'), true);
 }
 
 const failures = runTests();

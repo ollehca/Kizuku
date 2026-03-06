@@ -90,12 +90,27 @@ function extractDefaultStyle(figmaNode) {
  */
 function extractBaseStyleProps(style) {
   return {
+    ...extractFontProps(style),
+    lineHeightPx: style.lineHeightPx || null,
+    lineHeightUnit: style.lineHeightUnit || null,
+    lineHeightPercent: style.lineHeightPercent || null,
+    letterSpacing: style.letterSpacing || 0,
+    paragraphSpacing: style.paragraphSpacing || 0,
+    paragraphIndent: style.paragraphIndent || 0,
+  };
+}
+
+/**
+ * Extract core font properties with defaults
+ * @param {object} style - Figma style object
+ * @returns {object} Font properties
+ */
+function extractFontProps(style) {
+  return {
     fontFamily: style.fontFamily || 'Arial',
     fontSize: style.fontSize || 16,
     fontWeight: style.fontWeight || 400,
     italic: style.italic || false,
-    lineHeightPx: style.lineHeightPx || null,
-    letterSpacing: style.letterSpacing || 0,
   };
 }
 
@@ -105,12 +120,20 @@ function extractBaseStyleProps(style) {
  * @returns {object} Layout style properties
  */
 function extractLayoutStyleProps(style) {
-  return {
+  const result = {
     textAlignHorizontal: style.textAlignHorizontal || 'LEFT',
     textAlignVertical: style.textAlignVertical || 'TOP',
     textDecoration: style.textDecoration || 'NONE',
     textCase: style.textCase || 'ORIGINAL',
+    listType: style.listType || 'NONE',
   };
+  if (style.hyperlink) {
+    result.hyperlink = style.hyperlink;
+  }
+  if (style.openTypeFeatures) {
+    result.openTypeFeatures = style.openTypeFeatures;
+  }
+  return result;
 }
 
 /**
@@ -165,8 +188,7 @@ function attachOptionalTextProps(style, run) {
   if (style.italic) {
     run['font-style'] = 'italic';
   }
-  const lineHeight = style.lineHeightPx || Math.round((style.fontSize || 16) * 1.2);
-  run['line-height'] = String(lineHeight);
+  run['line-height'] = String(computeLineHeight(style));
   if (style.letterSpacing) {
     run['letter-spacing'] = String(style.letterSpacing);
   }
@@ -176,6 +198,48 @@ function attachOptionalTextProps(style, run) {
   if (style.textCase && style.textCase !== 'ORIGINAL') {
     run['text-transform'] = mapTextCase(style.textCase);
   }
+  attachRunExtras(style, run);
+}
+
+/**
+ * Attach hyperlink and OpenType features to a text run
+ * @param {object} style - Figma style properties
+ * @param {object} run - Text run to extend
+ */
+function attachRunExtras(style, run) {
+  if (style.hyperlink?.url) {
+    run['hyperlink'] = style.hyperlink.url;
+  }
+  if (style.openTypeFeatures && typeof style.openTypeFeatures === 'object') {
+    run['font-variant-settings'] = formatOpenTypeFeatures(style.openTypeFeatures);
+  }
+}
+
+/**
+ * Format OpenType features map to CSS font-feature-settings string
+ * @param {object} features - Map of feature tag to enabled flag
+ * @returns {string} CSS font-feature-settings value
+ */
+function formatOpenTypeFeatures(features) {
+  return Object.entries(features)
+    .map(([tag, val]) => `"${tag}" ${val ? 1 : 0}`)
+    .join(', ');
+}
+
+/**
+ * Compute effective line height from style props
+ * @param {object} style - Style with lineHeight fields
+ * @returns {number} Line height in pixels
+ */
+function computeLineHeight(style) {
+  if (style.lineHeightPx) {
+    return style.lineHeightPx;
+  }
+  const fontSize = style.fontSize || 16;
+  if (style.lineHeightUnit === 'FONT_SIZE_%' && style.lineHeightPercent) {
+    return Math.round(fontSize * (style.lineHeightPercent / 100));
+  }
+  return Math.round(fontSize * 1.2);
 }
 
 /**
@@ -286,6 +350,46 @@ function splitIntoParagraphs(runs) {
 }
 
 /**
+ * Build a single PenPot paragraph node
+ * @param {array} group - Text runs for this paragraph
+ * @param {string} textAlign - Text alignment
+ * @param {object} defaultStyle - Default style props
+ * @param {array} defaultFills - Default fills
+ * @returns {object} PenPot paragraph object
+ */
+function buildParagraphNode(group, textAlign, defaultStyle, defaultFills) {
+  const para = {
+    type: 'paragraph',
+    'text-align': textAlign,
+    children: group.map((run) => {
+      const fills = run.fills || defaultFills;
+      return formatTextRun(run.text, run.style, fills);
+    }),
+  };
+  attachParagraphExtras(para, defaultStyle);
+  return para;
+}
+
+/** Attach optional paragraph properties */
+function attachParagraphExtras(para, style) {
+  if (style.paragraphSpacing) {
+    para['paragraph-spacing'] = style.paragraphSpacing;
+  }
+  if (style.paragraphIndent) {
+    para['text-indent'] = style.paragraphIndent;
+  }
+  if (style.listType && style.listType !== 'NONE') {
+    para['list-type'] = mapListType(style.listType);
+  }
+}
+
+/** Map Figma list type to PenPot list marker */
+function mapListType(listType) {
+  const map = { ORDERED: 'number', UNORDERED: 'disc' };
+  return map[listType] || null;
+}
+
+/**
  * Build PenPot paragraph-set from a Figma text node
  * @param {object} figmaNode - Figma text node
  * @returns {object} PenPot rich text content structure
@@ -304,14 +408,9 @@ function buildParagraphSet(figmaNode) {
   const paraGroups = splitIntoParagraphs(textRuns);
   const textAlign = mapTextAlign(defaultStyle.textAlignHorizontal);
 
-  const paragraphs = paraGroups.map((group) => ({
-    type: 'paragraph',
-    'text-align': textAlign,
-    children: group.map((run) => {
-      const fills = run.fills || defaultFills;
-      return formatTextRun(run.text, run.style, fills);
-    }),
-  }));
+  const paragraphs = paraGroups.map((group) =>
+    buildParagraphNode(group, textAlign, defaultStyle, defaultFills)
+  );
 
   return {
     type: 'root',

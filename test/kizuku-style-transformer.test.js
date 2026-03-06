@@ -38,7 +38,15 @@ function runTests() {
   testImageFills();
   testStrokes();
   testEffects();
+  testEffectHiddenFlag();
+  testIndividualStrokeWeights();
   testBlendModes();
+  testPerFillBlendMode();
+  testPatternFills();
+  testStrokeMiterLimit();
+  testTilingProps();
+  testShadowEffectOpacity();
+  testGradientPositions();
   console.log(`\n  ${passed} passed, ${failed} failed`);
   return failed;
 }
@@ -157,6 +165,71 @@ function testEffects() {
 }
 
 /**
+ * Test effects with visible: false get hidden flag instead of being filtered
+ */
+function testEffectHiddenFlag() {
+  const warn = () => {};
+  const effects = styles.transformEffects(
+    [
+      {
+        type: 'DROP_SHADOW',
+        visible: false,
+        color: { r: 0, g: 0, b: 0, a: 0.5 },
+        offset: { x: 2, y: 4 },
+        radius: 8,
+        spread: 1,
+      },
+      { type: 'LAYER_BLUR', visible: false, radius: 5 },
+      {
+        type: 'INNER_SHADOW',
+        visible: true,
+        color: { r: 0, g: 0, b: 0, a: 1 },
+        offset: { x: 0, y: 2 },
+        radius: 4,
+        spread: 0,
+      },
+    ],
+    warn
+  );
+  assert('hidden effects preserved count', effects.length, 3);
+  assert('hidden shadow preserved', effects[0].type, 'drop-shadow');
+  assert('hidden shadow flag', effects[0].hidden, true);
+  assert('hidden blur preserved', effects[1].type, 'blur');
+  assert('hidden blur flag', effects[1].hidden, true);
+  assert('visible effect not hidden', effects[2].hidden, false);
+}
+
+/**
+ * Test individual per-side stroke weights attached to stroke
+ */
+function testIndividualStrokeWeights() {
+  const strokes = styles.transformStrokes(
+    [{ type: 'SOLID', color: { r: 1, g: 0, b: 0 }, opacity: 1 }],
+    {
+      strokeWeight: 1,
+      strokeAlign: 'CENTER',
+      individualStrokeWeights: {
+        top: 2,
+        right: 4,
+        bottom: 6,
+        left: 8,
+      },
+    }
+  );
+  assert('individual weights top', strokes[0].individualWeights.top, 2);
+  assert('individual weights right', strokes[0].individualWeights.right, 4);
+  assert('individual weights bottom', strokes[0].individualWeights.bottom, 6);
+  assert('individual weights left', strokes[0].individualWeights.left, 8);
+  assert('width from max individual', strokes[0].width, 8);
+
+  const noIndividual = styles.transformStrokes(
+    [{ type: 'SOLID', color: { r: 1, g: 0, b: 0 }, opacity: 1 }],
+    { strokeWeight: 5, strokeAlign: 'CENTER' }
+  );
+  assert('no individual weights', noIndividual[0].individualWeights, undefined);
+}
+
+/**
  * Test blend mode transformation
  */
 function testBlendModes() {
@@ -166,6 +239,162 @@ function testBlendModes() {
   assert('multiply', styles.transformBlendMode('MULTIPLY', warn, unsupported), 'multiply');
   assert('pass through', styles.transformBlendMode('PASS_THROUGH', warn, unsupported), 'normal');
   assert('overlay', styles.transformBlendMode('OVERLAY', warn, unsupported), 'overlay');
+}
+
+/**
+ * Test per-fill blend mode passthrough
+ */
+function testPerFillBlendMode() {
+  const warn = () => {};
+  const unsupported = new Set();
+  const fills = styles.transformFills(
+    [{ type: 'SOLID', color: { r: 1, g: 0, b: 0 }, opacity: 1, blendMode: 'MULTIPLY' }],
+    warn,
+    unsupported
+  );
+  assert('per-fill blend mode', fills[0].blendMode, 'multiply');
+
+  const noBlend = styles.transformFills(
+    [{ type: 'SOLID', color: { r: 0, g: 1, b: 0 }, opacity: 1 }],
+    warn,
+    unsupported
+  );
+  assert('no blend mode', noBlend[0].blendMode, undefined);
+}
+
+/**
+ * Test PATTERN fill type conversion
+ */
+function testPatternFills() {
+  const warn = () => {};
+  const unsupported = new Set();
+  const fills = styles.transformFills(
+    [{ type: 'PATTERN', imageRef: 'pat-123', opacity: 0.8, scalingFactor: 2 }],
+    warn,
+    unsupported
+  );
+  assert('pattern fill type', fills[0].type, 'image');
+  assert('pattern scale mode', fills[0].scaleMode, 'TILE');
+  assert('pattern tile scale', fills[0].tileScale, 2);
+  assert('pattern image ref', fills[0].imageRef, 'pat-123');
+}
+
+/**
+ * Test stroke miter limit passthrough
+ */
+function testStrokeMiterLimit() {
+  const strokes = styles.transformStrokes(
+    [{ type: 'SOLID', color: { r: 1, g: 0, b: 0 }, opacity: 1 }],
+    { strokeWeight: 2, strokeAlign: 'CENTER', strokeMiterAngle: 8 }
+  );
+  assert('miter limit', strokes[0].miterLimit, 8);
+
+  const noMiter = styles.transformStrokes(
+    [{ type: 'SOLID', color: { r: 1, g: 0, b: 0 }, opacity: 1 }],
+    { strokeWeight: 2, strokeAlign: 'CENTER' }
+  );
+  assert('no miter limit', noMiter[0].miterLimit, undefined);
+}
+
+/**
+ * Test image fill tiling properties passthrough
+ */
+function testTilingProps() {
+  const warn = () => {};
+  const unsupported = new Set();
+  const fills = styles.transformFills(
+    [{
+      type: 'IMAGE',
+      imageRef: 'tile-img',
+      scaleMode: 'TILE',
+      opacity: 1,
+      scalingFactor: 0.5,
+      tileOffsetX: 10,
+      tileOffsetY: 20,
+    }],
+    warn,
+    unsupported
+  );
+  assert('tile scale', fills[0].tileScale, 0.5);
+  assert('tile offset x', fills[0].tileOffsetX, 10);
+  assert('tile offset y', fills[0].tileOffsetY, 20);
+}
+
+/**
+ * Test shadow effect carries color alpha and effect opacity through
+ */
+function testShadowEffectOpacity() {
+  const warn = () => {};
+  const effects = styles.transformEffects(
+    [{
+      type: 'DROP_SHADOW',
+      visible: true,
+      color: { r: 0, g: 0, b: 0, a: 0.5 },
+      offset: { x: 0, y: 2 },
+      radius: 4,
+      spread: 0,
+      opacity: 0.8,
+    }],
+    warn
+  );
+  assert('shadow opacity combined', effects[0].opacity, 0.4);
+
+  const noEffectOpacity = styles.transformEffects(
+    [{
+      type: 'DROP_SHADOW',
+      visible: true,
+      color: { r: 0, g: 0, b: 0, a: 0.5 },
+      offset: { x: 0, y: 2 },
+      radius: 4,
+      spread: 0,
+    }],
+    warn
+  );
+  assert('shadow opacity from alpha only', noEffectOpacity[0].opacity, 0.5);
+}
+
+/**
+ * Test gradient position extraction from affine transform matrix
+ */
+function testGradientPositions() {
+  const warn = () => {};
+  const unsupported = new Set();
+
+  const identity = styles.transformFills(
+    [{
+      type: 'GRADIENT_LINEAR',
+      opacity: 1,
+      gradientStops: [
+        { position: 0, color: { r: 1, g: 0, b: 0, a: 1 } },
+        { position: 1, color: { r: 0, g: 0, b: 1, a: 1 } },
+      ],
+      gradientTransform: [[1, 0, 0], [0, 1, 0]],
+    }],
+    warn, unsupported
+  );
+  const grad = identity[0].gradient;
+  assert('identity startX', grad.startX, 0);
+  assert('identity startY', grad.startY, 0.5);
+  assert('identity endX', grad.endX, 1);
+  assert('identity endY', grad.endY, 0.5);
+
+  const rotated = styles.transformFills(
+    [{
+      type: 'GRADIENT_LINEAR',
+      opacity: 1,
+      gradientStops: [
+        { position: 0, color: { r: 1, g: 0, b: 0, a: 1 } },
+        { position: 1, color: { r: 0, g: 0, b: 1, a: 1 } },
+      ],
+      gradientTransform: [[0, -1, 1], [1, 0, 0]],
+    }],
+    warn, unsupported
+  );
+  const rGrad = rotated[0].gradient;
+  assert('rotated startX', rGrad.startX, 0.5);
+  assert('rotated startY', rGrad.startY, 0);
+  assert('rotated endX', rGrad.endX, 0.5);
+  assert('rotated endY', rGrad.endY, 1);
 }
 
 const failures = runTests();

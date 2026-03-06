@@ -38,6 +38,9 @@ function runTests() {
   testParagraphSplit();
   testParagraphSet();
   testPerCharOverrides();
+  testListMarkers();
+  testOpenTypeFeatures();
+  testHyperlinks();
   console.log(`\n  ${passed} passed, ${failed} failed`);
   return failed;
 }
@@ -160,6 +163,100 @@ function testPerCharOverrides() {
   const runs = result.children[0].children[0].children;
   assert('two text runs', runs.length, 2);
   assert('second run color', runs[1]['fill-color'], '#ff0000');
+}
+
+/**
+ * Test list markers on paragraphs via buildParagraphSet
+ */
+function testListMarkers() {
+  const ordered = {
+    characters: 'Item one',
+    style: {
+      fontFamily: 'Inter',
+      fontSize: 16,
+      fontWeight: 400,
+      textAlignHorizontal: 'LEFT',
+      listType: 'ORDERED',
+    },
+    textAutoResize: 'HEIGHT',
+    fills: [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 } }],
+  };
+  const ordResult = text.buildParagraphSet(ordered);
+  const ordPara = ordResult.children[0].children[0];
+  assert('ordered list type', ordPara['list-type'], 'number');
+
+  const unordered = {
+    characters: 'Bullet item',
+    style: {
+      fontFamily: 'Inter',
+      fontSize: 16,
+      fontWeight: 400,
+      textAlignHorizontal: 'LEFT',
+      listType: 'UNORDERED',
+    },
+    textAutoResize: 'HEIGHT',
+    fills: [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 } }],
+  };
+  const unordResult = text.buildParagraphSet(unordered);
+  const unordPara = unordResult.children[0].children[0];
+  assert('unordered list type', unordPara['list-type'], 'disc');
+
+  const noList = {
+    characters: 'Plain text',
+    style: {
+      fontFamily: 'Inter',
+      fontSize: 16,
+      fontWeight: 400,
+      textAlignHorizontal: 'LEFT',
+    },
+    textAutoResize: 'HEIGHT',
+    fills: [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 } }],
+  };
+  const noListResult = text.buildParagraphSet(noList);
+  const noListPara = noListResult.children[0].children[0];
+  assert('no list type', noListPara['list-type'], undefined);
+}
+
+/**
+ * Test OpenType features on text runs
+ */
+function testOpenTypeFeatures() {
+  const node = {
+    characters: 'Hello',
+    style: {
+      fontFamily: 'Inter',
+      fontSize: 16,
+      fontWeight: 400,
+      textAlignHorizontal: 'LEFT',
+      openTypeFeatures: { smcp: true, liga: false },
+    },
+    textAutoResize: 'HEIGHT',
+    fills: [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 } }],
+  };
+  const result = text.buildParagraphSet(node);
+  const run = result.children[0].children[0].children[0];
+  assert('opentype features', run['font-variant-settings'], '"smcp" 1, "liga" 0');
+}
+
+/**
+ * Test hyperlink on text runs
+ */
+function testHyperlinks() {
+  const node = {
+    characters: 'Click here',
+    style: {
+      fontFamily: 'Inter',
+      fontSize: 16,
+      fontWeight: 400,
+      textAlignHorizontal: 'LEFT',
+      hyperlink: { url: 'https://example.com' },
+    },
+    textAutoResize: 'HEIGHT',
+    fills: [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 } }],
+  };
+  const result = text.buildParagraphSet(node);
+  const run = result.children[0].children[0].children[0];
+  assert('hyperlink url', run['hyperlink'], 'https://example.com');
 }
 
 const failures = runTests();

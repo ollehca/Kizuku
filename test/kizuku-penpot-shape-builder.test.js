@@ -5,6 +5,7 @@
  */
 
 const shapes = require('../src/services/kizuku-penpot-shape-builder');
+const imageBuilder = require('../src/services/kizuku-penpot-image-builder');
 
 let passed = 0;
 let failed = 0;
@@ -53,12 +54,19 @@ function runTests() {
   testLegacyFills();
   testStrokes();
   testEffects();
+  testShadowHiddenFlag();
+  testImageTransform();
+  testGridLayout();
   testPathSegments();
   testCornerRadius();
   testConstraints();
   testLayoutConversion();
   testLayoutChildConversion();
   testDisplayProps();
+  testPerFillBlendMode();
+  testStrokeMiterLimit();
+  testTilingOutput();
+  testShadowOpacity();
   console.log(`\n  ${passed} passed, ${failed} failed`);
   return failed;
 }
@@ -158,6 +166,88 @@ function testEffects() {
 }
 
 /**
+ * Test shadow hidden flag passthrough in convertShadowEffect
+ */
+function testShadowHiddenFlag() {
+  const { shadow } = shapes.convertEffectsToPenpot([
+    {
+      type: 'drop-shadow',
+      color: '#000000',
+      offsetX: 2,
+      offsetY: 4,
+      blur: 8,
+      spread: 0,
+      hidden: true,
+    },
+    {
+      type: 'inner-shadow',
+      color: '#ff0000',
+      offsetX: 0,
+      offsetY: 2,
+      blur: 4,
+      spread: 0,
+      hidden: false,
+    },
+  ]);
+  assert('hidden shadow flag', shadow[0].hidden, true);
+  assert('visible shadow flag', shadow[1].hidden, false);
+
+  const { blur } = shapes.convertEffectsToPenpot([
+    { type: 'blur', value: 5, hidden: true },
+  ]);
+  assert('hidden blur flag', blur.hidden, true);
+}
+
+/**
+ * Test image fill with imageTransform matrix attached
+ */
+function testImageTransform() {
+  imageBuilder.setImageAssets([]);
+  const fills = shapes.convertFillsToPenpot([
+    {
+      type: 'image',
+      imageRef: 'img-transform',
+      scaleMode: 'CROP',
+      opacity: 1,
+      imageTransform: [[0.5, 0, 0.1], [0, 0.75, 0.2]],
+    },
+  ]);
+  assertTrue('image fill present', fills[0]['fill-image']);
+  assertTrue('image transform present', fills[0]['fill-image-transform']);
+  assert('transform scaleX', fills[0]['fill-image-transform'].scaleX, 0.5);
+  assert('transform scaleY', fills[0]['fill-image-transform'].scaleY, 0.75);
+  assert('transform offsetX', fills[0]['fill-image-transform'].offsetX, 0.1);
+  assert('transform offsetY', fills[0]['fill-image-transform'].offsetY, 0.2);
+
+  const noTransform = shapes.convertFillsToPenpot([
+    { type: 'image', imageRef: 'img-plain', opacity: 1 },
+  ]);
+  assert('no transform key', noTransform[0]['fill-image-transform'], undefined);
+}
+
+/**
+ * Test grid layout conversion to PenPot format
+ */
+function testGridLayout() {
+  const gridResult = shapes.convertLayoutToPenpot({
+    layout: 'grid',
+    layoutGridDir: 'row',
+    layoutGridRows: [{ type: 'flex', value: 1 }, { type: 'flex', value: 1 }],
+    layoutGridColumns: [{ type: 'flex', value: 1 }, { type: 'flex', value: 1 }],
+    layoutGridCells: { 'cell-1': { id: 'cell-1', row: 1, column: 1 } },
+    layoutGap: { rowGap: 4, columnGap: 8 },
+    layoutPadding: { p1: 10, p2: 10, p3: 10, p4: 10 },
+  });
+  assert('grid layout type', gridResult.layout, 'grid');
+  assert('grid dir', gridResult['layout-grid-dir'], 'row');
+  assert('grid rows count', gridResult['layout-grid-rows'].length, 2);
+  assert('grid cols count', gridResult['layout-grid-columns'].length, 2);
+  assertTrue('grid cells present', gridResult['layout-grid-cells']['cell-1']);
+  assert('grid gap row', gridResult['layout-gap'].rowGap, 4);
+  assert('grid padding p1', gridResult['layout-padding'].p1, 10);
+}
+
+/**
  * Test path segment conversion
  */
 function testPathSegments() {
@@ -241,6 +331,13 @@ function testLayoutChildConversion() {
   assert('absolute', result['layout-item-absolute'], true);
 
   assert('null child', shapes.convertLayoutChildToPenpot(null), {});
+
+  const withShrink = shapes.convertLayoutChildToPenpot({
+    layoutItemHSizing: 'fix',
+    layoutItemVSizing: 'fix',
+    layoutItemShrink: 0,
+  });
+  assert('shrink factor', withShrink['layout-item-shrink'], 0);
 }
 
 /**
@@ -263,6 +360,88 @@ function testDisplayProps() {
 
   const hidden = shapes.extractDisplayProps({ hidden: true, visible: true });
   assert('hidden overrides visible', hidden.visible, false);
+}
+
+/**
+ * Test per-fill blend mode passthrough to PenPot fills
+ */
+function testPerFillBlendMode() {
+  const fills = shapes.convertFillsToPenpot([
+    { type: 'color', color: '#ff0000', opacity: 1, blendMode: 'multiply' },
+    { type: 'color', color: '#00ff00', opacity: 1 },
+  ]);
+  assert('fill blend mode', fills[0]['fill-blend-mode'], 'multiply');
+  assert('no blend mode', fills[1]['fill-blend-mode'], undefined);
+}
+
+/**
+ * Test stroke miter limit passthrough
+ */
+function testStrokeMiterLimit() {
+  const strokes = shapes.convertStrokesToPenpot([
+    {
+      color: '#ff0000',
+      opacity: 1,
+      width: 2,
+      alignment: 'center',
+      style: 'solid',
+      join: 'miter',
+      miterLimit: 10,
+    },
+  ]);
+  assert('miter limit', strokes[0]['stroke-miter-limit'], 10);
+  assert('stroke join', strokes[0]['stroke-join'], 'miter');
+}
+
+/**
+ * Test tiling properties passthrough to PenPot image fill
+ */
+function testTilingOutput() {
+  imageBuilder.setImageAssets([]);
+  const fills = shapes.convertFillsToPenpot([
+    {
+      type: 'image',
+      imageRef: 'tile-img',
+      scaleMode: 'TILE',
+      opacity: 1,
+      tileScale: 0.5,
+      tileOffsetX: 10,
+      tileOffsetY: 20,
+    },
+  ]);
+  assert('tile scale output', fills[0]['fill-image-tile-scale'], 0.5);
+  assert('tile offset x output', fills[0]['fill-image-tile-offset-x'], 10);
+  assert('tile offset y output', fills[0]['fill-image-tile-offset-y'], 20);
+}
+
+/**
+ * Test shadow opacity is correctly passed through to PenPot format
+ */
+function testShadowOpacity() {
+  const { shadow } = shapes.convertEffectsToPenpot([
+    {
+      type: 'drop-shadow',
+      color: '#ff0000',
+      opacity: 0.4,
+      offsetX: 0,
+      offsetY: 2,
+      blur: 4,
+      spread: 0,
+    },
+  ]);
+  assert('shadow opacity from effect', shadow[0].color.opacity, 0.4);
+
+  const { shadow: noOpacity } = shapes.convertEffectsToPenpot([
+    {
+      type: 'drop-shadow',
+      color: 'rgba(255, 0, 0, 0.7)',
+      offsetX: 0,
+      offsetY: 2,
+      blur: 4,
+      spread: 0,
+    },
+  ]);
+  assert('shadow opacity from rgba', noOpacity[0].color.opacity, 0.7);
 }
 
 const failures = runTests();
